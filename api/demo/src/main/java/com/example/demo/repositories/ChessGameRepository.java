@@ -1,6 +1,6 @@
-package com.example.demo.repository;
+package com.example.demo.repositories;
 
-import com.example.demo.model.ChessGame;
+import com.example.demo.models.ChessGame;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

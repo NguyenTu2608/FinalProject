@@ -1,87 +1,76 @@
 import React from "react";
+import "./Chessboard.css";
 
-const initialBoard = [
-  ["xe_den", "ma_den", "tuong_den", "si_den", "tướng_đen", "si_den", "tuong_den", "ma_den", "xe_den"],
-  [null, null, null, null, null, null, null, null, null],
-  [null, "phao_den", null, null, null, null, null, "phao_den", null],
-  ["tot_den", null, "tot_den", null, "tot_den", null, "tot_den", null, "tot_den"],
-  [null, null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null, null],
-  ["tot_do", null, "tot_do", null, "tot_do", null, "tot_do", null, "tot_do"],
-  [null, "phao_do", null, null, null, null, null, "phao_do", null],
-  [null, null, null, null, null, null, null, null, null],
-  ["xe_do", "ma_do", "tuong_do", "si_do", "tướng_đỏ", "si_do", "tuong_do", "ma_do", "xe_do"],
-];
+const Chessboard = () => {
+  // Danh sách quân cờ với vị trí (cột, hàng)
+  const initialPieces = [
+    { type: "車", position: [1, 1] },
+    { type: "馬", position: [2, 1] },
+    { type: "象", position: [3, 1] },
+    { type: "士", position: [4, 1] },
+    { type: "帥", position: [5, 1] },
+    { type: "士", position: [6, 1] },
+    { type: "象", position: [7, 1] },
+    { type: "馬", position: [8, 1] },
+    { type: "車", position: [9, 1] },
+    { type: "炮", position: [2, 3] },
+    { type: "炮", position: [8, 3] },
+    { type: "兵", position: [1, 4] },
+    { type: "兵", position: [3, 4] },
+    { type: "兵", position: [5, 4] },
+    { type: "兵", position: [7, 4] },
+    { type: "兵", position: [9, 4] },
+    // Quân đối thủ
+    { type: "卒", position: [1, 7] },
+    { type: "卒", position: [3, 7] },
+    { type: "卒", position: [5, 7] },
+    { type: "卒", position: [7, 7] },
+    { type: "卒", position: [9, 7] },
+    { type: "炮", position: [2, 8] },
+    { type: "炮", position: [8, 8] },
+    { type: "車", position: [1, 10] },
+    { type: "馬", position: [2, 10] },
+    { type: "象", position: [3, 10] },
+    { type: "士", position: [4, 10] },
+    { type: "將", position: [5, 10] },
+    { type: "士", position: [6, 10] },
+    { type: "象", position: [7, 10] },
+    { type: "馬", position: [8, 10] },
+    { type: "車", position: [9, 10] },
+  ];
 
-export default function Chessboard() {
-  const renderCell = (row, col, piece) => {
-    const isSpecialRow = row === 4 || row === 5;
-    const cellStyle = {
-      width: "60px",
-      height: "60px",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#f0d9b5",
-      border: "1px solid #8b4513",
-      position: "relative",
-    };
-
-    if (isSpecialRow && (col === 3 || col === 5)) {
-      cellStyle.backgroundColor = "#e8c888";
-    }
-
-    return (
-      <div key={`${row}-${col}`} style={cellStyle}>
-        {piece && (
-          <img
-            src={`/Assets/${piece}.png`}
-            alt={piece}
-            style={{ width: "50px", height: "50px", borderRadius: "50%" }}
-          />
-        )}
-      </div>
-    );
+  // Render quân cờ tại đúng nút giao
+  const renderPieces = () => {
+    return initialPieces.map((piece, index) => {
+      const [col, row] = piece.position;
+      return (
+        <div
+          key={index}
+          className="chess-piece"
+          style={{
+            left: `${(col - 1) * 50}px`,
+            top: `${(row - 1) * 50}px`,
+          }}
+        >
+          {piece.type}
+        </div>
+      );
+    });
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "10px",
-        backgroundColor: "#c19a6b",
-        borderRadius: "10px",
-        border: "3px solid #5c3d2e",
-      }}
-    >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(9, 60px)",
-          gridTemplateRows: "repeat(10, 60px)",
-          gap: "0px",
-        }}
-      >
-        {initialBoard.map((row, rowIndex) =>
-          row.map((piece, colIndex) => renderCell(rowIndex, colIndex, piece))
-        )}
+    <div className="chessboard">
+      {/* Các ô vuông */}
+      <div className="grid">
+        {Array.from({ length: 90 }).map((_, index) => (
+          <div key={index} className="grid-cell"></div>
+        ))}
       </div>
-      <div
-        style={{
-          marginTop: "20px",
-          padding: "10px 20px",
-          backgroundColor: "#a83232",
-          color: "white",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontWeight: "bold",
-          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-        }}
-      >
-        Sẵn sàng
-      </div>
+
+      {/* Các quân cờ */}
+      {renderPieces()}
     </div>
   );
-}
+};
+
+export default Chessboard;

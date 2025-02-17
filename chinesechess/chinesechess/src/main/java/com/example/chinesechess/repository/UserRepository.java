@@ -1,4 +1,4 @@
-package com.example.chinesechess.responsitory;
+package com.example.chinesechess.repository;
 
 import com.example.chinesechess.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;

@@ -11,6 +11,8 @@ public class User {
     private String email;
     private String password;
     private int elo; // Điểm xếp hạng của người chơi
+    private String role;
+
 
     // Constructor không tham số (cần thiết cho Spring)
     public User() {}
@@ -22,6 +24,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.elo = elo;
+        this.role = role;
     }
 
     // Getter và Setter
@@ -55,6 +58,12 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+    public void setRole(String role) {
+        this.role = role;
+    }
+    public String getRole() {
+        return role;
     }
 
     public int getElo() {

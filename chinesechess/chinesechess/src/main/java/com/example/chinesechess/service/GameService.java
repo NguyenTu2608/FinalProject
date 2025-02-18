@@ -1,6 +1,7 @@
 package com.example.chinesechess.service;
 
 import com.example.chinesechess.model.Game;
+import com.example.chinesechess.model.User;
 import com.example.chinesechess.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,10 @@ public class GameService {
 
     @Autowired
     private GameRepository gameRepository;
+
+    public List<Game> getAllGames() {
+        return gameRepository.findAll();
+    }
 
     // Create a new game
     public Game createGame(String playerWhite, String playerBlack) {

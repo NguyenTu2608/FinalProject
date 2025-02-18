@@ -3,31 +3,25 @@ package com.example.chinesechess.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "users") // MongoDB collection "users"
+@Document(collection = "users")
 public class User {
+
     @Id
-    private String id;
-    private String username;
-    private String email;
-    private String password;
-    private int elo; // Điểm xếp hạng của người chơi
-    private String role;
+    private String id; // Unique user ID
+    private String username; // Unique username
+    private String password; // Hashed password
+    private String email; // Email address
 
-
-    // Constructor không tham số (cần thiết cho Spring)
-    public User() {}
-
-    // Constructor có tham số
-    public User(String id, String username, String email, String password, int elo) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.elo = elo;
-        this.role = role;
+    public User() {
     }
 
-    // Getter và Setter
+    public User(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
+
+    // Getters and Setters
     public String getId() {
         return id;
     }
@@ -44,14 +38,6 @@ public class User {
         this.username = username;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getPassword() {
         return password;
     }
@@ -59,18 +45,12 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
-    public void setRole(String role) {
-        this.role = role;
-    }
-    public String getRole() {
-        return role;
+
+    public String getEmail() {
+        return email;
     }
 
-    public int getElo() {
-        return elo;
-    }
-
-    public void setElo(int elo) {
-        this.elo = elo;
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

@@ -1,23 +1,22 @@
 import React, { useState } from "react";
 import GameManager from "./GameManager";
-// import TurnManager from "./TurnManager";x
 
 // Ảnh quân cờ
 const pieceImages = {
-  r: "./Assets/red-rook.png",
-  n: "./Assets/red-knight.png",
-  b: "./Assets/red-bishop.png",
-  a: "./Assets/red-advisor.png",
-  k: "./Assets/red-king.png",
-  c: "./Assets/red-cannon.png",
-  p: "./Assets/red-pawn.png",
-  R: "./Assets/black-rook.png",
-  N: "./Assets/black-knight.png",
-  B: "./Assets/black-bishop.png",
-  A: "./Assets/black-advisor.png",
-  K: "./Assets/black-king.png",
-  C: "./Assets/black-cannon.png",
-  P: "./Assets/black-pawn.png",
+  r: "/Assets/red-rook.png",
+  n: "/Assets/red-knight.png",
+  b: "/Assets/red-bishop.png",
+  a: "/Assets/red-advisor.png",
+  k: "/Assets/red-king.png",
+  c: "/Assets/red-cannon.png",
+  p: "/Assets/red-pawn.png",
+  R: "/Assets/black-rook.png",
+  N: "/Assets/black-knight.png",
+  B: "/Assets/black-bishop.png",
+  A: "/Assets/black-advisor.png",
+  K: "/Assets/black-king.png",
+  C: "/Assets/black-cannon.png",
+  P: "/Assets/black-pawn.png",
 };
 
 // Bàn cờ khởi tạo
@@ -38,49 +37,48 @@ const Chessboard = () => {
   const [board, setBoard] = useState(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
-  // const [currentTurn, setCurrentTurn] = useState("red"); // Quản lý lượt chơi bằng state
   const gameManager = new GameManager(board);
-  // const turnManager = new TurnManager();
 
   const handleClick = (row, col) => {
     const piece = board[row][col];
 
-    // // Kiểm tra lượt chơi
-    // if (piece && !turnManager.isPlayerTurn(piece, currentTurn)) {
-    //   console.log("Không phải lượt của bạn!");
-    //   return;
-    // }
+    console.log(`Clicked: Piece=${piece}, Row=${row}, Col=${col}`);
 
     if (selectedPiece) {
       if (validMoves.some(([r, c]) => r === row && c === col)) {
-        // Di chuyển quân cờ
-        const newBoard = gameManager.movePiece(selectedPiece.row, selectedPiece.col, row, col);
-        setBoard(newBoard);
+        console.log("Valid move detected!");
+
+        // Move the piece
+        const newBoard = gameManager.movePiece(
+          selectedPiece.row,
+          selectedPiece.col,
+          row,
+          col
+        );
+
+        setBoard([...newBoard]); // Ensure a new state reference
         setSelectedPiece(null);
         setValidMoves([]);
-        // setCurrentTurn(turnManager.switchTurn(currentTurn)); // Cập nhật lượt chơi
       } else {
+        console.log("Invalid move, resetting selection.");
         setSelectedPiece(null);
         setValidMoves([]);
       }
-
     } else if (piece) {
-      // Chọn quân cờ và tính nước đi hợp lệ
+      console.log(`Selecting piece: ${piece}`);
+      const valid = gameManager.getValidMoves(piece, row, col);
       setSelectedPiece({ row, col, piece });
-      setValidMoves(gameManager.getValidMoves(piece, row, col));
+      setValidMoves(valid);
+      console.log("Valid moves:", valid);
     }
   };
+
   const boardSize = 500;
   const cellSize = boardSize / 9;
 
   return (
-
-
     <div className="relative w-[500px] h-[550px] mx-auto">
-      {/* <div className="text-center mb-2">
-      Lượt hiện tại: {turnManager.current.getCurrentTurn() === "red" ? "Đỏ" : "Đen"}
-    </div> */}
-      <img src="./Assets/chessboard.png" alt="Chessboard" className="w-full h-full" />
+      <img src="/Assets/chessboard.png" alt="Chessboard" className="w-full h-full" />
 
       {board.map((row, rowIndex) =>
         row.map((piece, colIndex) =>

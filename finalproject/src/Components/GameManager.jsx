@@ -8,7 +8,8 @@ class GameManager {
     const moves = [];
     const isRed = piece === piece.toLowerCase();
 
-    switch (piece.toLowerCase()) {
+    console.log('pice-move', piece)
+    switch (piece.toLowerCase().trim()) {
       case "p": // Tốt (Pawn)
         if (isRed) {
           // Quân đỏ (p) đi lên
@@ -48,6 +49,9 @@ class GameManager {
         break;
 
       case "a": // Sĩ (Advisor)
+      console.log('Quan Si -row:', row)
+      console.log('Quan Si -col:', col)
+
         this.addAdvisorMoves(moves, row, col, isRed);
         break;
 
@@ -164,50 +168,128 @@ class GameManager {
     }
   }
 
-  // Di chuyển Sĩ (Advisor)
-  addAdvisorMoves(moves, row, col, isRed) {
-    // Phạm vi cung của mỗi bên
-    const palaceRows = isRed ? [7, 9] : [0, 2]; // Quân đỏ ở hàng 7-9, quân đen ở hàng 0-2
-    const palaceCols = [3, 5]; // Cung nằm giữa cột 3-5
+  // // Di chuyển Sĩ (Advisor)
+  // addAdvisorMoves(moves, row, col, isRed) {
+  //   // Phạm vi cung của mỗi bên
+  //   const palaceRows = isRed ? [7, 9] : [0, 2]; // Quân đỏ ở hàng 7-9, quân đen ở hàng 0-2
+  //   const palaceCols = [3, 5]; // Cung nằm giữa cột 3-5
   
-    // Các hướng di chuyển chéo của Sĩ
-    const advisorMoves = [
-      [-1, -1], // Lên trái
-      [-1, 1],  // Lên phải
-      [1, -1],  // Xuống trái
-      [1, 1]    // Xuống phải
+  //   // Các hướng di chuyển chéo của Sĩ
+  //   const advisorMoves = [
+  //     [-1, -1], // Lên trái
+  //     [-1, 1],  // Lên phải
+  //     [1, -1],  // Xuống trái
+  //     [1, 1]    // Xuống phải
+  //   ];
+  
+  //   // Duyệt qua các hướng di chuyển
+  //   advisorMoves.forEach(([dr, dc]) => {
+  //     const r = row + dr; // Hàng đích
+  //     const c = col + dc; // Cột đích
+  
+  //     // Kiểm tra xem vị trí đích có nằm trong cung không
+  //     if (
+  //       r >= palaceRows[0] && r <= palaceRows[1] && // Kiểm tra hàng
+  //       c >= palaceCols[0] && c <= palaceCols[1]    // Kiểm tra cột
+  //     ) {
+  //       // Kiểm tra xem có thể di chuyển đến ô đích không
+  //       if (this.canMove(r, c, isRed)) {
+  //         moves.push([r, c]);
+  //       }
+  //     }
+  //   });
+  // }
+// Di chuyển Sĩ (Advisor) 
+addAdvisorMoves(moves, row, col, isRed) {
+  // Phạm vi cung của mỗi bên
+  const palaceRows = !isRed ? [7, 8, 9] : [0, 1, 2]; // Đỏ: hàng 7-9, Đen: hàng 0-2
+  const palaceCols = [3, 4, 5]; // Cung nằm giữa cột 3-5
+
+  // Các hướng di chuyển chéo của Sĩ
+  const advisorMoves = [
+    [-1, -1], // Lên trái
+    [-1, 1],  // Lên phải
+    [1, -1],  // Xuống trái
+    [1, 1]    // Xuống phải
+  ];
+
+  // Duyệt qua các hướng di chuyển
+  advisorMoves.forEach(([dr, dc]) => {
+    const r = row + dr; // Hàng đích
+    const c = col + dc; // Cột đích
+
+    // Kiểm tra xem vị trí đích có nằm trong cung không
+    if (palaceRows.includes(r) && palaceCols.includes(c)) {
+      // Kiểm tra xem có thể di chuyển đến ô đích không
+      if (this.board[r][c] === "" || this.isOpponentPiece(r, c, isRed)) {
+        moves.push([r, c]);
+      }
+    }
+  });
+}
+
+// Hàm kiểm tra quân đối phương
+isOpponentPiece(row, col, isRed) {
+  const piece = this.board[row][col];
+  if (!piece) return false; // Ô trống không phải quân đối phương
+  const isPieceRed = piece === piece.toLowerCase(); // Quân đỏ là chữ thường
+  return isPieceRed !== isRed; // Nếu khác màu => là quân đối phương
+}
+
+
+  // Di chuyển Tướng (King)
+  addKingMoves(moves, row, col, isRed) {
+    // Phạm vi cung của mỗi bên
+    const palaceRows = !isRed ? [7, 8, 9] : [0, 1, 2]; // Đỏ: hàng 7-9, Đen: hàng 0-2
+    const palaceCols = [3, 4, 5]; // Cung nằm giữa cột 3-5
+  
+    // Các hướng di chuyển của Tướng (ngang và dọc)
+    const kingMoves = [
+      [-1, 0], // Lên
+      [1, 0],  // Xuống
+      [0, -1], // Sang trái
+      [0, 1]   // Sang phải
     ];
   
     // Duyệt qua các hướng di chuyển
-    advisorMoves.forEach(([dr, dc]) => {
+    kingMoves.forEach(([dr, dc]) => {
       const r = row + dr; // Hàng đích
       const c = col + dc; // Cột đích
   
       // Kiểm tra xem vị trí đích có nằm trong cung không
-      if (
-        r >= palaceRows[0] && r <= palaceRows[1] && // Kiểm tra hàng
-        c >= palaceCols[0] && c <= palaceCols[1]    // Kiểm tra cột
-      ) {
+      if (palaceRows.includes(r) && palaceCols.includes(c)) {
         // Kiểm tra xem có thể di chuyển đến ô đích không
-        if (this.canMove(r, c, isRed)) {
+        if (this.board[r][c] === "" || this.isOpponentPiece(r, c, isRed)) {
           moves.push([r, c]);
         }
       }
     });
+  
+    // Kiểm tra đối mặt trực tiếp với Tướng đối phương (tùy chọn)
+    this.checkFaceToFaceKing(moves, row, col, isRed);
   }
-
-  // Di chuyển Tướng (King)
-  addKingMoves(moves, row, col, isRed) {
-    const palaceRows = isRed ? [7, 9] : [0, 2];
-    const kingMoves = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-
-    kingMoves.forEach(([dr, dc]) => {
-      const r = row + dr;
-      const c = col + dc;
-      if (r >= palaceRows[0] && r <= palaceRows[1] && c >= 3 && c <= 5) {
-        moves.push([r, c]);
+  
+  // Hàm kiểm tra đối mặt trực tiếp với Tướng đối phương
+  checkFaceToFaceKing(moves, row, col, isRed) {
+    console.log('chekc')
+    const kingRow = isRed ? 7 : 2; // Hàng của Tướng đối phương
+    let hasObstacle = false;
+  
+    // Duyệt từ hàng hiện tại đến hàng của Tướng đối phương
+    for (let r = row + 1; r <= kingRow; r++) {
+      if (this.board[r][col] !== "") {
+        if (this.board[r][col].toLowerCase() === "k") {
+          // Nếu gặp Tướng đối phương mà không có quân chặn
+          if (!hasObstacle) {
+            // Loại bỏ nước đi thẳng lên hoặc xuống (tùy thuộc vào luật chơi)
+            moves = moves.filter(([moveRow, moveCol]) => moveCol !== col);
+          }
+          break;
+        } else {
+          hasObstacle = true; // Có quân chặn
+        }
       }
-    });
+    }
   }
 
   // Cập nhật bàn cờ khi quân cờ di chuyển

@@ -25,6 +25,12 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    public User createUser(User user) {
+        // Hash the password before saving
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -42,9 +48,13 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public boolean authenticate(String email, String rawPassword) {
-        Optional<User> user = userRepository.findByEmail(email);
-        return user.isPresent() && passwordEncoder.matches(rawPassword, user.get().getPassword());
+
+
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
     }
 
 }

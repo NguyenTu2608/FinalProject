@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 body {
+  background-image: url('../public/Assets/background.png');
+  background-size: cover; /* Ảnh phủ kín màn hình nhưng không bị méo */
+  background-position: center; /* Căn giữa ảnh */
+  background-repeat: no-repeat; /* Không lặp lại */
+  height: 100vh; /* Đảm bảo toàn bộ chiều cao màn hình */
+  width: 100vw; /* Đảm bảo toàn bộ chiều rộng màn hình */
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-const Lobby = () => {
+const Pratice = () => {
   const navigate = useNavigate();
 
   return (
@@ -11,25 +11,19 @@ const Lobby = () => {
       {/* Các nút lựa chọn */}
       <div className="flex flex-col gap-6 w-80">
         <button
-          onClick={() => navigate("/Lobby/Room")}
+          onClick={() => navigate("/Pratice/Room")}
           className="w-full py-4 bg-blue-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-blue-700 shadow-md"
         >
-          🏠 Tạo phòng
+          🏠 Hai người chời
         </button>
 
         <button
-          onClick={() => navigate("/Lobby/tim-phong")}
+          onClick={() => navigate("/Pratice/tim-phong")}
           className="w-full py-4 bg-green-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md"
         >
-          🔍 Tìm phòng
+          🔍 Chơi với máy
         </button>
 
-        <button
-          onClick={() => navigate("/Lobby/gia-nhap-phong")}
-          className="w-full py-4 bg-yellow-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-yellow-700 shadow-md"
-        >
-          🔑 Gia nhập phòng
-        </button>
       </div>
 
       {/* Nút Back */}
@@ -44,4 +38,4 @@ const Lobby = () => {
   );
 };
 
-export default Lobby;
+export default Pratice;

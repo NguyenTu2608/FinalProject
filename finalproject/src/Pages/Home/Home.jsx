@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Menu from "../../Components/Menu";
-import Lobby from "../Game/Lobby";
 
 const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -45,7 +44,7 @@ const Home = () => {
 
         {/* Nhóm nút góc phải */}
         <div className="flex space-x-4">
-          <Menu />
+          
         </div>
       </div>
 
@@ -68,7 +67,7 @@ const Home = () => {
     </button>
 
     {/* Luyện Tập */}
-    <button onClick={() => navigate("/luyen-tap")} className="relative group">
+    <button onClick={() => navigate("/Pratice")} className="relative group">
       <img
         src="/Assets/iconcotuong2.png"
         alt="Luyện Tập"
@@ -98,28 +97,30 @@ const Home = () => {
 
       {/* Login Modal */}
       {showLoginModal && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white text-black p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Đăng nhập</h2>
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
+          <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-96 animate-fadeIn">
+            <h2 className="text-2xl font-bold mb-4 text-center">Đăng nhập</h2>
             <form>
               <div className="mb-4">
                 <label className="block text-sm font-bold mb-2">Tên đăng nhập</label>
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-gray-600 bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholder="Nhập tên đăng nhập"
                 />
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-bold mb-2">Mật khẩu</label>
                 <input
                   type="password"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-gray-600 bg-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholder="Nhập mật khẩu"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleLogin}
-                className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300"
               >
                 Đăng nhập
               </button>
@@ -127,6 +128,7 @@ const Home = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

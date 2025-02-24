@@ -13,7 +13,6 @@ export default function Game() {
         backgroundColor: "#3e2723",
       }}
     >
-      <h1 style={{ color: "white", marginBottom: "20px" }}>Bàn Cờ Tướng</h1>
       <Chessboard />
     </div>
   );

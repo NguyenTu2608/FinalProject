@@ -37,12 +37,15 @@ const Chessboard = () => {
   const [board, setBoard] = useState(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
-  const gameManager = new GameManager(board);
+  const gameManager = new GameManager(board); 
+  const [currentPlayer, setCurrentPlayer] = useState("red"); // 'red' hoặc 'black'
+  const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
+  
 
   const handleClick = (row, col) => {
     const piece = board[row][col];
-
-    console.log(`Clicked: Piece=${piece}, Row=${row}, Col=${col}`);
+    const isRedPiece = piece && piece === piece.toLowerCase(); // Quân đỏ là chữ thường
+    const isBlackPiece = piece && piece === piece.toUpperCase(); // Quân đen là chữ hoa
 
     if (selectedPiece) {
       if (validMoves.some(([r, c]) => r === row && c === col)) {
@@ -59,18 +62,24 @@ const Chessboard = () => {
         setBoard([...newBoard]); // Ensure a new state reference
         setSelectedPiece(null);
         setValidMoves([]);
+        setErrorMessage("");
+        setCurrentPlayer(currentPlayer === "red" ? "black" : "red"); // Xóa thông báo lỗi
       } else {
-        console.log("Invalid move, resetting selection.");
         setSelectedPiece(null);
         setValidMoves([]);
+        setErrorMessage("Nước đi không hợp lệ!");
       }
-    } else if (piece) {
-      console.log(`Selecting piece: ${piece}`);
-      const valid = gameManager.getValidMoves(piece, row, col);
-      setSelectedPiece({ row, col, piece });
-      setValidMoves(valid);
-      console.log("Valid moves:", valid);
-    }
+    } else if (piece)
+      if ((currentPlayer === "red" && isRedPiece) || (currentPlayer === "black" && isBlackPiece)) {
+
+        const valid = gameManager.getValidMoves(piece, row, col);
+        setSelectedPiece({ row, col, piece });
+        setValidMoves(valid);
+        setErrorMessage(""); // Xóa thông báo lỗi
+      }
+      else {
+        setErrorMessage("Không phải lượt của bạn!");
+      }
   };
 
   const boardSize = 500;
@@ -109,6 +118,18 @@ const Chessboard = () => {
           onClick={() => handleClick(row, col)}
         />
       ))}
+      {/* Hiển thị thông báo lỗi */}
+      {errorMessage && (
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-red-500 text-white p-2 rounded">
+          {errorMessage}
+        </div>
+      )}
+
+      {/* Hiển thị lượt hiện tại trên bàn cờ */}
+      <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-blue-500 text-white p-2 rounded">
+        Lượt hiện tại: {currentPlayer === "red" ? "Đỏ" : "Đen"}
+      </div>
+
     </div>
   );
 };

@@ -11,7 +11,7 @@ const Lobby = () => {
       {/* Các nút lựa chọn */}
       <div className="flex flex-col gap-6 w-80">
         <button
-          onClick={() => navigate("/Lobby/Room")}
+          onClick={() => navigate("/Lobby/game")}
           className="w-full py-4 bg-blue-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-blue-700 shadow-md"
         >
           🏠 Tạo phòng

@@ -38,7 +38,7 @@ const Chessboard = () => {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const gameManager = new GameManager(board); 
-  const [currentPlayer, setCurrentPlayer] = useState("red"); // 'red' hoặc 'black'
+  const [currentPlayer, setCurrentPlayer] = useState("black"); // 'red' hoặc 'black'
   const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
   
 
@@ -74,7 +74,7 @@ const Chessboard = () => {
       } else {
         setSelectedPiece(null);
         setValidMoves([]);
-        setErrorMessage("Nước đi không hợp lệ!");
+        // setErrorMessage("Nước đi không hợp lệ!");
       }
     } else if (piece)
       if ((currentPlayer === "red" && isRedPiece) || (currentPlayer === "black" && isBlackPiece)) {
@@ -85,7 +85,7 @@ const Chessboard = () => {
         setErrorMessage(""); // Xóa thông báo lỗi
       }
       else {
-        setErrorMessage("Không phải lượt của bạn!");
+        // setErrorMessage("Không phải lượt của bạn!");
       }
   };
   
@@ -134,9 +134,9 @@ const Chessboard = () => {
       )}
 
       {/* Hiển thị lượt hiện tại trên bàn cờ */}
-      <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-blue-500 text-white p-2 rounded">
+      {/* <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-blue-500 text-white p-2 rounded">
         Lượt hiện tại: {currentPlayer === "red" ? "Đỏ" : "Đen"}
-      </div>
+      </div> */}
 
     </div>
   );

@@ -46,10 +46,12 @@ const Chessboard = () => {
     const piece = board[row][col];
     const isRedPiece = piece && piece === piece.toLowerCase(); // Quân đỏ là chữ thường
     const isBlackPiece = piece && piece === piece.toUpperCase(); // Quân đen là chữ hoa
-
     if (selectedPiece) {
       if (validMoves.some(([r, c]) => r === row && c === col)) {
-        console.log("Valid move detected!");
+        if (gameManager.isMoveCausingCheck(selectedPiece.row, selectedPiece.col, row, col, currentPlayer === "red")) {
+          setErrorMessage("Nước đi này sẽ gây chiếu tướng!");
+          return; // Không thực hiện nước đi
+        }
 
         // Move the piece
         const newBoard = gameManager.movePiece(
@@ -63,6 +65,11 @@ const Chessboard = () => {
         setSelectedPiece(null);
         setValidMoves([]);
         setErrorMessage("");
+        // Kiểm tra xem Tướng của đối phương có bị chiếu hay không
+        const opponentIsRed = currentPlayer === "black";
+        if (gameManager.isKingInCheck(opponentIsRed)) {
+          setErrorMessage("Chiếu tướng!");
+        }
         setCurrentPlayer(currentPlayer === "red" ? "black" : "red"); // Xóa thông báo lỗi
       } else {
         setSelectedPiece(null);
@@ -81,6 +88,7 @@ const Chessboard = () => {
         setErrorMessage("Không phải lượt của bạn!");
       }
   };
+  
 
   const boardSize = 500;
   const cellSize = boardSize / 9;
@@ -132,6 +140,8 @@ const Chessboard = () => {
 
     </div>
   );
+
+  
 };
 
 export default Chessboard;

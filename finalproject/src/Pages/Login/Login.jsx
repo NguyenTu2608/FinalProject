@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { login } from "../../Services/apiServices";
 import { useNavigate } from "react-router-dom";
+import { FaUser, FaLock, FaEnvelope, FaHome } from "react-icons/fa";
+
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -12,36 +14,53 @@ const Login = () => {
     e.preventDefault();
     try {
       const data = await login(username, password);
-      localStorage.setItem("token", data.token); // Lưu token vào localStorage
-      navigate("/dashboard"); // Điều hướng đến trang chính sau khi đăng nhập
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
     } catch (err) {
-      setError(err);
+      setError("Sai tên đăng nhập hoặc mật khẩu");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h2 className="text-2xl font-bold mb-4">Đăng Nhập</h2>
-      {error && <p className="text-red-500">{error}</p>}
-      <form className="w-80 flex flex-col space-y-4" onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="Tên đăng nhập"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="p-2 border rounded"
-        />
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="p-2 border rounded"
-        />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded">
-          Đăng Nhập
-        </button>
-      </form>
+    <div className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('../public/Assets/background.png')" }}>
+      <button 
+        className="absolute top-5 left-5 flex items-center text-[#D81B60] text-lg font-semibold hover:text-[#B71C1C] transition"
+        onClick={() => navigate("/")}
+      >
+        <FaHome className="mr-2" /> Trang chủ
+      </button>
+      <div className="bg-white p-10 rounded-2xl shadow-2xl w-96 transform transition duration-500 hover:scale-105">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6 font-serif">Đăng Nhập</h2>
+        {error && <p className="text-red-500 text-center mb-4 font-medium font-mono">{error}</p>}
+        <form className="flex flex-col space-y-4" onSubmit={handleLogin}>
+          <div className="flex items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition">
+            <FaUser className="text-gray-500 mr-3" />
+            <input
+              type="text"
+              placeholder="Tên đăng nhập"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full bg-transparent outline-none text-gray-700 font-sans"
+            />
+          </div>
+          <div className="flex items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition">
+            <FaLock className="text-gray-500 mr-3" />
+            <input
+              type="password"
+              placeholder="Mật khẩu"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-transparent outline-none text-gray-700 font-sans"
+            />
+          </div>
+          <button type="submit" className="bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 shadow-md font-serif">
+            Đăng Nhập
+          </button>
+        </form>
+        <p className="text-center text-gray-600 text-sm mt-4 font-mono">
+          Chưa có tài khoản? <a href="/register" className="text-blue-600 font-semibold hover:underline">Đăng ký</a>
+        </p>
+      </div>
     </div>
   );
 };

@@ -4,10 +4,13 @@ const Lobby = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+    <div
+      className="flex flex-col items-center justify-center min-h-screen bg-cover bg-center"
+      style={{ backgroundImage: "url('/Assets/background.png')" }}
+    >
       {/* Tiêu đề */}
-      <h1 className="text-4xl font-bold mb-10 text-yellow-400">Chọn chế độ chơi</h1>
-      
+      <h1 className="text-6xl font-bold mb-10 text-[#003366] drop-shadow-lg">Chọn chế độ chơi</h1>
+
       {/* Các nút lựa chọn */}
       <div className="flex flex-col gap-6 w-80">
         <button
@@ -39,7 +42,6 @@ const Lobby = () => {
       >
         ⬅ Quay lại
       </button>
-
     </div>
   );
 };

@@ -118,7 +118,7 @@ const Chessboard = () => {
       {validMoves.map(([row, col]) => (
         <div
           key={`${row}-${col}`}
-          className="absolute w-[45px] h-[45px] bg-green-500 opacity-50 transform -translate-x-1/2 -translate-y-1/2"
+          className="absolute w-[45px] h-[45px] bg-green-500 opacity-50 transform -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
             left: `${col * cellSize + cellSize / 2}px`,
             top: `${row * cellSize + cellSize / 2}px`,

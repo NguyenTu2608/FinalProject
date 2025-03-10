@@ -1,6 +1,5 @@
 package com.example.chinesechess.controller;
 
-
 import com.example.chinesechess.model.User;
 import com.example.chinesechess.security.JwtUtil;
 import com.example.chinesechess.service.UserService;
@@ -41,7 +40,6 @@ public class AuthController {
         User createdUser = userService.createUser(user);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
-
     /**
      * Sign-in: Authenticate a user and return a JWT token.
      *
@@ -52,7 +50,6 @@ public class AuthController {
     public ResponseEntity<?> signIn(@RequestBody Map<String, String> loginRequest) {
         String username = loginRequest.get("username");
         String password = loginRequest.get("password");
-
         // Find the user by email
         User user = userService.getUserByUsername(username);
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {

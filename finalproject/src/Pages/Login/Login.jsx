@@ -13,13 +13,19 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const data = await login(username, password);
-      localStorage.setItem("token", data.token);
-      navigate("/dashboard");
+      const response = await login(username, password);
+      
+      if (response && response.token) {
+        localStorage.setItem("token", response.token);
+        navigate("/");
+      } else {
+        setError("Đăng nhập không thành công, vui lòng thử lại!");
+      }
     } catch (err) {
       setError("Sai tên đăng nhập hoặc mật khẩu");
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('../public/Assets/background.png')" }}>

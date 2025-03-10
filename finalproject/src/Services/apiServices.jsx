@@ -9,15 +9,7 @@ const api = axios.create({
   },
 });
 
-// Đăng ký tài khoản
-export const register = async (username, password) => {
-  try {
-    const response = await api.post("/sign-up", { username, password });
-    return response.data;
-  } catch (error) {
-    throw error.response.data;
-  }
-};
+
 
 // Đăng nhập
 export const login = async (username, password) => {
@@ -25,6 +17,30 @@ export const login = async (username, password) => {
     const response = await api.post("/sign-in", { username, password });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    if (error.response) {
+      // Nếu backend trả về lỗi cụ thể
+      throw new Error(error.response.data || "Đăng nhập thất bại");
+    } else {
+      // Nếu lỗi không đến từ backend (ví dụ: lỗi mạng)
+      throw new Error("Không thể kết nối đến máy chủ, vui lòng thử lại sau.");
+    }
+  }
+};
+
+
+
+// Đăng ký tài khoản
+export const register = async (username, password, email) => {
+  try {
+    const response = await api.post("/sign-up", { username, password, email });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      // Nếu backend trả về lỗi cụ thể
+      throw new Error(error.response.data || "Đăng ký thất bại");
+    } else {
+      // Nếu lỗi không đến từ backend (ví dụ: lỗi mạng)
+      throw new Error("Không thể kết nối đến máy chủ, vui lòng thử lại sau.");
+    }
   }
 };

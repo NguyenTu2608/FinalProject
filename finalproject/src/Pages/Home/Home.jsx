@@ -1,26 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Menu from "../../Components/Menu";
+
+import Profile from "../../Components/Profile";
 
 const Home = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Trạng thái đăng nhập
-  const navigate = useNavigate(); // Hook điều hướng
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
 
-  // Hàm xử lý đăng nhập giả lập (bạn có thể thay bằng API thực tế)
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-      
-    }
+    setIsLoggedIn(!!token); // Chỉ kiểm tra token
   }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token"); // Xóa token khi đăng xuất
     setIsLoggedIn(false);
-    navigate("/Login");
+    navigate("/");
   };
   return (
     <div
@@ -33,7 +28,6 @@ const Home = () => {
         width: "100vw",
       }}
     >
-      <Menu />
       <div className="flex justify-center items-center h-[85vh]">
         <div className="grid grid-cols-2 gap-48 mt-24">
           {isLoggedIn ? (

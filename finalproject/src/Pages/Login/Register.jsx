@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { register } from "../../Services/apiServices";
+import { register } from "../../Services/authServices";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock, FaEnvelope, FaHome } from "react-icons/fa";
 

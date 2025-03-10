@@ -1,8 +1,6 @@
 package com.example.chinesechess.security;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
@@ -14,8 +12,9 @@ import static javax.crypto.Cipher.SECRET_KEY;
 
 @Component
 public class JwtUtil {
-    private static final String SECRET_KEY = "Akjhsdfjkhsdfhsadhjaskdhasjkhdkjsahdjkashdjkashdjksahdjksadhsakjh"; // Use a secure key
+//    private static final String SECRET_KEY = "Akjhsdfjkhsdfhsadhjaskdhasjkhdkjsahdjkashdjkashdjksahdjksadhsakjh"; // Use a secure key
     private static final long EXPIRATION_TIME = 86400000; // 1 day in milliseconds
+    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     /**
      * Generate a JWT token for a given email.
@@ -32,14 +31,37 @@ public class JwtUtil {
                 .compact();
     }
 
-    public static boolean verifyToken(String token) throws Exception {
+    public static boolean verifyToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
-            return true;
+            Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token);
+            return true; // Token hợp lệ
         } catch (ExpiredJwtException e) {
-            throw new Exception("JWT token is expired");
+            System.out.println("JWT token đã hết hạn: " + e.getMessage());
+        } catch (UnsupportedJwtException e) {
+            System.out.println("JWT token không được hỗ trợ: " + e.getMessage());
+        } catch (MalformedJwtException e) {
+            System.out.println("JWT token không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
-            throw new Exception("Invalid JWT token");
+            System.out.println("Lỗi xác thực JWT: " + e.getMessage());
         }
+        return false; // Token không hợp lệ
+    }
+
+    /**
+     * Lấy email từ token.
+     *
+     * @param token JWT token.
+     * @return Email trong token.
+     */
+    public static String extractEmail(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 }

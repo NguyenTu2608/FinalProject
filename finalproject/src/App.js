@@ -8,6 +8,7 @@ import Game from "./Pages/Game/Game";
 import Lobby from "./Pages/Game/Lobby";
 import Menu from "./Components/Menu";
 import Pratice from "./Pages/Game/Pratice";
+import Profile from "./Components/Profile";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -15,23 +16,28 @@ function App() {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser)); // Cập nhật user từ localStorage khi load lại trang
+      try {
+        setUser(JSON.parse(storedUser)); // Cập nhật user từ localStorage khi load lại trang
+      } catch (error) {
+        console.error("Lỗi khi parse JSON:", error);
+        setUser(null);
+      }
     }
   }, []);
+
   return (
     <Router>
-      {user && <Menu user={user} />} 
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Home user={user} />} />
+        <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/game" element={<Game />} />
         <Route path="/chessboard" element={<ChessBoard />} />
-        <Route path="/Lobby" element={<Lobby />} />
-        <Route path="/Lobby/game" element={<Game />} />
-        <Route path="/Menu" element={<Menu />} />
-        <Route path="/Pratice" element={<Pratice />} />
-        
+        <Route path="/lobby" element={<Lobby />} />
+        <Route path="/lobby/game" element={<Game />} />
+        <Route path="/menu" element={<Menu user={user} />} />
+        <Route path="/profile" element={<Profile user={user} />} />
+        <Route path="/pratice" element={<Pratice />} />
       </Routes>
     </Router>
   );

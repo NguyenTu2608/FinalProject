@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+
 const UserInfo = ({ user }) => {
   if (!user) return null; // Nếu không có user, ẩn luôn phần này
-
   return (
     <div className="absolute left-0 top-1/2 transform -translate-y-1/2 flex items-center gap-4 bg-gray-800 p-3 rounded-lg shadow-md">
       {/* Ảnh đại diện */}
@@ -43,30 +43,24 @@ const MenuButton = ({ image, label, link }) => {
   );
 };
 
-const Menu = () => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    // Lấy thông tin user từ localStorage
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData)); // Chuyển JSON string về object
-    }
-  }, []);
+const Menu = ({ user }) => {
+  if (!user) return null;
 
   return (
-    <div className="relative w-full flex justify-center mt-0">
+    <div className="relative w-full flex justify-between items-center mt-0">
       {/* Chỉ hiển thị UserInfo nếu có user */}
       {user && <UserInfo user={user} />}
-
-      {/* Menu chính giữa */}
-      <div className="flex justify-center gap-20 mt-2 ml-50">
+  
+      {/* Menu sát bên phải và xuống dưới thêm */}
+      <div className="absolute right-0 bottom-[-100px] flex gap-20 mr-10 mb-0">
         <MenuButton image="/Assets/lichsu.png" label="Lịch sử" link="/lich-su" />
         <MenuButton image="/Assets/xephang.png" label="Xếp hạng" link="/xep-hang" />
         <MenuButton image="/Assets/banbe.png" label="Bạn bè" link="/ban-be" />
       </div>
     </div>
   );
+  
+  
 };
 
 export default Menu;

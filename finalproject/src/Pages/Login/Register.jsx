@@ -13,7 +13,7 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await register(username, email, password);
+      await register(username, password, email);
       alert("Đăng ký thành công! Vui lòng đăng nhập.");
       navigate("/login");
     } catch (err) {
@@ -44,16 +44,6 @@ const Register = () => {
             />
           </div>
           <div className="flex items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition">
-            <FaEnvelope className="text-gray-500 mr-3" />
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-transparent outline-none text-gray-700 font-sans"
-            />
-          </div>
-          <div className="flex items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition">
             <FaLock className="text-gray-500 mr-3" />
             <input
               type="password"
@@ -63,6 +53,17 @@ const Register = () => {
               className="w-full bg-transparent outline-none text-gray-700 font-sans"
             />
           </div>
+          <div className="flex items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition">
+            <FaEnvelope className="text-gray-500 mr-3" />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-transparent outline-none text-gray-700 font-sans"
+            />
+          </div>
+          
           <button type="submit" className="bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300 shadow-md font-serif">
             Đăng Ký
           </button>

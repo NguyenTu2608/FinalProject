@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Menu from "../../Components/Menu";
 
 const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Trạng thái đăng nhập
@@ -9,7 +10,18 @@ const Home = () => {
   const handleLogin = () => {
     setIsLoggedIn(true);
   };
-
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+      
+    }
+  }, []);
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Xóa token khi đăng xuất
+    setIsLoggedIn(false);
+    navigate("/Login");
+  };
   return (
     <div
       style={{
@@ -21,6 +33,7 @@ const Home = () => {
         width: "100vw",
       }}
     >
+      <Menu />
       <div className="flex justify-center items-center h-[85vh]">
         <div className="grid grid-cols-2 gap-48 mt-24">
           {isLoggedIn ? (
@@ -95,7 +108,7 @@ const Home = () => {
       {isLoggedIn && (
         <div className="absolute bottom-4 right-4">
           <button
-            onClick={() => setIsLoggedIn(false)}
+            onClick={handleLogout}
             className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition"
           >
             Đăng xuất

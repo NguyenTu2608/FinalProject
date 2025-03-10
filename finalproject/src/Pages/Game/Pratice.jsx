@@ -9,7 +9,7 @@ const Pratice = () => {
       style={{ backgroundImage: "url('/Assets/background.png')" }}
     >
       {/* Tiêu đề */}
-      <h1 className="text-6xl font-bold mb-10 text-[#8B0000] drop-shadow-lg">Chọn chế độ chơi</h1>
+      <h1 className="text-6xl font-bold mb-10 text-[#8B0000] drop-shadow-lg">Chế độ Luyện Tập</h1>
       
       {/* Các nút lựa chọn */}
       <div className="flex flex-col gap-6 w-80">

@@ -23,8 +23,8 @@ public class GameController {
 
     // Create a new game
     @PostMapping("/create")
-    public Game createGame(@RequestParam String playerWhite, @RequestParam String playerBlack) {
-        return gameService.createGame(playerWhite, playerBlack);
+    public Game createGame(@RequestBody Game game) {
+        return gameService.createGame(game.getPlayerWhite(), game.getPlayerBlack());
     }
 
     // Get a game by ID

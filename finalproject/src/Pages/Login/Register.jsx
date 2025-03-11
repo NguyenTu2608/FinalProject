@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { register } from "../../Services/authServices";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock, FaEnvelope, FaHome } from "react-icons/fa";
@@ -9,6 +9,14 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+          // Nếu đã đăng nhập, chuyển hướng về trang chính
+          navigate("/Home");
+        }
+      }, [navigate]);
 
   const handleRegister = async (e) => {
     e.preventDefault();

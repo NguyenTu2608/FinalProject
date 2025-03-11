@@ -1,7 +1,7 @@
-  import React, { useState } from "react";
+  import React, { useState, useEffect } from "react";
   import { login } from "../../Services/authServices";
   import { useNavigate } from "react-router-dom";
-  import { FaUser, FaLock, FaEnvelope, FaHome } from "react-icons/fa";
+  import { FaUser, FaLock, FaHome } from "react-icons/fa";
 
   const Login = ({ setUser }) => {
     const [username, setUsername] = useState("");
@@ -9,6 +9,14 @@
     const [error, setError] = useState("");
     const navigate = useNavigate();
   
+    useEffect(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        // Nếu đã đăng nhập, chuyển hướng về trang chính
+        navigate("/Home");
+      }
+    }, [navigate]);
+
     const handleLogin = async (e) => {
       e.preventDefault();
       setError("");
@@ -19,7 +27,7 @@
           localStorage.setItem("token", response.token);
           localStorage.setItem("user", JSON.stringify(response.user)); // Lưu user vào localStorage
           setUser(response.user); // Cập nhật user state
-          navigate("/");
+          navigate("/Home");
         } else {
           setError("Đăng nhập không thành công, vui lòng thử lại!");
         }

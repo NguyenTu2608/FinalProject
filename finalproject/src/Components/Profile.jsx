@@ -20,7 +20,7 @@ function Profile() {
   }, []);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-200">
+    <div className="flex justify-center items-center ">
       <ProfileCard user={user} />
       <Menu />
     </div>

@@ -14,14 +14,14 @@ const Pratice = () => {
       {/* Các nút lựa chọn */}
       <div className="flex flex-col gap-6 w-80">
         <button
-          onClick={() => navigate("/Pratice/Room")}
+          onClick={() => navigate("/Practice/practiceRoom")}
           className="w-full py-4 bg-blue-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-blue-700 shadow-md"
         >
           🏠 Hai người chời
         </button>
 
         <button
-          onClick={() => navigate("/Pratice/tim-phong")}
+          onClick={() => navigate("/Practice/tim-phong")}
           className="w-full py-4 bg-green-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md"
         >
           🔍 Chơi với máy

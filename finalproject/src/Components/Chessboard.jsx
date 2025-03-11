@@ -65,6 +65,9 @@ const Chessboard = () => {
         setSelectedPiece(null);
         setValidMoves([]);
         setErrorMessage("");
+
+        
+
         // Kiểm tra xem Tướng của đối phương có bị chiếu hay không
         const opponentIsRed = currentPlayer === "black";
         if (gameManager.isKingInCheck(opponentIsRed)) {

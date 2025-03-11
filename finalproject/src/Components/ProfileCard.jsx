@@ -3,15 +3,12 @@ import { Camera } from "lucide-react";
 
 const ProfileCard = ({ user }) => {
   return (
-    <div
-      style={{ backgroundImage: `url("/Assets/paper-texture.png")` }}
-      className="absolute top-5 left-5 w-[350px] h-[150px] bg-cover bg-center border-4 border-yellow-600 rounded-lg shadow-lg p-4 flex"
-    >
+    <div className="absolute top-5 left-5 w-[350px] h-[150px] border-4 border-yellow-600 rounded-lg shadow-lg p-4 flex z-10">
       {/* Avatar + Thông tin */}
       <div className="flex items-center">
         <div className="relative w-20 h-20">
           <img
-            src={user?.avatar || "/avatar.jpg"}
+            src={user?.avatar || "../Assets/avatar.png"}
             alt="Avatar"
             className="w-full h-full object-cover rounded-full border-4 border-yellow-500"
           />
@@ -22,7 +19,7 @@ const ProfileCard = ({ user }) => {
 
         {/* Thông tin user */}
         <div className="ml-3 flex flex-col">
-          <div className="text-lg font-bold italic text-yellow-300">
+          <div className="text-lg font-bold italic text-yellow-600">
             {user?.username || "Loading..."}
           </div>
           <div className="flex items-center mt-1">

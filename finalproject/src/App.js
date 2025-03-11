@@ -7,8 +7,10 @@ import Home from "./Pages/Home/Home";
 import Game from "./Pages/Game/Game";
 import Lobby from "./Pages/Game/Lobby";
 import Menu from "./Components/Menu";
-import Pratice from "./Pages/Game/Pratice";
+import Practice from "./Pages/Game/Pratice";
 import Profile from "./Components/Profile";
+import AuthPage from './Pages/Home/AuthPage'
+import PracticeRoom from "./Pages/Game/PracticeRoom";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -28,7 +30,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home user={user} />} />
+        <Route path="/Home" element={<Home user={user} />} />
+        <Route path="/" element={<AuthPage/>} />
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/game" element={<Game />} />
@@ -37,7 +40,8 @@ function App() {
         <Route path="/lobby/game" element={<Game />} />
         <Route path="/menu" element={<Menu user={user} />} />
         <Route path="/profile" element={<Profile user={user} />} />
-        <Route path="/pratice" element={<Pratice />} />
+        <Route path="/practice" element={<Practice />} />
+        <Route path="/practice/practiceRoom" element={<PracticeRoom />} />
       </Routes>
     </Router>
   );

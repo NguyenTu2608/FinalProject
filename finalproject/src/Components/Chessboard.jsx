@@ -40,9 +40,14 @@ const Chessboard = () => {
   const gameManager = new GameManager(board); 
   const [currentPlayer, setCurrentPlayer] = useState("red"); // 'red' hoặc 'black'
   const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState(null);
+  
+  
   
 
   const handleClick = (row, col) => {
+    if (gameOver) return; // Nếu trò chơi đã kết thúc thì không cho di chuyển
     const piece = board[row][col];
     const isRedPiece = piece && piece === piece.toLowerCase(); // Quân đỏ là chữ thường
     const isBlackPiece = piece && piece === piece.toUpperCase(); // Quân đen là chữ hoa
@@ -60,6 +65,17 @@ const Chessboard = () => {
           row,
           col
         );
+        // Xác định lượt chơi tiếp theo
+        const nextPlayer = currentPlayer === "red" ? "black" : "red";
+        const newGameManager = new GameManager(newBoard);
+        // Kiểm tra xem bên được chuyển giao có bị chiếu bí hay không
+        if (newGameManager.isCheckmate(nextPlayer === "red")) {
+          setGameOver(true);
+          setWinner(nextPlayer);
+          setErrorMessage(
+            `${nextPlayer === "red" ? "Đỏ" : "Đen"} bị chiếu bí! Trò chơi kết thúc.`
+          );
+        }
 
         setBoard([...newBoard]); // Ensure a new state reference
         setSelectedPiece(null);
@@ -69,8 +85,13 @@ const Chessboard = () => {
         const opponentIsRed = currentPlayer === "black";
         if (gameManager.isKingInCheck(opponentIsRed)) {
           setErrorMessage("Chiếu tướng!");
+           // Kiểm tra xem có phải là chiếu bí hay không
+          if (gameManager.isCheckmate(opponentIsRed)) {
+            setErrorMessage("Chiếu bí! Trò chơi kết thúc.");
+            // Có thể thêm logic kết thúc trò chơi ở đây
+          }
         }
-        setCurrentPlayer(currentPlayer === "red" ? "black" : "red"); // Xóa thông báo lỗi
+        if (!gameOver) setCurrentPlayer(nextPlayer);
       } else {
         setSelectedPiece(null);
         setValidMoves([]);
@@ -89,6 +110,16 @@ const Chessboard = () => {
       }
   };
   
+  const restartGame = () => {
+    setBoard(initialBoard);
+    setCurrentPlayer("red");
+    setSelectedPiece(null);
+    setValidMoves([]);
+    setErrorMessage("");
+    setGameOver(false);
+    setWinner(null);
+  };
+
 
   const boardSize = 500;
   const cellSize = boardSize / 9;
@@ -138,6 +169,24 @@ const Chessboard = () => {
         Lượt hiện tại: {currentPlayer === "red" ? "Đỏ" : "Đen"}
       </div>
 
+      
+      {/* Overlay hiển thị khi trò chơi kết thúc */}
+      {gameOver && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg text-center">
+            <h2 className="text-2xl font-bold mb-4">Trò chơi kết thúc!</h2>
+            <p className="mb-4">
+              {winner === "red" ? "Đỏ" : "Đen"} bị chiếu bí!
+            </p>
+            <button
+              onClick={restartGame}
+              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
+            >
+              Chơi lại
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 

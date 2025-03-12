@@ -398,6 +398,36 @@ class GameManager {
     return tempGameManager.isKingInCheck(isRed); // Kiểm tra xem Tướng có bị chiếu hay không
   }
   
+  // Kiểm tra xem Tướng của một bên có bị chiếu bí hay không
+  isCheckmate(isRed) {
+    if (!this.isKingInCheck(isRed)) return false; // Nếu không bị chiếu thì không phải chiếu bí
+
+    const kingSymbol = isRed ? "k" : "K";
+    let kingPosition = null;
+
+    // Duyệt qua tất cả các quân cờ của bên isRed
+    for (let row = 0; row < 10; row++) {
+      for (let col = 0; col < 9; col++) {
+        const piece = this.board[row][col];
+        // Kiểm tra nếu quân này thuộc bên isRed (đối với quân đỏ, piece là chữ thường)
+        if (piece && ((piece === piece.toLowerCase()) === isRed)) {
+          // Lấy danh sách các nước đi hợp lệ của quân đó
+          const validMoves = this.getValidMoves(piece, row, col);
+          for (const [r, c] of validMoves) {
+            // Giả lập nước đi này mà không làm thay đổi bàn cờ gốc
+            const simulatedBoard = this.simulateMove(row, col, r, c);
+            const tempGameManager = new GameManager(simulatedBoard);
+            // Nếu sau khi thực hiện nước đi, Tướng không còn bị chiếu, tức là có thể thoát chiếu
+            if (!tempGameManager.isKingInCheck(isRed)) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+    // Nếu không có nước đi nào cứu được Tướng, trả về true (chiếu bí)
+    return true;
+  }
 }
 
 export default GameManager;

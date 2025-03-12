@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Profile from "../../Components/Profile";
 
 const Lobby = () => {
   const navigate = useNavigate();
@@ -8,6 +9,9 @@ const Lobby = () => {
       className="flex flex-col items-center justify-center min-h-screen bg-cover bg-center"
       style={{ backgroundImage: "url('/Assets/background.png')" }}
     >
+      <div className="absolute top-0 left-0 w-full p-4">
+        <Profile  />
+      </div>
       {/* Tiêu đề */}
       <h1 className="text-6xl font-bold mb-10 text-[#003366] drop-shadow-lg">Chế độ Online</h1>
 

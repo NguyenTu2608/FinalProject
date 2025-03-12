@@ -1,7 +1,7 @@
 package com.example.chinesechess.controller;
 
 import com.example.chinesechess.model.Game;
-import com.example.chinesechess.model.User;
+import com.example.chinesechess.model.Move;
 import com.example.chinesechess.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -43,10 +43,11 @@ public class GameController {
     @PutMapping("/{gameId}/update")
     public Game updateGame(
             @PathVariable String gameId,
-            @RequestBody List<String> moves,
+            @RequestBody List<Move> moves,
             @RequestParam String currentTurn,
-            @RequestParam String gameStatus) {
-        return gameService.updateGame(gameId, moves, currentTurn, gameStatus);
+            @RequestParam String gameStatus,
+            @RequestParam String createdAt) {
+        return gameService.updateGame(gameId, moves, currentTurn, gameStatus, createdAt);
     }
 
     // Delete a game

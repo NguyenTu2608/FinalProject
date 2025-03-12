@@ -11,14 +11,15 @@ public class Game {
     private String id; // Unique ID for the game
     private String playerWhite; // Username of the white player
     private String playerBlack; // Username of the black player
-    private List<String> moves; // List of moves in PGN format
+    private List<Move> moves; // List of moves in PGN format
     private String gameStatus; // Game status: ongoing, white_won, black_won, draw
     private String currentTurn; // "white" or "black"
+    private String createdAt;
 
     public Game() {
     }
 
-    public Game(String playerWhite, String playerBlack, List<String> moves, String gameStatus, String currentTurn) {
+    public Game(String playerWhite, String playerBlack, List<Move> moves, String gameStatus, String currentTurn) {
         this.playerWhite = playerWhite;
         this.playerBlack = playerBlack;
         this.moves = moves;
@@ -51,11 +52,11 @@ public class Game {
         this.playerBlack = playerBlack;
     }
 
-    public List<String> getMoves() {
+    public List<Move> getMoves() {
         return moves;
     }
 
-    public void setMoves(List<String> moves) {
+    public void setMoves(List<Move> moves) {
         this.moves = moves;
     }
 
@@ -73,5 +74,13 @@ public class Game {
 
     public void setCurrentTurn(String currentTurn) {
         this.currentTurn = currentTurn;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 }

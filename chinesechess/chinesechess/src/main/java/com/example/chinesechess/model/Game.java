@@ -9,7 +9,7 @@ public class Game {
 
     @Id
     private String id; // Unique ID for the game
-    private String playerWhite; // Username of the white player
+    private String playerRed; // Username of the red player
     private String playerBlack; // Username of the black player
     private List<Move> moves; // List of moves in PGN format
     private String gameStatus; // Game status: ongoing, white_won, black_won, draw
@@ -19,8 +19,8 @@ public class Game {
     public Game() {
     }
 
-    public Game(String playerWhite, String playerBlack, List<Move> moves, String gameStatus, String currentTurn) {
-        this.playerWhite = playerWhite;
+    public Game(String playerRed, String playerBlack, List<Move> moves, String gameStatus, String currentTurn) {
+        this.playerRed = playerRed;
         this.playerBlack = playerBlack;
         this.moves = moves;
         this.gameStatus = gameStatus;
@@ -36,12 +36,12 @@ public class Game {
         this.id = id;
     }
 
-    public String getPlayerWhite() {
-        return playerWhite;
+    public String getPlayerRed() {
+        return playerRed;
     }
 
-    public void setPlayerWhite(String playerWhite) {
-        this.playerWhite = playerWhite;
+    public void setPlayerRed(String playerRed) {
+        this.playerRed = playerRed;
     }
 
     public String getPlayerBlack() {

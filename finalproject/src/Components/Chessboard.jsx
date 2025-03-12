@@ -39,6 +39,7 @@ const Chessboard = () => {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const gameManager = new GameManager(board); 
+  const [moveHistory, setMoveHistory] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState("black"); // 'red' hoặc 'black'
   const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
   if (!gameStarted) {
@@ -78,6 +79,25 @@ const Chessboard = () => {
           row,
           col
         );
+
+        setMoveHistory(prevHistory => [
+          ...prevHistory,
+          {
+            from: { row: selectedPiece.row, col: selectedPiece.col, piece: selectedPiece.piece },
+            to: { row, col },
+            player: currentPlayer,
+          }
+        ]);
+        const move = {
+          from: { row: selectedPiece.row, col: selectedPiece.col, piece: selectedPiece.piece },
+          to: { row, col },
+          player: currentPlayer,
+        };
+        console.log("Nước đi mới:", move); // Kiểm tra log
+        console.log("Lịch sử nước đi:", [...moveHistory, move]); // Kiểm tra toàn bộ lịch sử
+
+        setMoveHistory(prevHistory => [...prevHistory, move]); // Cập nhật lịch sử
+        
 
         setBoard([...newBoard]); // Ensure a new state reference
         setSelectedPiece(null);

@@ -76,12 +76,12 @@ const Home = () => {
       </div>
 
       {/* Đăng xuất */}
-      <div className="absolute bottom-4 right-4">
+      <div>
         <button
           onClick={handleLogout}
-          className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          className="absolute bottom-5 left-5 px-6 py-3 bg-red-500 rounded-full text-lg font-semibold hover:bg-red-700 transition"
         >
-          Đăng xuất
+          ⬅ Đăng xuất
         </button>
       </div>
     </div>

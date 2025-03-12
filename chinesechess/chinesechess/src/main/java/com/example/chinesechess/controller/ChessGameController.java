@@ -1,6 +1,6 @@
 package com.example.chinesechess.controller;
 
-import com.example.chinesechess.model.MoveMessage;
+import com.example.chinesechess.model.Move;
 import com.example.chinesechess.model.StatusMessage;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -12,7 +12,7 @@ public class ChessGameController {
     // Xử lý nước đi của người chơi
     @MessageMapping("/move") // Client gửi tin nhắn tới đường dẫn "/app/move"
     @SendTo("/topic/game") // Tin nhắn sẽ gửi tới tất cả client đang theo dõi "/topic/game"
-    public MoveMessage processMove(MoveMessage move) {
+    public Move processMove(Move move) {
         // TODO: Thêm logic kiểm tra nước đi hợp lệ (backend-side)
         return move; // Trả về thông tin nước đi (bàn cờ sẽ được đồng bộ với tất cả client)
     }

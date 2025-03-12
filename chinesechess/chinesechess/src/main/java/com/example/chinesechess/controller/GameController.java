@@ -1,11 +1,15 @@
 package com.example.chinesechess.controller;
 
+import com.example.chinesechess.DTO.GameRequest;
 import com.example.chinesechess.model.Game;
 import com.example.chinesechess.model.Move;
 import com.example.chinesechess.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,9 +26,23 @@ public class GameController {
     }
 
     // Create a new game
+//    @PostMapping("/create")
+//    public Game createGame(@RequestBody Game game) {
+//        return gameService.createGame(game.getPlayerRed(), game.getPlayerBlack());
+//    }
+
     @PostMapping("/create")
-    public Game createGame(@RequestBody Game game) {
-        return gameService.createGame(game.getPlayerWhite(), game.getPlayerBlack());
+    public ResponseEntity<Game> createGame(@RequestBody GameRequest request) {
+        Game game = new Game();
+        game.setPlayerRed(request.getPlayerRed());
+        game.setPlayerBlack(request.getPlayerBlack());
+        game.setMoves(new ArrayList<>());
+        game.setGameStatus("ongoing");
+        game.setCurrentTurn("red");
+        game.setCreatedAt(Instant.now().toString());
+
+        Game savedGame = gameService.createGame(game);
+        return ResponseEntity.ok(savedGame);
     }
 
     // Get a game by ID

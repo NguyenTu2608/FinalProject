@@ -2,7 +2,6 @@ package com.example.chinesechess.service;
 
 import com.example.chinesechess.model.Game;
 import com.example.chinesechess.model.Move;
-import com.example.chinesechess.model.User;
 import com.example.chinesechess.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,9 +19,13 @@ public class GameService {
     }
 
     // Create a new game
-    public Game createGame(String playerWhite, String playerBlack) {
-        Game newGame = new Game(playerWhite, playerBlack, List.of(), "ongoing", "white");
-        return gameRepository.save(newGame);
+//    public Game createGame(String playerRed, String playerBlack) {
+//        Game newGame = new Game(playerRed, playerBlack, List.of(), "ongoing", "white");
+//        return gameRepository.save(newGame);
+//    }
+
+    public Game createGame(Game game) {
+        return gameRepository.save(game);
     }
 
     // Get a game by ID
@@ -32,10 +35,10 @@ public class GameService {
 
     // Get all games for a specific player
     public List<Game> getGamesByPlayer(String player) {
-        List<Game> whiteGames = gameRepository.findByPlayerWhite(player);
+        List<Game> redGames = gameRepository.findByPlayerRed(player);
         List<Game> blackGames = gameRepository.findByPlayerBlack(player);
-        whiteGames.addAll(blackGames);
-        return whiteGames;
+        redGames.addAll(blackGames);
+        return redGames;
     }
 
     // Update a game's moves and status

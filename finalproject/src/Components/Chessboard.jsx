@@ -34,13 +34,31 @@ const initialBoard = [
 ];
 
 const Chessboard = () => {
+  const [gameStarted, setGameStarted] = useState(false);
   const [board, setBoard] = useState(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const gameManager = new GameManager(board); 
   const [currentPlayer, setCurrentPlayer] = useState("black"); // 'red' hoặc 'black'
   const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
-  
+  if (!gameStarted) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg text-center animate-fade-in">
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">CỜ TƯỚNG</h1>
+          <button
+            onClick={() => setGameStarted(true)}
+            className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full 
+                      text-xl transition-all transform hover:scale-105 active:scale-95
+                      shadow-lg hover:shadow-xl"
+          >
+            BẮT ĐẦU
+          </button>
+          <p className="mt-4 text-gray-600">Nhấn bắt đầu để chơi!</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleClick = (row, col) => {
     const piece = board[row][col];
@@ -95,7 +113,7 @@ const Chessboard = () => {
 
   const boardSize = 500;
   const cellSize = boardSize / 9;
-
+<div className="[...] animate-[fade-in_0.5s_ease-out]"></div>
   return (
     <div className="relative w-[500px] h-[550px] mx-auto">
       <img src="/Assets/chessboard.png" alt="Chessboard" className="w-full h-full" />

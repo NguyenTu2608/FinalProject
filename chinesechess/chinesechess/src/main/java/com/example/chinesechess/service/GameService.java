@@ -1,7 +1,7 @@
 package com.example.chinesechess.service;
 
 import com.example.chinesechess.model.Game;
-import com.example.chinesechess.model.Move;
+import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,8 +41,17 @@ public class GameService {
         return redGames;
     }
 
+    public Game processMove(String gameId, MoveDTO move) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game not found"));
+
+        game.getMoves().add(move); // Lưu nước đi vào lịch sử
+
+        return gameRepository.save(game);
+    }
+
     // Update a game's moves and status
-    public Game updateGame(String gameId, List<Move> moves, String currentTurn, String gameStatus, String createdAt) {
+    public Game updateGame(String gameId, List<MoveDTO> moves, String currentTurn, String gameStatus, String createdAt) {
         Optional<Game> gameOptional = gameRepository.findById(gameId);
         if (gameOptional.isPresent()) {
             Game game = gameOptional.get();

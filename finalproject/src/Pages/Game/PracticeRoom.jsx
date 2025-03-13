@@ -18,25 +18,51 @@ export default function PracticeRoom() {
         playerRed,
         playerBlack,
       });
-      setPlayerRed("");
-      setPlayerBlack("");
+  
+      console.log("Phản hồi từ API /games/create:", response.data);
+      
+      if (!response.data || !response.data.id) {
+        console.error("Lỗi: API không trả về ID của game!");
+        alert("Lỗi khi tạo ván cờ! Vui lòng thử lại.");
+        return;
+      }
+  
       setCurrentGame(response.data);
-      setMoveHistory([]);
+      setMoveHistory([]); // Reset lịch sử nước đi khi tạo ván mới
     } catch (error) {
-      console.error("Error creating game:", error);
+      console.error("Error creating game:", error.response ? error.response.data : error.message);
+      alert("Không thể tạo ván cờ! Hãy kiểm tra kết nối đến server.");
     }
   };
+  
 
-  const makeMove = async (move) => {
-    if (!currentGame) return;
+  const handleMove = async (move) => {
+    if (!currentGame || !currentGame.id) {
+      console.error("Lỗi: currentGame chưa được khởi tạo!", currentGame);
+      alert("Vui lòng tạo ván cờ trước!");
+      return;
+    }
+  
+    console.log("Nước đi gửi lên server:", move);
+  
     try {
       const response = await apiClient.post(`/games/${currentGame.id}/move`, move);
+  
+      if (!response.data || !response.data.id) {
+        console.error("Lỗi: Phản hồi từ API không hợp lệ!", response.data);
+        alert("Lỗi từ server! Vui lòng thử lại.");
+        return;
+      }
+  
       setCurrentGame(response.data);
-      setMoveHistory((prev) => [...prev, move]); // Cập nhật lịch sử nước đi
+      setMoveHistory(response.data.moves);
     } catch (error) {
-      console.error("Error making move:", error);
+      console.error("Lỗi khi gửi nước đi lên server:", error);
+      alert("Lỗi kết nối server!");
     }
   };
+  
+  
 
   return (
     <div
@@ -67,7 +93,12 @@ export default function PracticeRoom() {
         </div>
       ) : (
         <div className="mt-4">
-          <Chessboard makeMove={makeMove} currentGame={currentGame} />
+          <Chessboard 
+            currentGame={currentGame} 
+            setCurrentGame={setCurrentGame} 
+            moveHistory={moveHistory} 
+            handleMove={handleMove} 
+          />
           <div className="mt-4 w-full max-w-md">
             <h3 className="text-md font-bold">Lịch sử nước đi</h3>
             <ul className="list-disc pl-5">

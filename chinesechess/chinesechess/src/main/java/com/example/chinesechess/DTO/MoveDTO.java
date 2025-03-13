@@ -1,14 +1,16 @@
-package com.example.chinesechess.model;
+package com.example.chinesechess.DTO;
 
-public class Move {
+import com.example.chinesechess.model.Position;
+
+public class MoveDTO {
     private Position from;
     private Position to;
     private String piece; // Ký hiệu quân cờ (ví dụ: "C", "R", "H")
     private String player; // "red" hoặc "black"
 
-    public Move() {}
+    public MoveDTO() {}
 
-    public Move(Position from, Position to, String piece, String player) {
+    public MoveDTO(Position from, Position to, String piece, String player) {
         this.from = from;
         this.to = to;
         this.piece = piece;

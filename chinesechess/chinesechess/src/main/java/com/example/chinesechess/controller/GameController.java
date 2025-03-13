@@ -2,7 +2,8 @@ package com.example.chinesechess.controller;
 
 import com.example.chinesechess.DTO.GameRequest;
 import com.example.chinesechess.model.Game;
-import com.example.chinesechess.model.Move;
+import com.example.chinesechess.DTO.MoveDTO;
+import com.example.chinesechess.repository.GameRepository;
 import com.example.chinesechess.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,9 @@ public class GameController {
 
     @Autowired
     private GameService gameService;
+
+    @Autowired
+    private GameRepository gameRepository;
 
     @GetMapping
     public List<Game> getAllUsers() {
@@ -45,6 +49,31 @@ public class GameController {
         return ResponseEntity.ok(savedGame);
     }
 
+    @PostMapping("/{gameId}/move")
+    public ResponseEntity<Game> makeMove(@PathVariable String gameId, @RequestBody MoveDTO moveDTO) {
+        Optional<Game> optionalGame = gameRepository.findById(gameId);
+        if (optionalGame.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Game game = optionalGame.get();
+
+        // Thêm nước đi vào danh sách moves
+        if (game.getMoves() == null) {
+            game.setMoves(new ArrayList<>()); // Nếu chưa có danh sách thì khởi tạo
+        }
+        game.getMoves().add(moveDTO);
+
+        // Chuyển lượt chơi
+        game.setCurrentTurn(game.getCurrentTurn().equals("red") ? "black" : "red");
+
+        gameRepository.save(game); // Lưu vào MongoDB
+
+        return ResponseEntity.ok(game);
+    }
+
+
+
     // Get a game by ID
     @GetMapping("/{gameId}")
     public Optional<Game> getGameById(@PathVariable String gameId) {
@@ -61,7 +90,7 @@ public class GameController {
     @PutMapping("/{gameId}/update")
     public Game updateGame(
             @PathVariable String gameId,
-            @RequestBody List<Move> moves,
+            @RequestBody List<MoveDTO> moves,
             @RequestParam String currentTurn,
             @RequestParam String gameStatus,
             @RequestParam String createdAt) {

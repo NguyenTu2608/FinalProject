@@ -1,5 +1,6 @@
 package com.example.chinesechess.model;
 
+import com.example.chinesechess.DTO.MoveDTO;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
@@ -11,15 +12,15 @@ public class Game {
     private String id; // Unique ID for the game
     private String playerRed; // Username of the red player
     private String playerBlack; // Username of the black player
-    private List<Move> moves; // List of moves in PGN format
+    private List<MoveDTO> moves; // List of moves in PGN format
     private String gameStatus; // Game status: ongoing, white_won, black_won, draw
-    private String currentTurn; // "white" or "black"
+    private String currentTurn; // "red" or "black"
     private String createdAt;
 
     public Game() {
     }
 
-    public Game(String playerRed, String playerBlack, List<Move> moves, String gameStatus, String currentTurn) {
+    public Game(String playerRed, String playerBlack, List<MoveDTO> moves, String gameStatus, String currentTurn) {
         this.playerRed = playerRed;
         this.playerBlack = playerBlack;
         this.moves = moves;
@@ -52,11 +53,11 @@ public class Game {
         this.playerBlack = playerBlack;
     }
 
-    public List<Move> getMoves() {
+    public List<MoveDTO> getMoves() {
         return moves;
     }
 
-    public void setMoves(List<Move> moves) {
+    public void setMoves(List<MoveDTO> moves) {
         this.moves = moves;
     }
 

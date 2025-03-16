@@ -34,13 +34,11 @@ public class GameController {
 //    public Game createGame(@RequestBody Game game) {
 //        return gameService.createGame(game.getPlayerRed(), game.getPlayerBlack());
 //    }
-
     @PostMapping("/create")
     public ResponseEntity<Game> createGame(@RequestBody GameRequest request) {
         if (request.getGameMode() == null || request.getGameMode().isEmpty()) {
             return ResponseEntity.badRequest().body(null);
         }
-
         Game game = new Game();
         game.setPlayerBlack(request.getPlayerBlack());
 
@@ -69,10 +67,7 @@ public class GameController {
         if (!optionalGame.isPresent()) {
             return ResponseEntity.notFound().build();
         }
-
         Game game = optionalGame.get();
-
-        // Kiểm tra lượt chơi hợp lệ
 
         // Lưu nước đi vào danh sách
         game.getMoves().add(move);
@@ -99,14 +94,12 @@ public class GameController {
 
     // Update a game's moves and status
     @PutMapping("/{gameId}/update")
-    public Game updateGame(
-            @PathVariable String gameId,
-            @RequestBody List<MoveDTO> moves,
-            @RequestParam String currentTurn,
-            @RequestParam String gameStatus,
-            @RequestParam String createdAt,
-            @RequestParam String gameMode) {
-        return gameService.updateGame(gameId, moves, currentTurn, gameStatus, createdAt, gameMode);
+    public Game updateGame(Game game) {
+        if (gameRepository.existsById(game.getId())) {
+            return gameRepository.save(game);
+        } else {
+            throw new RuntimeException("Game not found");
+        }
     }
 
     // Delete a game

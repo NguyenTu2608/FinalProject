@@ -18,11 +18,6 @@ public class GameService {
         return gameRepository.findAll();
     }
 
-    // Create a new game
-//    public Game createGame(String playerRed, String playerBlack) {
-//        Game newGame = new Game(playerRed, playerBlack, List.of(), "ongoing", "white");
-//        return gameRepository.save(newGame);
-//    }
 
     public Game createGame(Game game) {
         return gameRepository.save(game);
@@ -33,6 +28,7 @@ public class GameService {
         return gameRepository.findById(gameId);
     }
 
+
     // Get all games for a specific player
     public List<Game> getGamesByPlayer(String player) {
         List<Game> redGames = gameRepository.findByPlayerRed(player);
@@ -41,30 +37,59 @@ public class GameService {
         return redGames;
     }
 
+    public Game joinGame(String gameId, String username) {
+        Game game = gameRepository.findById(gameId)
+                .orElseGet(() -> {
+                    Game newGame = new Game();
+                    newGame.setId(gameId);
+                    return newGame;
+                });
+
+        if (game.getPlayerBlack() == null) {
+            game.setPlayerBlack(username);
+        } else if (game.getPlayerRed() == null) {
+            game.setPlayerRed(username);
+        } else {
+            throw new RuntimeException("Game is already full!");
+        }
+
+        return gameRepository.save(game);
+    }
+
+
+    // 📌 Xử lý nước đi của người chơi
     public Game processMove(String gameId, MoveDTO move) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Game not found"));
 
-        game.getMoves().add(move); // Lưu nước đi vào lịch sử
+        // 📌 Kiểm tra người chơi có hợp lệ không
+        if (!move.getPlayer().equals(game.getPlayerBlack()) && !move.getPlayer().equals(game.getPlayerRed())) {
+            throw new RuntimeException("Invalid player");
+        }
+
+        // 📌 Kiểm tra lượt chơi
+        if (!move.getPlayer().equals(game.getCurrentTurn())) {
+            throw new RuntimeException("Not your turn");
+        }
+
+        // 📌 Lưu nước đi vào lịch sử
+        game.getMoves().add(move);
+
+        // 📌 Chuyển lượt sau khi đi
+        game.setCurrentTurn(game.getCurrentTurn().equals("black") ? "red" : "black");
 
         return gameRepository.save(game);
     }
 
     // Update a game's moves and status
-    public Game updateGame(String gameId, List<MoveDTO> moves, String currentTurn, String gameStatus, String createdAt, String gameMode) {
-        Optional<Game> gameOptional = gameRepository.findById(gameId);
-        if (gameOptional.isPresent()) {
-            Game game = gameOptional.get();
-            game.setMoves(moves);
-            game.setCurrentTurn(currentTurn);
-            game.setGameStatus(gameStatus);
-            game.setCreatedAt(createdAt);
-            game.setGameMode(gameMode);
+    public Game updateGame(Game game) {
+        if (gameRepository.existsById(game.getId())) {
             return gameRepository.save(game);
         } else {
             throw new RuntimeException("Game not found");
         }
     }
+
 
     // Delete a game
     public void deleteGame(String gameId) {

@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import apiClient from "../../Services/apiConfig";
 import Chessboard from "../../Components/Chessboard";
+import { Navigate } from "react-router-dom";
 
 
 export default function PracticeRoom() {
+  const navigate = useNavigate();
   const [playerRed, setPlayerRed] = useState("");
   const [playerBlack, setPlayerBlack] = useState("");
   const [currentGame, setCurrentGame] = useState(null);
@@ -18,10 +21,11 @@ export default function PracticeRoom() {
         gameMode: "practice",
         playerRed,
         playerBlack
+        
       }
+      
     );
-
-      console.log("Phản hồi từ API:", response.data);
+    navigate(`/practice/practiceRoom/${response.data.id}`)
       if (!response.data || !response.data.id) {
         alert("Lỗi khi tạo ván cờ!");
         return;
@@ -65,7 +69,7 @@ export default function PracticeRoom() {
         </div>
       ) : (
         <div className="mt-4">
-          <Chessboard gameId={currentGame?.id} />
+          <Chessboard gameId={currentGame?.id} playerBlack={currentGame?.playerBlack} playerRed={currentGame?.playerRed} gameMode={currentGame?.gameMode} />
         </div>
       )}
     </div>

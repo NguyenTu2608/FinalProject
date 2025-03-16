@@ -5,6 +5,7 @@ public class GameRequest {
     private String playerBlack;
     private String gameMode;
 
+
     // Getters and Setters
 
     public String getPlayerRed()
@@ -19,7 +20,7 @@ public class GameRequest {
     {
         return playerBlack;
     }
-    public void setplayerBlack(String playerBlack)
+    public void setPlayerBlack(String playerBlack)
     {
         this.playerBlack = playerBlack;
     }
@@ -32,4 +33,5 @@ public class GameRequest {
     {
         this.gameMode = gameMode;
     }
+
 }

@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import GameManager from "./GameManager";
 import apiClient from "../Services/apiConfig";
 import websocketService from "../Services/webSocketServices";
-
-
 // Ảnh quân cờ
 const pieceImages = {
   r: "/Assets/red-rook.png",
@@ -21,7 +19,6 @@ const pieceImages = {
   C: "/Assets/black-cannon.png",
   P: "/Assets/black-pawn.png",
 };
-
 // Bàn cờ khởi tạo
 const initialBoard = [
   ["r", "n", "b", "a", "k", "a", "b", "n", "r"],
@@ -35,8 +32,7 @@ const initialBoard = [
   ["", "", "", "", "", "", "", "", ""],
   ["R", "N", "B", "A", "K", "A", "B", "N", "R"],
 ];
-
-const Chessboard = ({ gameId  } ) => {
+const Chessboard = ({ gameId, playerBlack, playerRed, gameMode } ) => {
   const [gameStarted, setGameStarted] = useState(false);
   const [board, setBoard] = useState(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -48,25 +44,37 @@ const Chessboard = ({ gameId  } ) => {
   const [winner, setWinner] = useState(null);
   const gameManager = new GameManager(board); 
 
+  
+
   if (!gameStarted) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
         <div className="bg-white p-8 rounded-lg text-center animate-fade-in">
-          <button
-            onClick={() => setGameStarted(true)}
-            className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
-          >Bấm để bắt đầu</button>
+          {gameMode === "practice" ? (
+            <button
+              onClick={() => setGameStarted(true)}
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
+            >
+              Bấm để bắt đầu
+            </button>
+          ) : (
+            <div>
+              <p className="mb-4 text-lg font-semibold">Đang chờ người chơi khác...</p>
+              <button
+                onClick={() => setGameStarted(true)}
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
+              >
+                Sẵn sàng
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
   const handleClick = async (row, col) => {
-    if (!gameId) {
-      console.error("Không có gameId, không thể gửi nước đi!");
-      console.log("Received gameId in Chessboard:", gameId);
-      return;
-    }
+    
     const piece = board[row][col];
     const isRedPiece = piece && piece === piece.toLowerCase(); // Quân đỏ là chữ thường
     const isBlackPiece = piece && piece === piece.toUpperCase(); // Quân đen là chữ hoa
@@ -84,14 +92,6 @@ const Chessboard = ({ gameId  } ) => {
           col
         );
 
-        setMoveHistory(prevHistory => [
-          ...prevHistory,
-          {
-            from: { row: selectedPiece.row, col: selectedPiece.col, piece: selectedPiece.piece },
-            to: { row, col },
-            player: currentPlayer,
-          }
-        ]);
         const move = {
           gameId,
           from: { row: selectedPiece.row, col: selectedPiece.col },
@@ -164,7 +164,7 @@ const Chessboard = ({ gameId  } ) => {
 
   const restartGame = () => {
     setBoard(initialBoard);
-    setCurrentPlayer("black");
+    setCurrentPlayer(winner);
     setSelectedPiece(null);
     setValidMoves([]);
     setErrorMessage("");

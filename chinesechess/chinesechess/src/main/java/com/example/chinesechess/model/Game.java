@@ -18,6 +18,7 @@ public class Game {
     private String createdAt;
     private String gameMode;
 
+
     public Game() {
     }
 
@@ -92,5 +93,9 @@ public class Game {
     public void setGameMode(String gameMode)
     {
         this.gameMode = gameMode;
+    }
+
+    public void switchTurn() {
+        currentTurn = currentTurn.equals("black") ? "red" : "black";
     }
 }

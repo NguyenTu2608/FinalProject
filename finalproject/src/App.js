@@ -96,6 +96,14 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/practice/practiceRoom/:gameId"
+            element={
+              <PrivateRoute>
+                <PracticeRoom />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </Router>
     </UserProvider>

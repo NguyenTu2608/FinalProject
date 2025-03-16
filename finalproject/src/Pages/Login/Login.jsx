@@ -2,17 +2,16 @@ import React, { useState, useEffect } from "react";
 import { login } from "../../Services/authServices";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock, FaHome } from "react-icons/fa";
-import { useUser } from "../Context/userContext"; // Import useUser từ context
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { setUser } = useUser(); // Lấy setUser từ UserContext
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+
     if (token) {
       navigate("/Home");
     }
@@ -24,8 +23,6 @@ const Login = () => {
   
     try {
       const response = await login(username, password);
-      console.log("Response từ API:", response);
-  
       if (!response.token) {
         setError("Sai tên đăng nhập hoặc mật khẩu");
         return;

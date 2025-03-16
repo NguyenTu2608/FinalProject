@@ -1,8 +1,27 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Profile from "../../Components/Profile";
+import apiClient from "../../Services/apiConfig";
 
 const Lobby = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+
+  const handleCreateRoom = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.post("/games/create", {
+        gameMode: "online",
+        playerBlack: localStorage.getItem("username"),
+      });
+  
+      navigate(`/Lobby/game/${response.data.id}`); // 🏠 Chuyển vào phòng vừa tạo
+    } catch (error) {
+      console.error("❌ Lỗi khi tạo phòng:", error);
+    }
+    setLoading(false);
+  };
 
   return (
     <div
@@ -18,10 +37,11 @@ const Lobby = () => {
       {/* Các nút lựa chọn */}
       <div className="flex flex-col gap-6 w-80">
         <button
-          onClick={() => navigate("/Lobby/game")}
+          onClick={handleCreateRoom}
+          disabled={loading}
           className="w-full py-4 bg-blue-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-blue-700 shadow-md"
         >
-          🏠 Tạo phòng
+          {loading ? "⏳ Đang tạo phòng..." : "🏠 Tạo phòng"}
         </button>
 
         <button
@@ -35,7 +55,7 @@ const Lobby = () => {
           onClick={() => navigate("/Lobby/gia-nhap-phong")}
           className="w-full py-4 bg-yellow-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-yellow-700 shadow-md"
         >
-          🔑 Gia nhập phòng
+          🔑 Gia nhập phòng ngẫu nhiên
         </button>
       </div>
 

@@ -37,38 +37,49 @@ public class GameController {
 
     @PostMapping("/create")
     public ResponseEntity<Game> createGame(@RequestBody GameRequest request) {
+        if (request.getGameMode() == null || request.getGameMode().isEmpty()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
         Game game = new Game();
-        game.setPlayerRed(request.getPlayerRed());
         game.setPlayerBlack(request.getPlayerBlack());
+
+        if ("practice".equals(request.getGameMode())) {
+            game.setPlayerRed(request.getPlayerRed());
+        }
+
+        // 🌍 Nếu là phòng online, chưa có người chơi thứ hai
+        else if ("online".equals(request.getGameMode())) {
+            game.setPlayerRed(null);
+        } else {
+            return ResponseEntity.badRequest().body(null);
+        }
+
         game.setMoves(new ArrayList<>());
-        game.setGameStatus("ongoing");
-        game.setCurrentTurn("red");
         game.setCreatedAt(Instant.now().toString());
+        game.setGameMode(request.getGameMode());
 
         Game savedGame = gameService.createGame(game);
         return ResponseEntity.ok(savedGame);
     }
 
-    @PostMapping("/{gameId}/move")
-    public ResponseEntity<Game> makeMove(@PathVariable String gameId, @RequestBody MoveDTO moveDTO) {
+    @PostMapping("/{gameId}/moves")
+    public ResponseEntity<Game> saveMove(@PathVariable String gameId, @RequestBody MoveDTO move) {
         Optional<Game> optionalGame = gameRepository.findById(gameId);
-        if (optionalGame.isEmpty()) {
+        if (!optionalGame.isPresent()) {
             return ResponseEntity.notFound().build();
         }
 
         Game game = optionalGame.get();
 
-        // Thêm nước đi vào danh sách moves
-        if (game.getMoves() == null) {
-            game.setMoves(new ArrayList<>()); // Nếu chưa có danh sách thì khởi tạo
-        }
-        game.getMoves().add(moveDTO);
+        // Kiểm tra lượt chơi hợp lệ
+
+        // Lưu nước đi vào danh sách
+        game.getMoves().add(move);
 
         // Chuyển lượt chơi
-        game.setCurrentTurn(game.getCurrentTurn().equals("red") ? "black" : "red");
 
-        gameRepository.save(game); // Lưu vào MongoDB
-
+        gameRepository.save(game);
         return ResponseEntity.ok(game);
     }
 
@@ -93,8 +104,9 @@ public class GameController {
             @RequestBody List<MoveDTO> moves,
             @RequestParam String currentTurn,
             @RequestParam String gameStatus,
-            @RequestParam String createdAt) {
-        return gameService.updateGame(gameId, moves, currentTurn, gameStatus, createdAt);
+            @RequestParam String createdAt,
+            @RequestParam String gameMode) {
+        return gameService.updateGame(gameId, moves, currentTurn, gameStatus, createdAt, gameMode);
     }
 
     // Delete a game
@@ -102,4 +114,5 @@ public class GameController {
     public void deleteGame(@PathVariable String gameId) {
         gameService.deleteGame(gameId);
     }
+
 }

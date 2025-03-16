@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import GameManager from "./GameManager";
+import apiClient from "../Services/apiConfig";
+import websocketService from "../Services/webSocketServices";
+
 
 // Ảnh quân cờ
 const pieceImages = {
@@ -33,17 +36,37 @@ const initialBoard = [
   ["R", "N", "B", "A", "K", "A", "B", "N", "R"],
 ];
 
-const Chessboard = () => {
+const Chessboard = ({ gameId  } ) => {
+  const [gameStarted, setGameStarted] = useState(false);
   const [board, setBoard] = useState(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
-  const gameManager = new GameManager(board); 
   const [moveHistory, setMoveHistory] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState("black"); // 'red' hoặc 'black'
   const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
-  
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState(null);
+  const gameManager = new GameManager(board); 
 
-  const handleClick = (row, col) => {
+  if (!gameStarted) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-8 rounded-lg text-center animate-fade-in">
+          <button
+            onClick={() => setGameStarted(true)}
+            className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
+          >Bấm để bắt đầu</button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleClick = async (row, col) => {
+    if (!gameId) {
+      console.error("Không có gameId, không thể gửi nước đi!");
+      console.log("Received gameId in Chessboard:", gameId);
+      return;
+    }
     const piece = board[row][col];
     const isRedPiece = piece && piece === piece.toLowerCase(); // Quân đỏ là chữ thường
     const isBlackPiece = piece && piece === piece.toUpperCase(); // Quân đen là chữ hoa
@@ -53,7 +76,6 @@ const Chessboard = () => {
           setErrorMessage("Nước đi này sẽ gây chiếu tướng!");
           return; // Không thực hiện nước đi
         }
-
         // Move the piece
         const newBoard = gameManager.movePiece(
           selectedPiece.row,
@@ -71,15 +93,37 @@ const Chessboard = () => {
           }
         ]);
         const move = {
-          from: { row: selectedPiece.row, col: selectedPiece.col, piece: selectedPiece.piece },
+          gameId,
+          from: { row: selectedPiece.row, col: selectedPiece.col },
           to: { row, col },
+          piece: selectedPiece.piece,
           player: currentPlayer,
         };
+
+        try {
+          await apiClient.post(`/games/${gameId}/moves`, move); // Gửi nước đi lên server
+          console.log("Move successfully sent to server");
+        } catch (error) {
+          console.error("Failed to send move to server", error);
+        }
+
         console.log("Nước đi mới:", move); // Kiểm tra log
         console.log("Lịch sử nước đi:", [...moveHistory, move]); // Kiểm tra toàn bộ lịch sử
 
         setMoveHistory(prevHistory => [...prevHistory, move]); // Cập nhật lịch sử
         
+
+        // Xác định lượt chơi tiếp theo
+        const nextPlayer = currentPlayer === "red" ? "black" : "red";
+        const newGameManager = new GameManager(newBoard);
+        // Kiểm tra xem bên được chuyển giao có bị chiếu bí hay không
+        if (newGameManager.isCheckmate(nextPlayer === "red")) {
+          setGameOver(true);
+          setWinner(nextPlayer);
+          setErrorMessage(
+            `${nextPlayer === "red" ? "Đỏ" : "Đen"} bị chiếu bí! Trò chơi kết thúc.`
+          );
+        }
 
         setBoard([...newBoard]); // Ensure a new state reference
         setSelectedPiece(null);
@@ -92,8 +136,13 @@ const Chessboard = () => {
         const opponentIsRed = currentPlayer === "black";
         if (gameManager.isKingInCheck(opponentIsRed)) {
           setErrorMessage("Chiếu tướng!");
+          // Kiểm tra xem có phải là chiếu bí hay không
+          if (gameManager.isCheckmate(opponentIsRed)) {
+            setErrorMessage("Chiếu bí! Trò chơi kết thúc.");
+            // Có thể thêm logic kết thúc trò chơi ở đây
+          }
         }
-        setCurrentPlayer(currentPlayer === "red" ? "black" : "red"); // Xóa thông báo lỗi
+        if (!gameOver) setCurrentPlayer(nextPlayer);
       } else {
         setSelectedPiece(null);
         setValidMoves([]);
@@ -112,6 +161,16 @@ const Chessboard = () => {
       }
   };
   
+
+  const restartGame = () => {
+    setBoard(initialBoard);
+    setCurrentPlayer("black");
+    setSelectedPiece(null);
+    setValidMoves([]);
+    setErrorMessage("");
+    setGameOver(false);
+    setWinner(null);
+  };
 
   const boardSize = 500;
   const cellSize = boardSize / 9;
@@ -160,6 +219,23 @@ const Chessboard = () => {
       {/* <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-blue-500 text-white p-2 rounded">
         Lượt hiện tại: {currentPlayer === "red" ? "Đỏ" : "Đen"}
       </div> */}
+      {/* Overlay hiển thị khi trò chơi kết thúc */}
+      {gameOver && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg text-center">
+            <h2 className="text-2xl font-bold mb-4">Trò chơi kết thúc!</h2>
+            <p className="mb-4">
+              {winner === "red" ? "Đỏ" : "Đen"} bị chiếu bí!
+            </p>
+            <button
+              onClick={restartGame}
+              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
+            >
+              Chơi lại
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

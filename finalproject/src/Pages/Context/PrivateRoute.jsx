@@ -1,12 +1,10 @@
 import { Navigate } from "react-router-dom";
-import { useUser } from "./userContext";
 
 const PrivateRoute = ({ children }) => {
-  const { user } = useUser(); // Lấy user từ context
-  const token = localStorage.getItem("token"); // Hoặc kiểm tra token nếu cần
+  const token = localStorage.getItem("token"); // Kiểm tra token
 
-  if (!user && !token) {
-    return <Navigate to="/login" replace />; // Chưa đăng nhập thì chuyển về trang Login
+  if (!token) {
+    return <Navigate to="/login" replace />; // Nếu không có token, chuyển về trang Login
   }
 
   return children;

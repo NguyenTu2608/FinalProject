@@ -1,9 +1,12 @@
 import apiClient from "./apiConfig";
 
-// Đăng nhập
 export const login = async (username, password) => {
   try {
     const response = await apiClient.post("/auth/sign-in", { username, password });
+    if (!response.data.token) {
+      throw new Error("Dữ liệu phản hồi không hợp lệ từ máy chủ.");
+    }
+
     return response.data;
   } catch (error) {
     if (error.response) {

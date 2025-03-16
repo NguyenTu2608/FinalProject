@@ -51,7 +51,7 @@ public class GameService {
     }
 
     // Update a game's moves and status
-    public Game updateGame(String gameId, List<MoveDTO> moves, String currentTurn, String gameStatus, String createdAt) {
+    public Game updateGame(String gameId, List<MoveDTO> moves, String currentTurn, String gameStatus, String createdAt, String gameMode) {
         Optional<Game> gameOptional = gameRepository.findById(gameId);
         if (gameOptional.isPresent()) {
             Game game = gameOptional.get();
@@ -59,6 +59,7 @@ public class GameService {
             game.setCurrentTurn(currentTurn);
             game.setGameStatus(gameStatus);
             game.setCreatedAt(createdAt);
+            game.setGameMode(gameMode);
             return gameRepository.save(game);
         } else {
             throw new RuntimeException("Game not found");

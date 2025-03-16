@@ -23,10 +23,7 @@ const Home = () => {
     setIsLoggedIn(false);
     navigate("/");
   };
-  if (!isLoggedIn) {
-    navigate("/"); // Chuyển hướng đến trang đăng nhập/đăng ký nếu chưa đăng nhập
-    return null;
-  }
+  
   return (
     <div
       style={{

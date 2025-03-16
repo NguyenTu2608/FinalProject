@@ -16,6 +16,7 @@ public class Game {
     private String gameStatus; // Game status: ongoing, white_won, black_won, draw
     private String currentTurn; // "red" or "black"
     private String createdAt;
+    private String gameMode;
 
     public Game() {
     }
@@ -83,5 +84,13 @@ public class Game {
 
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+    public String getGameMode()
+    {
+        return gameMode;
+    }
+    public void setGameMode(String gameMode)
+    {
+        this.gameMode = gameMode;
     }
 }

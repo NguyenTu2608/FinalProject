@@ -57,7 +57,7 @@ function App() {
             }
           />
           <Route
-            path="/lobby/game"
+            path="/lobby/game/:gameId"
             element={
               <PrivateRoute>
                 <Game />

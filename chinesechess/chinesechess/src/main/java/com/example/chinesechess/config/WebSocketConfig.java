@@ -19,7 +19,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(org.springframework.web.socket.config.annotation.StompEndpointRegistry registry) {
         // Đăng ký endpoint để client kết nối
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS(); // Hỗ trợ SockJS
+        registry.addEndpoint("/ws").
+                setAllowedOriginPatterns("*").
+                withSockJS(); // Hỗ trợ SockJS
     }
 }
 

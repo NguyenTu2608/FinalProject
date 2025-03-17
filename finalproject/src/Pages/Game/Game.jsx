@@ -8,6 +8,7 @@ const Game = () => {
   const { gameId } = useParams(); // 📌 Lấy gameId từ URL
   const [playerBlack, setPlayerBlack] = useState(null);
   const [playerRed, setPlayerRed] = useState(null);
+  const [gameMode, setGameMode] = useState("online");
   const [messages, setMessages] = useState([]);
   
   // ✅ Lấy username từ token
@@ -25,34 +26,24 @@ const Game = () => {
 
   const username = getUsernameFromToken(); // 📌 Lấy username từ token
   useEffect(() => {
-    if (!username) {
-      console.warn("⚠ Không tìm thấy username từ token!");
-      
-      return;
-    }
-    
     websocketService.connect(() => {
-      console.log("📡 Đăng ký WebSocket vào game:", gameId);
-      // Gửi yêu cầu tham gia game chỉ sau khi WebSocket kết nối
-      setTimeout(() => {
-        websocketService.sendJoinRequest(gameId, username);
-        
-      }, 500); // Chờ một chút để chắc chắn WebSocket đã kết nối
-    });
+      console.log("✅ WebSocket đã kết nối, gửi yêu cầu tham gia game:", gameId);
+      websocketService.sendJoinRequest(gameId, username);
   
-    websocketService.subscribeToGame(gameId, (message) => {
-      console.log("📩 Tin nhắn mới:", message)
-      if (message.type === "playerUpdate") {
-        console.log("👤 Cập nhật người chơi:", message.playerBlack, message.playerRed);
+      websocketService.subscribeToGame(gameId, (message) => {
+        console.log("📩 Tin nhắn mới từ WebSocket:", message);
   
-        // ✅ Nếu chưa có playerBlack, gán người đầu tiên vào
-        if (!message.playerBlack) {
-          message.playerBlack = username;
+        if (message.type === "playerUpdate") {
+          console.log("👤 Nhận playerUpdate:", message.playerBlack, message.playerRed);
+  
+          setTimeout(() => {
+            setPlayerBlack(message.playerBlack);
+            setPlayerRed(message.playerRed);
+            console.log("🔥 Cập nhật state playerBlack:", message.playerBlack);
+            console.log("🔥 Cập nhật state playerRed:", message.playerRed);
+          }, 0);
         }
-        setPlayerBlack(message.playerBlack);
-        setPlayerRed(message.playerRed);
-      }
-      setMessages((prevMessages) => [...prevMessages, message]);
+      });
     });
   
     return () => {
@@ -64,14 +55,21 @@ const Game = () => {
   
   useEffect(() => {
     console.log("🔥 Player Black đã cập nhật:", playerBlack);
-  }, [playerBlack]);// 📌 Lắng nghe thay đổi của gameId và username
+    console.log("🔥 Player Red đã cập nhật:", playerRed);
+  }, [playerBlack, playerRed]);// 📌 Lắng nghe thay đổi của gameId và username
 
   return (
     <div className="game-container">
       <h1>Trận đấu: {gameId}</h1>
       <h2>Người chơi Đen: {playerBlack || "Đang chờ..."}</h2>
       <h2>Người chơi Đỏ: {playerRed || "Đang chờ..."}</h2>
-      <Chessboard gameId={gameId} username={username} />
+      <Chessboard 
+          gameId={gameId} 
+          playerBlack={playerBlack} 
+          playerRed={playerRed} 
+          gameMode={gameMode}
+          username={username}
+      />
 
       <div className="chat-box">
         {messages.map((msg, index) => (

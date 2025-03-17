@@ -8,44 +8,79 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
 public class GameWebSocketController {
 
     private final GameService gameService;
+    private final SimpMessagingTemplate messagingTemplate; // ✅ Khai báo biến
 
-    public GameWebSocketController(GameService gameService) {
+    // 🔥 Dùng constructor để khởi tạo messagingTemplate
+    public GameWebSocketController(GameService gameService, SimpMessagingTemplate messagingTemplate) {
         this.gameService = gameService;
+        this.messagingTemplate = messagingTemplate;
     }
 
-    /**
-     * Xử lý khi người chơi tham gia vào phòng game.
-     * Client gửi lên `/app/game/{gameId}/join`, Server sẽ broadcast đến `/topic/game/{gameId}`
-     */
-    @MessageMapping("/game/{gameId}/join")
-    @SendTo("/topic/game/{gameId}")
-    public Game joinGame(@DestinationVariable String gameId, @Payload GameRequest request) {
+    @MessageMapping("/game/join")
+    public void joinGame(@Payload Map<String, Object> request) {
+        System.out.println("📩 Nhận yêu cầu tham gia game với ID: " + request);
+
+        String gameId = (String) request.get("gameId");
+        String playerUsername = (String) request.get("player");  // 🔥 Đảm bảo nhận đúng key từ FE
+
         Optional<Game> optionalGame = gameService.getGameById(gameId);
         if (optionalGame.isEmpty()) {
+            System.out.println("❌ Không tìm thấy gameId = " + gameId);
             throw new RuntimeException("❌ Game không tồn tại!");
         }
 
         Game game = optionalGame.get();
 
-        // ✅ Nếu chưa có playerBlack, gán người chơi đầu tiên làm playerBlack
+        // 🏆 Nếu chưa có playerBlack, gán người đầu tiên vào
         if (game.getPlayerBlack() == null) {
-            game.setPlayerBlack(request.getPlayerBlack());
-        } else if (game.getPlayerRed() == null && !game.getPlayerBlack().equals(request.getPlayerBlack())) {
-            game.setPlayerRed(request.getPlayerRed());
+            game.setPlayerBlack(playerUsername);
+        }
+        // 🏆 Nếu đã có playerBlack nhưng chưa có playerRed, gán người thứ hai vào
+        else if (game.getPlayerRed() == null && !game.getPlayerBlack().equals(playerUsername)) {
+            game.setPlayerRed(playerUsername);
+        }
+        else {
+            System.out.println("⚠ Người chơi đã có trong phòng hoặc không hợp lệ!");
         }
 
-        System.out.println("📩 Người chơi tham gia phòng: Black=" + game.getPlayerBlack() + ", Red=" + game.getPlayerRed());
+        gameService.updateGame(game);
 
-        return game; // ✅ Gửi lại thông tin game
+        System.out.println("✅ Cập nhật người chơi: Black=" + game.getPlayerBlack() + ", Red=" + game.getPlayerRed());
+
+        // 🏆 Gửi cập nhật về WebSocket cho tất cả người chơi
+        Map<String, Object> response = new HashMap<>();
+        response.put("type", "playerUpdate");
+        response.put("gameId", gameId);
+        response.put("playerBlack", game.getPlayerBlack());
+        response.put("playerRed", game.getPlayerRed());
+
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
     }
+
+    @MessageMapping("/game/{gameId}/move")
+    public void handleMove(@DestinationVariable String gameId, @Payload Map<String, Object> moveData) {
+        System.out.println("📩 Nhận nước đi từ WebSocket: " + moveData);
+
+        // Gửi lại nước đi cho tất cả người chơi trong phòng
+        moveData.put("type", "gameMove");
+        moveData.put("gameId", gameId);
+
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, moveData);
+        System.out.println("✅ Gửi nước đi tới WebSocket: " + moveData);
+    }
+
 
 
     /**

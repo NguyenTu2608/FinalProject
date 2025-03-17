@@ -25,7 +25,17 @@ public class GameService {
 
     // Get a game by ID
     public Optional<Game> getGameById(String gameId) {
-        return gameRepository.findById(gameId);
+        System.out.println("🔍 Tìm game với ID: " + gameId);
+
+        Optional<Game> game = gameRepository.findById(gameId);
+
+        if (game.isEmpty()) {
+            System.out.println("❌ Không tìm thấy game với ID: " + gameId);
+        } else {
+            System.out.println("✅ Tìm thấy game: " + game.get());
+        }
+
+        return game;
     }
 
 
@@ -71,7 +81,6 @@ public class GameService {
         if (!move.getPlayer().equals(game.getCurrentTurn())) {
             throw new RuntimeException("Not your turn");
         }
-
         // 📌 Lưu nước đi vào lịch sử
         game.getMoves().add(move);
 

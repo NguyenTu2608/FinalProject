@@ -22,9 +22,10 @@ public class JwtUtil {
      * @param email The user's email.
      * @return The JWT token.
      */
-    public static String generateToken(String email) {
+    public static String generateToken(String email, String username) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("username", username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)

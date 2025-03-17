@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../Services/apiConfig";
 import Chessboard from "../../Components/Chessboard";
-import { Navigate } from "react-router-dom";
+
 
 
 export default function PracticeRoom() {

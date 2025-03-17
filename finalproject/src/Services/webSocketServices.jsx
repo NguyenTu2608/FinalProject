@@ -44,22 +44,35 @@ class WebSocketService {
   }
 
   subscribeToGame(gameId, callback) {
-    console.log("✅ Gọi subscribeToGame với gameId:", gameId);
-
-    if (!this.isConnected) {
+    console.log("✅ Đăng ký WebSocket với gameId:", gameId);
+  
+    if (!this.client || !this.client.connected) {
       console.warn("⚠ WebSocket chưa kết nối, thử lại sau...");
-      setTimeout(() => this.subscribeToGame(gameId, callback), 500); // ✅ Thử lại sau 500ms
+      setTimeout(() => this.subscribeToGame(gameId, callback), 500);
       return;
     }
-
-    const subscription = this.client.subscribe(`/topic/game/${gameId}`, (message) => {
-      callback(JSON.parse(message.body));
+  
+    console.log(`📡 Đang đăng ký topic: /topic/game/${gameId}`);
+    
+    this.client.subscribe(`/topic/game/${gameId}`, (message) => {
+      console.log("📩 Nhận tin nhắn WebSocket thô:", message);
+      
+      try {
+        const data = JSON.parse(message.body);
+        console.log("📩 Dữ liệu sau khi parse JSON:", data);
+        
+        if (data.type === "playerUpdate") {
+          console.log("👤 Nhận playerUpdate:", data.playerBlack, data.playerRed);
+        } else {
+          console.warn("⚠ Nhận tin nhắn nhưng không phải playerUpdate:", data);
+        }
+  
+        callback(data);
+      } catch (error) {
+        console.error("❌ LỖI: Không thể parse JSON từ WebSocket!", error);
+      }
     });
-
-    this.subscriptions[gameId] = subscription;
-    console.log("✅ Đã subscribe thành công vào game:", gameId);
   }
-
 
   unsubscribeFromGame(gameId) {
     if (this.subscriptions[gameId]) {
@@ -70,23 +83,22 @@ class WebSocketService {
   }
 
   sendJoinRequest(gameId, username) {
-    if (!this.client || !this.client.connected) {
-      console.warn("⚠ WebSocket chưa kết nối, không thể gửi yêu cầu tham gia!");
+    console.log("📩 Gửi WebSocket tham gia game với:", JSON.stringify({ gameId, player: username }));
+  
+    if (!gameId) {
+      console.error("❌ LỖI: gameId bị null hoặc undefined!");
       return;
     }
-
+  
     this.client.publish({
-      destination: `/app/game/${gameId}/join`,
-      body: JSON.stringify({ playerBlack: username }),
+      destination: "/app/game/join",
+      body: JSON.stringify({ gameId: gameId, player: username }) // ✅ Đảm bảo `gameId` không bị null
     });
   }
 
   sendMove(gameId, move) {
-    if (!this.client || !this.client.connected) {
-      console.warn("⚠ WebSocket chưa kết nối, không thể gửi nước đi!");
-      return;
-    }
-
+    console.log("📩 Gửi nước đi:", move);
+  
     this.client.publish({
       destination: `/app/game/${gameId}/move`,
       body: JSON.stringify(move),

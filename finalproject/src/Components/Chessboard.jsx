@@ -32,7 +32,7 @@ const initialBoard = [
   ["", "", "", "", "", "", "", "", ""],
   ["R", "N", "B", "A", "K", "A", "B", "N", "R"],
 ];
-const Chessboard = ({ gameId, playerBlack, playerRed, gameMode } ) => {
+const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => {
   const [gameStarted, setGameStarted] = useState(false);
   const [board, setBoard] = useState(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -43,6 +43,46 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode } ) => {
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
   const gameManager = new GameManager(board); 
+
+  useEffect(() => {
+    console.log("📡 Kiểm tra WebSocket với gameMode:", gameMode);
+  
+    if ((currentPlayer === "black" && username !== playerBlack) ||
+      (currentPlayer === "red" && username !== playerRed)) {
+    console.log("🚫 Không phải lượt của bạn!");
+    setErrorMessage("Không phải lượt của bạn!");
+    return;
+  }
+
+    if (gameMode !== "online") {
+      return; // 🚀 Không đăng ký WebSocket nếu không phải chế độ online
+    }
+  
+    console.log("📡 Đang kết nối WebSocket...");
+  
+    const handleMoveUpdate = (message) => {
+      if (message.type === "gameMove") {
+        console.log("♟️ Nhận nước đi từ WebSocket:", message);
+  
+        setBoard((prevBoard) => {
+          const updatedBoard = [...prevBoard];
+          updatedBoard[message.to.row][message.to.col] = updatedBoard[message.from.row][message.from.col];
+          updatedBoard[message.from.row][message.from.col] = null;
+          return updatedBoard;
+        });
+  
+        setMoveHistory((prevHistory) => [...prevHistory, message]);
+        setCurrentPlayer(message.player === "red" ? "black" : "red");
+      }
+    };
+  
+    websocketService.subscribeToGame(gameId, handleMoveUpdate);
+  
+    return () => {
+      websocketService.unsubscribeFromGame(gameId);
+    };
+  }, [gameId, gameMode]);
+
 
   
 
@@ -74,7 +114,6 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode } ) => {
   }
 
   const handleClick = async (row, col) => {
-    
     const piece = board[row][col];
     const isRedPiece = piece && piece === piece.toLowerCase(); // Quân đỏ là chữ thường
     const isBlackPiece = piece && piece === piece.toUpperCase(); // Quân đen là chữ hoa
@@ -91,7 +130,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode } ) => {
           row,
           col
         );
-
+        
         const move = {
           gameId,
           from: { row: selectedPiece.row, col: selectedPiece.col },
@@ -99,6 +138,21 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode } ) => {
           piece: selectedPiece.piece,
           player: currentPlayer,
         };
+
+        // 📡 Gửi nước đi lên server nếu là chế độ online
+        if (gameMode === "online") {
+          console.log("📡 Gửi nước đi qua WebSocket:", move);
+          websocketService.sendMove(gameId, move);
+        } 
+        else {
+          try {
+          await apiClient.post(`/games/${gameId}/moves`, move);
+          console.log("✅ Nước đi đã gửi lên server");
+          } catch (error) {
+          console.error("❌ Lỗi khi gửi nước đi lên server:", error);
+          }
+        }
+        
 
         try {
           await apiClient.post(`/games/${gameId}/moves`, move); // Gửi nước đi lên server
@@ -130,6 +184,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode } ) => {
         setValidMoves([]);
         setErrorMessage("");
 
+
         
 
         // Kiểm tra xem Tướng của đối phương có bị chiếu hay không
@@ -160,6 +215,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode } ) => {
         // setErrorMessage("Không phải lượt của bạn!");
       }
   };
+  
   
 
   const restartGame = () => {

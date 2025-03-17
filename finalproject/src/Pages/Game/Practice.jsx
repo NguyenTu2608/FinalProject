@@ -28,7 +28,7 @@ const Pratice = () => {
           onClick={() => navigate("/Practice/tim-phong")}
           className="w-full py-4 bg-green-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md"
         >
-          🔍 Chơi với máy
+          🔍 Chơi với AI
         </button>
 
       </div>

@@ -32,7 +32,7 @@ const initialBoard = [
   ["", "", "", "", "", "", "", "", ""],
   ["R", "N", "B", "A", "K", "A", "B", "N", "R"],
 ];
-const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => {
+const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
   const [gameStarted, setGameStarted] = useState(false);
   const [board, setBoard] = useState(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -42,18 +42,19 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
   const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
-  const gameManager = new GameManager(board); 
+  const gameManager = new GameManager(board);
 
   useEffect(() => {
     if (gameMode !== "online") return;
-  
+
     console.log("📡 Kết nối WebSocket để nhận nước đi...");
-  
+
     websocketService.subscribeToGame(gameId, (message) => {
       if (message.type === "gameMove") {
         console.log("♟️ Nhận gameMove từ WebSocket:", message);
-  
+
         setBoard((prevBoard) => {
+
           if (!message.from || !message.to) {
               console.warn("⚠ Lỗi: Dữ liệu nước đi không hợp lệ!", message);
               return prevBoard;
@@ -85,8 +86,9 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
       });
       
   
+
         setMoveHistory((prevHistory) => [...prevHistory, message]);
-  
+
         // 🔥 Cập nhật lượt chơi từ WebSocket
         setCurrentPlayer((prev) => {
           console.log("🛠️ Trước khi cập nhật lượt:", prev);
@@ -95,11 +97,13 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
         });
       }
     });
-  
+
     return () => {
       websocketService.unsubscribeFromGame(gameId);
     };
   }, [gameId, gameMode]);
+
+
 
   if (!gameStarted) {
     return (
@@ -117,7 +121,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
               <p className="mb-4 text-lg font-semibold">Đang chờ người chơi khác...</p>
               <button
                 onClick={() => setGameStarted(true)}
-              className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
               >
                 Sẵn sàng
               </button>
@@ -132,7 +136,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
     if (gameMode === "online") {
       // 🔥 Kiểm tra nếu không phải lượt của người chơi trong chế độ online
       if ((currentPlayer === "black" && username !== playerBlack) ||
-          (currentPlayer === "red" && username !== playerRed)) {
+        (currentPlayer === "red" && username !== playerRed)) {
         console.log("🚫 Không phải lượt của bạn!");
         setErrorMessage("Không phải lượt của bạn!");
         setErrorMessage("");
@@ -182,7 +186,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
         console.log("Lịch sử nước đi:", [...moveHistory, move]); // Kiểm tra toàn bộ lịch sử
 
         setMoveHistory(prevHistory => [...prevHistory, move]); // Cập nhật lịch sử
-        
+
 
         // Xác định lượt chơi tiếp theo
         const nextPlayer = currentPlayer === "red" ? "black" : "red";
@@ -243,72 +247,111 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
   const boardSize = 500;
   const cellSize = boardSize / 9;
 
-  return (
-    <div className="relative w-[500px] h-[550px] mx-auto">
-      <img src="/Assets/chessboard.png" alt="Chessboard" className="w-full h-full" />
-
-      {board.map((row, rowIndex) =>
-        row.map((piece, colIndex) =>
-          piece ? (
-            <img
-              key={`${rowIndex}-${colIndex}`}
-              src={pieceImages[piece]}
-              alt={piece}
-              className="absolute w-[45px] h-[45px] transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-              style={{
-                left: `${colIndex * cellSize + cellSize / 2}px`,
-                top: `${rowIndex * cellSize + cellSize / 2}px`,
-              }}
-              onClick={() => handleClick(rowIndex, colIndex)}
-            />
-          ) : null
-        )
-      )}
-
-      {validMoves.map(([row, col]) => (
-        <div
-          key={`${row}-${col}`}
-          className="absolute w-[45px] h-[45px] bg-green-500 opacity-50 transform -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{
-            left: `${col * cellSize + cellSize / 2}px`,
-            top: `${row * cellSize + cellSize / 2}px`,
-          }}
-          onClick={() => handleClick(row, col)}
-        />
-      ))}
-      {/* Hiển thị thông báo lỗi */}
-      {errorMessage && (
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-red-500 text-white p-2 rounded">
-          {errorMessage}
-        </div>
-      )}
-
-      {/* Hiển thị lượt hiện tại trên bàn cờ */}
-      {/* <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-blue-500 text-white p-2 rounded">
-        Lượt hiện tại: {currentPlayer === "red" ? "Đỏ" : "Đen"}
-      </div> */}
-      {/* Overlay hiển thị khi trò chơi kết thúc */}
-      {gameOver && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">Trò chơi kết thúc!</h2>
-            <p className="mb-4">
-              {winner === "red" ? "Đỏ" : "Đen"} bị chiếu bí!
-            </p>
-            <button
-              onClick={restartGame}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
-            >
-              Chơi lại
-            </button>
+  const ProfileCard = () => {
+    return (
+      <div className="flex flex-col items-center bg-gray-900 bg-opacity-80 p-4 rounded-lg shadow-lg w-64 text-white">
+        {/* Ảnh đại diện */}
+        <div className="relative">
+          <img
+            src="/Assets/avatar.png" // Thay bằng ảnh thực tế
+            alt="Avatar"
+            className="w-24 h-24 rounded-full border-4 border-orange-500"
+          />
+          <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-orange-500 px-4 py-1 rounded-md text-lg font-bold">
+            Tập sự
+            <span className="block text-center text-yellow-300 text-sm">⭐</span>
           </div>
         </div>
-      )}
 
+        {/* Mã người chơi */}
+        <div className="bg-gray-700 text-yellow-300 text-lg font-semibold mt-6 px-6 py-2 rounded-lg w-full text-center">
+          917E7B212E...
+        </div>
+
+        {/* Đồng hồ đếm ngược */}
+        <div className="flex items-center mt-4 bg-yellow-500 px-6 py-2 rounded-lg text-black font-bold">
+          ⏳ 15:00
+        </div>
+      </div>
+    );
+  };
+
+  // export default ProfileCard;
+
+  return (
+    <div className="flex justify-center items-center space-x-8">
+      {/* ProfileCard */}
+      <ProfileCard />
+      <div className="relative w-[500px] h-[550px] mx-auto">
+        <img src="/Assets/chessboard.png" alt="Chessboard" className="w-full h-full" />
+
+        {board.map((row, rowIndex) =>
+          row.map((piece, colIndex) =>
+            piece ? (
+              <img
+                key={`${rowIndex}-${colIndex}`}
+                src={pieceImages[piece]}
+                alt={piece}
+                className="absolute w-[45px] h-[45px] transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+                style={{
+                  left: `${colIndex * cellSize + cellSize / 2}px`,
+                  top: `${rowIndex * cellSize + cellSize / 2}px`,
+                }}
+                onClick={() => handleClick(rowIndex, colIndex)}
+              />
+            ) : null
+          )
+        )}
+
+        {validMoves.map(([row, col]) => (
+          <div
+            key={`${row}-${col}`}
+            className="absolute w-[45px] h-[45px] bg-green-500 opacity-50 transform -translate-x-1/2 -translate-y-1/2"
+            style={{
+              left: `${col * cellSize + cellSize / 2}px`,
+              top: `${row * cellSize + cellSize / 2}px`,
+            }}
+            onClick={() => handleClick(row, col)}
+          />
+        ))}
+
+        {/* Hiển thị thông báo lỗi */}
+        {errorMessage && (
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-red-500 text-white p-2 rounded">
+            {errorMessage}
+          </div>
+        )}
+
+        {/* Hiển thị lượt hiện tại trên bàn cờ */}
+        <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-blue-500 text-white p-2 rounded">
+          Lượt hiện tại: {currentPlayer === "red" ? "Đỏ" : "Đen"}
+        </div>
+
+
+        {/* Overlay hiển thị khi trò chơi kết thúc */}
+        {gameOver && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded shadow-lg text-center">
+              <h2 className="text-2xl font-bold mb-4">Trò chơi kết thúc!</h2>
+              <p className="mb-4">
+                {winner === "red" ? "Đỏ" : "Đen"} bị chiếu bí!
+              </p>
+              <button
+                onClick={restartGame}
+                className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
+              >
+                Chơi lại
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      {/* ProfileCard bên phải (đối xứng) */}
+      <ProfileCard />
     </div>
   );
 
-  
+
 };
 
 export default Chessboard;

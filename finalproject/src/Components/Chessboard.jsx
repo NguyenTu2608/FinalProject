@@ -54,47 +54,28 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
         console.log("♟️ Nhận gameMove từ WebSocket:", message);
 
         setBoard((prevBoard) => {
+          const updatedBoard = [...prevBoard];
 
-          if (!message.from || !message.to) {
-              console.warn("⚠ Lỗi: Dữ liệu nước đi không hợp lệ!", message);
-              return prevBoard;
+          if (!updatedBoard[message.from.row][message.from.col]) {
+            console.warn("⚠ Không tìm thấy quân cờ ở vị trí cũ:", message.from);
+            return prevBoard;
           }
-      
-          const { from, to } = message;
-      
-          // Kiểm tra xem tọa độ có hợp lệ không
-          if (from.row < 0 || from.row >= 10 || from.col < 0 || from.col >= 9 ||
-              to.row < 0 || to.row >= 10 || to.col < 0 || to.col >= 9) {
-              console.warn("⚠ Lỗi: Nước đi ngoài phạm vi bàn cờ!", from, to);
-              return prevBoard;
-          }
-      
-          // Tạo bản sao sâu của bàn cờ
-          const updatedBoard = prevBoard.map(row => [...row]);
-      
-          // Kiểm tra xem có quân cờ ở vị trí cũ không
-          if (!updatedBoard[from.row][from.col]) {
-              console.warn("⚠ Không tìm thấy quân cờ ở vị trí cũ:", from);
-              return prevBoard;
-          }
-      
-          // Thực hiện nước đi
-          updatedBoard[to.row][to.col] = updatedBoard[from.row][from.col];
-          updatedBoard[from.row][from.col] = null;
-      
+
+          updatedBoard[message.to.row][message.to.col] = updatedBoard[message.from.row][message.from.col];
+          updatedBoard[message.from.row][message.from.col] = null;
+
           return updatedBoard;
-      });
-      
-  
+        });
 
         setMoveHistory((prevHistory) => [...prevHistory, message]);
 
         // 🔥 Cập nhật lượt chơi từ WebSocket
-        setCurrentPlayer((prev) => {
-          console.log("🛠️ Trước khi cập nhật lượt:", prev);
-          console.log("🔄 Cập nhật lượt chơi thành:", message.currentTurn);
-          return message.currentTurn;
-        });
+        if (message.currentTurn) {
+          console.log("🔄 Cập nhật lượt chơi:", message.currentTurn);
+          setCurrentPlayer(message.currentTurn);
+        } else {
+          console.warn("⚠ Không nhận được currentTurn từ WebSocket!");
+        }
       }
     });
 
@@ -102,6 +83,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
       websocketService.unsubscribeFromGame(gameId);
     };
   }, [gameId, gameMode]);
+
 
 
 

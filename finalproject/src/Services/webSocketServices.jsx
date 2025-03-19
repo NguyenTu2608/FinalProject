@@ -97,10 +97,6 @@ class WebSocketService {
   }
 
   sendMove(gameId, move) {
-    if (!this.client || !this.client.connected) {
-      console.warn("⚠ WebSocket chưa kết nối, không thể gửi nước đi!");
-      return;
-  }
     console.log("📩 Gửi nước đi:", move);
   
     this.client.publish({

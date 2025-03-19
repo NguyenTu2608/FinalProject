@@ -73,9 +73,32 @@ public class GameWebSocketController {
     public void handleMove(@DestinationVariable String gameId, @Payload Map<String, Object> moveData) {
         System.out.println("📩 Nhận nước đi từ WebSocket: " + moveData);
 
-        // Gửi lại nước đi cho tất cả người chơi trong phòng
+        Optional<Game> optionalGame = gameService.getGameById(gameId);
+        if (optionalGame.isEmpty()) {
+            System.out.println("❌ Game không tồn tại!");
+            return;
+        }
+
+        Game game = optionalGame.get();
+
+        // 🔥 Kiểm tra nếu không đúng lượt chơi
+        if (!moveData.get("player").equals(game.getCurrentTurn())) {
+            System.out.println("❌ Không phải lượt của " + moveData.get("player") + " (Hiện tại: " + game.getCurrentTurn() + ")");
+            return;
+        }
+
+        // 🔄 Chuyển lượt chơi
+        game.switchTurn();
+        gameService.updateGame(game);
+
+
+        // 🔥 Gửi lại dữ liệu nước đi và lượt chơi mới
         moveData.put("type", "gameMove");
         moveData.put("gameId", gameId);
+        moveData.put("currentTurn", game.getCurrentTurn()); // ✅ Cập nhật lượt chơi
+        moveData.put("movedPiece", moveData.get("piece"));
+        moveData.put("from", moveData.get("from"));
+        moveData.put("to", moveData.get("to"));
 
         messagingTemplate.convertAndSend("/topic/game/" + gameId, moveData);
         System.out.println("✅ Gửi nước đi tới WebSocket: " + moveData);
@@ -83,39 +106,40 @@ public class GameWebSocketController {
 
 
 
+
     /**
      * Xử lý nước đi của người chơi.
      * Client gửi nước đi lên `/app/game/{gameId}/move`, Server sẽ gửi lại cập nhật cho `/topic/game/{gameId}`
      */
-    @MessageMapping("/game/{gameId}/move")
-    @SendTo("/topic/game/{gameId}")
-    public Game makeMove(@DestinationVariable String gameId, @Payload MoveDTO move) {
-        Optional<Game> optionalGame = gameService.getGameById(gameId);
-        if (optionalGame.isEmpty()) {
-            throw new RuntimeException("❌ Game không tồn tại!");
-        }
-
-        Game game = optionalGame.get();
-
-        // Kiểm tra người chơi hợp lệ
-        if (!move.getPlayer().equals(game.getPlayerBlack()) && !move.getPlayer().equals(game.getPlayerRed())) {
-            throw new IllegalArgumentException("❌ Người chơi không hợp lệ!");
-        }
-
-        // Kiểm tra lượt chơi
-        if (!move.getPlayer().equals(game.getCurrentTurn())) {
-            throw new IllegalArgumentException("❌ Không phải lượt của bạn!");
-        }
-
-        // Lưu nước đi vào danh sách lịch sử
-        game.getMoves().add(move);
-
-        // Chuyển lượt sau khi đi
-        game.switchTurn();
-
-        // Cập nhật trạng thái game
-        gameService.updateGame(game);
-
-        return game; // ✅ Gửi lại toàn bộ trạng thái game cho cả hai người chơi
-    }
+//    @MessageMapping("/game/{gameId}/move")
+//    @SendTo("/topic/game/{gameId}")
+//    public Game makeMove(@DestinationVariable String gameId, @Payload MoveDTO move) {
+//        Optional<Game> optionalGame = gameService.getGameById(gameId);
+//        if (optionalGame.isEmpty()) {
+//            throw new RuntimeException("❌ Game không tồn tại!");
+//        }
+//
+//        Game game = optionalGame.get();
+//
+//        // Kiểm tra người chơi hợp lệ
+//        if (!move.getPlayer().equals(game.getPlayerBlack()) && !move.getPlayer().equals(game.getPlayerRed())) {
+//            throw new IllegalArgumentException("❌ Người chơi không hợp lệ!");
+//        }
+//
+//        // Kiểm tra lượt chơi
+//        if (!move.getPlayer().equals(game.getCurrentTurn())) {
+//            throw new IllegalArgumentException("❌ Không phải lượt của bạn!");
+//        }
+//
+//        // Lưu nước đi vào danh sách lịch sử
+//        game.getMoves().add(move);
+//
+//        // Chuyển lượt sau khi đi
+//        game.switchTurn();
+//
+//        // Cập nhật trạng thái game
+//        gameService.updateGame(game);
+//
+//        return game; // ✅ Gửi lại toàn bộ trạng thái game cho cả hai người chơi
+//    }
 }

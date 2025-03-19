@@ -401,8 +401,8 @@ class GameManager {
   isCheckmate(isRed) {
     if (!this.isKingInCheck(isRed)) return false; // Nếu không bị chiếu thì không phải chiếu bí
 
-    const kingSymbol = isRed ? "k" : "K";
-    let kingPosition = null;
+    // const kingSymbol = isRed ? "k" : "K";
+    // let kingPosition = null;
 
     // Duyệt qua tất cả các quân cờ của bên isRed
     for (let row = 0; row < 10; row++) {

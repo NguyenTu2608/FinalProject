@@ -56,6 +56,7 @@ public class GameController {
         game.setMoves(new ArrayList<>());
         game.setCreatedAt(Instant.now().toString());
         game.setGameMode(request.getGameMode());
+        game.setCurrentTurn("black");
 
         Game savedGame = gameService.createGame(game);
         return ResponseEntity.ok(savedGame);

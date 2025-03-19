@@ -45,38 +45,39 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
   const gameManager = new GameManager(board); 
 
   useEffect(() => {
-    console.log("📡 Kiểm tra WebSocket với gameMode:", gameMode);
+    if (gameMode !== "online") return;
   
-    if ((currentPlayer === "black" && username !== playerBlack) ||
-      (currentPlayer === "red" && username !== playerRed)) {
-    console.log("🚫 Không phải lượt của bạn!");
-    setErrorMessage("Không phải lượt của bạn!");
-    return;
-  }
-
-    if (gameMode !== "online") {
-      return; // 🚀 Không đăng ký WebSocket nếu không phải chế độ online
-    }
+    console.log("📡 Kết nối WebSocket để nhận nước đi...");
   
-    console.log("📡 Đang kết nối WebSocket...");
-  
-    const handleMoveUpdate = (message) => {
+    websocketService.subscribeToGame(gameId, (message) => {
       if (message.type === "gameMove") {
-        console.log("♟️ Nhận nước đi từ WebSocket:", message);
+        console.log("♟️ Nhận gameMove từ WebSocket:", message);
   
         setBoard((prevBoard) => {
           const updatedBoard = [...prevBoard];
+  
+          if (!updatedBoard[message.from.row][message.from.col]) {
+            console.warn("⚠ Không tìm thấy quân cờ ở vị trí cũ:", message.from);
+            return prevBoard;
+          }
+  
           updatedBoard[message.to.row][message.to.col] = updatedBoard[message.from.row][message.from.col];
           updatedBoard[message.from.row][message.from.col] = null;
+  
           return updatedBoard;
         });
   
         setMoveHistory((prevHistory) => [...prevHistory, message]);
-        setCurrentPlayer(message.player === "red" ? "black" : "red");
-      }
-    };
   
-    websocketService.subscribeToGame(gameId, handleMoveUpdate);
+        // 🔥 Cập nhật lượt chơi từ WebSocket
+        if (message.currentTurn) {
+          console.log("🔄 Cập nhật lượt chơi:", message.currentTurn);
+          setCurrentPlayer(message.currentTurn);
+        } else {
+          console.warn("⚠ Không nhận được currentTurn từ WebSocket!");
+        }
+      }
+    });
   
     return () => {
       websocketService.unsubscribeFromGame(gameId);
@@ -114,6 +115,19 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
   }
 
   const handleClick = async (row, col) => {
+    if (gameMode === "online") {
+      // 🔥 Kiểm tra nếu không phải lượt của người chơi trong chế độ online
+      if ((currentPlayer === "black" && username !== playerBlack) ||
+          (currentPlayer === "red" && username !== playerRed)) {
+        console.log("🚫 Không phải lượt của bạn!");
+        setErrorMessage("Không phải lượt của bạn!");
+        setErrorMessage("");
+        return;
+      }
+
+
+    }
+
     const piece = board[row][col];
     const isRedPiece = piece && piece === piece.toLowerCase(); // Quân đỏ là chữ thường
     const isBlackPiece = piece && piece === piece.toUpperCase(); // Quân đen là chữ hoa
@@ -130,7 +144,6 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
           row,
           col
         );
-        
         const move = {
           gameId,
           from: { row: selectedPiece.row, col: selectedPiece.col },
@@ -138,21 +151,11 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
           piece: selectedPiece.piece,
           player: currentPlayer,
         };
-
         // 📡 Gửi nước đi lên server nếu là chế độ online
         if (gameMode === "online") {
           console.log("📡 Gửi nước đi qua WebSocket:", move);
           websocketService.sendMove(gameId, move);
-        } 
-        else {
-          try {
-          await apiClient.post(`/games/${gameId}/moves`, move);
-          console.log("✅ Nước đi đã gửi lên server");
-          } catch (error) {
-          console.error("❌ Lỗi khi gửi nước đi lên server:", error);
-          }
         }
-        
 
         try {
           await apiClient.post(`/games/${gameId}/moves`, move); // Gửi nước đi lên server
@@ -184,9 +187,6 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
         setValidMoves([]);
         setErrorMessage("");
 
-
-        
-
         // Kiểm tra xem Tướng của đối phương có bị chiếu hay không
         const opponentIsRed = currentPlayer === "black";
         if (gameManager.isKingInCheck(opponentIsRed)) {
@@ -215,8 +215,6 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username } ) => 
         // setErrorMessage("Không phải lượt của bạn!");
       }
   };
-  
-  
 
   const restartGame = () => {
     setBoard(initialBoard);

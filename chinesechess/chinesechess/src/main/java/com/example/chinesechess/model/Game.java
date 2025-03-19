@@ -27,7 +27,7 @@ public class Game {
         this.playerBlack = playerBlack;
         this.moves = moves;
         this.gameStatus = gameStatus;
-        this.currentTurn = currentTurn;
+        this.currentTurn = "black";
     }
 
     // Getters and Setters
@@ -96,6 +96,6 @@ public class Game {
     }
 
     public void switchTurn() {
-        currentTurn = currentTurn.equals("black") ? "red" : "black";
+        this.currentTurn = this.currentTurn.equals("black") ? "red" : "black";
     }
 }

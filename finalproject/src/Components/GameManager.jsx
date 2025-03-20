@@ -28,7 +28,6 @@ class GameManager {
                 }
             }
             break;
-
         case "r": // 🏰 Xe (Rook)
             this.addLinearMoves(moves, row, col, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
             break;

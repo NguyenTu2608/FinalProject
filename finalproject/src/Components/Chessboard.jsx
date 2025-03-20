@@ -44,64 +44,74 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
   const [winner, setWinner] = useState(null);
   const gameManager = new GameManager(board);
 
+
   useEffect(() => {
     if (gameMode !== "online") return;
 
     console.log("📡 Kết nối WebSocket để nhận nước đi...");
 
-    websocketService.subscribeToGame(gameId, (message) => {
-      if (message.type === "gameMove") {
-        console.log("♟️ Nhận gameMove từ WebSocket:", message);
-
-        setBoard((prevBoard) => {
-
-          if (!message.from || !message.to) {
-              console.warn("⚠ Lỗi: Dữ liệu nước đi không hợp lệ!", message);
-              return prevBoard;
-          }
-      
-          const { from, to } = message;
-      
-          // Kiểm tra xem tọa độ có hợp lệ không
-          if (from.row < 0 || from.row >= 10 || from.col < 0 || from.col >= 9 ||
-              to.row < 0 || to.row >= 10 || to.col < 0 || to.col >= 9) {
-              console.warn("⚠ Lỗi: Nước đi ngoài phạm vi bàn cờ!", from, to);
-              return prevBoard;
-          }
-      
-          // Tạo bản sao sâu của bàn cờ
-          const updatedBoard = prevBoard.map(row => [...row]);
-      
-          // Kiểm tra xem có quân cờ ở vị trí cũ không
-          if (!updatedBoard[from.row][from.col]) {
-              console.warn("⚠ Không tìm thấy quân cờ ở vị trí cũ:", from);
-              return prevBoard;
-          }
-      
-          // Thực hiện nước đi
-          updatedBoard[to.row][to.col] = updatedBoard[from.row][from.col];
-          updatedBoard[from.row][from.col] = null;
-      
-          return updatedBoard;
+    if (!websocketService.isConnected) {
+      console.warn("⚠ WebSocket chưa kết nối, thử kết nối lại...");
+      websocketService.connect(() => {
+        console.log("🔄 Đã kết nối lại WebSocket!");
+        websocketService.subscribeToGame(gameId, handleGameMove);
       });
-      
-  
+      return;
+    }
 
-        setMoveHistory((prevHistory) => [...prevHistory, message]);
-
-        // 🔥 Cập nhật lượt chơi từ WebSocket
-        setCurrentPlayer((prev) => {
-          console.log("🛠️ Trước khi cập nhật lượt:", prev);
-          console.log("🔄 Cập nhật lượt chơi thành:", message.currentTurn);
-          return message.currentTurn;
-        });
-      }
-    });
+    websocketService.subscribeToGame(gameId, handleGameMove);
 
     return () => {
       websocketService.unsubscribeFromGame(gameId);
     };
-  }, [gameId, gameMode]);
+}, [gameId, gameMode]);
+
+// 👉 Tách riêng logic xử lý nước đi từ WebSocket
+const handleGameMove = (message) => {
+    if (message.type !== "gameMove") return;
+    
+    console.log("♟️ Nhận gameMove từ WebSocket:", message);
+
+    setBoard((prevBoard) => {
+        if (!message.from || !message.to) {
+            console.warn("⚠ Lỗi: Dữ liệu nước đi không hợp lệ!", message);
+            return prevBoard;
+        }
+
+        const { from, to } = message;
+
+        if (from.row < 0 || from.row >= 10 || from.col < 0 || from.col >= 9 ||
+            to.row < 0 || to.row >= 10 || to.col < 0 || to.col >= 9) {
+            console.warn("⚠ Lỗi: Nước đi ngoài phạm vi bàn cờ!", from, to);
+            return prevBoard;
+        }
+
+        // 🔥 Sao chép mảng đúng cách để tránh lỗi React không cập nhật state
+        const updatedBoard = prevBoard.map(row => [...row]);
+
+        if (!updatedBoard[from.row][from.col]) {
+            console.warn("⚠ Không tìm thấy quân cờ ở vị trí cũ:", from);
+            return prevBoard;
+        }
+
+        updatedBoard[to.row][to.col] = updatedBoard[from.row][from.col];
+        updatedBoard[from.row][from.col] = null;
+
+        return [...updatedBoard]; // ✅ Cập nhật lại state để React nhận diện thay đổi
+    });
+
+    setMoveHistory((prevHistory) => [...prevHistory, message]);
+
+    if (message.currentTurn) {
+      console.log("🔄 [Client] Cập nhật lượt chơi:", message.currentTurn);
+      setTimeout(() => {
+          setCurrentPlayer(message.currentTurn);
+      }, 100);  // ✅ Đợi 100ms để React cập nhật state trước khi chuyển lượt
+  } else {
+      console.warn("⚠ Không nhận được currentTurn từ WebSocket!");
+  }
+};
+
 
 
 
@@ -133,19 +143,35 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
   }
 
   const handleClick = async (row, col) => {
+    console.log("📍 Nhấn vào ô:", row, col, " | Người chơi hiện tại:", currentPlayer);
+    
     if (gameMode === "online") {
-      // 🔥 Kiểm tra nếu không phải lượt của người chơi trong chế độ online
-      if ((currentPlayer === "black" && username !== playerBlack) ||
-        (currentPlayer === "red" && username !== playerRed)) {
-        console.log("🚫 Không phải lượt của bạn!");
-        setErrorMessage("Không phải lượt của bạn!");
-        setErrorMessage("");
-        return;
-      }
+        if (!username) {
+            console.warn("⚠ Không lấy được username! Kiểm tra token đăng nhập.");
+            return;
+        }
 
+        if (!playerBlack || !playerRed) {
+            console.warn("⚠ Chưa có đủ hai người chơi!");
+            return;
+        }
 
+        if (currentPlayer !== "black" && currentPlayer !== "red") {
+            console.warn("⚠ Lượt chơi không hợp lệ:", currentPlayer);
+            return;
+        }
+
+        // 🔥 Kiểm tra nếu không phải lượt của người chơi hiện tại
+        const isNotTurn = 
+            (currentPlayer === "black" && username !== playerBlack) ||
+            (currentPlayer === "red" && username !== playerRed);
+
+        if (isNotTurn) {
+            console.log("🚫 Không phải lượt của bạn! Người chơi hiện tại:", currentPlayer, "| Bạn:", username);
+            setErrorMessage("Không phải lượt của bạn!");
+            return;
+        }
     }
-
     const piece = board[row][col];
     const isRedPiece = piece && piece === piece.toLowerCase(); // Quân đỏ là chữ thường
     const isBlackPiece = piece && piece === piece.toUpperCase(); // Quân đen là chữ hoa
@@ -306,7 +332,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
         {validMoves.map(([row, col]) => (
           <div
             key={`${row}-${col}`}
-            className="absolute w-[45px] h-[45px] bg-green-500 opacity-50 transform -translate-x-1/2 -translate-y-1/2"
+            className="absolute w-[45px] h-[45px] bg-green-500 opacity-50 transform -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{
               left: `${col * cellSize + cellSize / 2}px`,
               top: `${row * cellSize + cellSize / 2}px`,
@@ -322,10 +348,10 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
           </div>
         )}
 
-        {/* Hiển thị lượt hiện tại trên bàn cờ */}
+        {/* Hiển thị lượt hiện tại trên bàn cờ
         <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-blue-500 text-white p-2 rounded">
           Lượt hiện tại: {currentPlayer === "red" ? "Đỏ" : "Đen"}
-        </div>
+        </div> */}
 
 
         {/* Overlay hiển thị khi trò chơi kết thúc */}

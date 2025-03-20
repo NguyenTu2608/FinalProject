@@ -39,8 +39,6 @@ const Game = () => {
           setTimeout(() => {
             setPlayerBlack(message.playerBlack);
             setPlayerRed(message.playerRed);
-            console.log("🔥 Cập nhật state playerBlack:", message.playerBlack);
-            console.log("🔥 Cập nhật state playerRed:", message.playerRed);
           }, 0);
         }
       });

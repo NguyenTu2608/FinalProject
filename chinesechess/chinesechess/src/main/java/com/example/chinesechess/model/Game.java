@@ -97,5 +97,6 @@ public class Game {
 
     public void switchTurn() {
         this.currentTurn = this.currentTurn.equals("black") ? "red" : "black";
+        System.out.println("🔄 Chuyển lượt chơi: " + this.currentTurn);
     }
 }

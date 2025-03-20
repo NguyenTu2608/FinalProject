@@ -91,9 +91,9 @@ public class GameService {
     }
 
     // Update a game's moves and status
-    public Game updateGame(Game game) {
+    public void updateGame(Game game) {
         if (gameRepository.existsById(game.getId())) {
-            return gameRepository.save(game);
+            gameRepository.save(game);
         } else {
             throw new RuntimeException("Game not found");
         }

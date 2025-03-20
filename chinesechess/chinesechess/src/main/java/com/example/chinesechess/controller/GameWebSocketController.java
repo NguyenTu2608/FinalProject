@@ -57,7 +57,7 @@ public class GameWebSocketController {
 
         gameService.updateGame(game);
 
-        System.out.println("✅ Cập nhật người chơi: Black=" + game.getPlayerBlack() + ", Red=" + game.getPlayerRed());
+        System.out.println("✅ Cập nhật người chơi: Black =" + game.getPlayerBlack() + ", Red =" + game.getPlayerRed());
 
         // 🏆 Gửi cập nhật về WebSocket cho tất cả người chơi
         Map<String, Object> response = new HashMap<>();
@@ -73,12 +73,13 @@ public class GameWebSocketController {
     public void handleMove(@DestinationVariable String gameId, @Payload Map<String, Object> moveData) {
         System.out.println("📩 Nhận nước đi từ WebSocket: " + moveData);
 
+
+
         Optional<Game> optionalGame = gameService.getGameById(gameId);
         if (optionalGame.isEmpty()) {
             System.out.println("❌ Game không tồn tại!");
             return;
         }
-
         Game game = optionalGame.get();
 
         // 🔥 Kiểm tra nếu không đúng lượt chơi
@@ -90,7 +91,6 @@ public class GameWebSocketController {
         // 🔄 Chuyển lượt chơi
         game.switchTurn();
         gameService.updateGame(game);
-
 
         // 🔥 Gửi lại dữ liệu nước đi và lượt chơi mới
         moveData.put("type", "gameMove");

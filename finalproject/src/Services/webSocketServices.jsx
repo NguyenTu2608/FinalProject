@@ -31,6 +31,10 @@ class WebSocketService {
 
     this.client.activate();
   }
+  // ✅ Hàm kiểm tra kết nối WebSocket
+  isConnected() {
+    return this.client && this.client.connected;
+  }
 
   disconnect() {
     if (this.client) {
@@ -55,7 +59,6 @@ class WebSocketService {
     console.log(`📡 Đang đăng ký topic: /topic/game/${gameId}`);
     
     this.client.subscribe(`/topic/game/${gameId}`, (message) => {
-      console.log("📩 Nhận tin nhắn WebSocket thô:", message);
       
       try {
         const data = JSON.parse(message.body);
@@ -66,6 +69,7 @@ class WebSocketService {
         } else {
           console.warn("⚠ Nhận tin nhắn nhưng không phải playerUpdate:", data);
         }
+        
   
         callback(data);
       } catch (error) {

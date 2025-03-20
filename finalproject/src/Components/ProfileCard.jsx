@@ -22,12 +22,7 @@ const ProfileCard = ({ user }) => {
           <div className="text-lg font-bold italic text-yellow-600">
             {user?.username || "Loading..."}
           </div>
-          <div className="flex items-center mt-1">
-            <span className="text-sm font-bold text-red-700 bg-yellow-200 px-2 py-1 rounded-lg">
-              {user?.role || "Tập sự"}
-            </span>
-            <span className="ml-1">⭐</span>
-          </div>
+          
         </div>
       </div>
     </div>

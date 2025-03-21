@@ -4,13 +4,16 @@ import com.example.chinesechess.DTO.GameRequest;
 import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.model.Game;
 import com.example.chinesechess.service.GameService;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +21,6 @@ import java.util.Optional;
 
 @Controller
 public class GameWebSocketController {
-
     private final GameService gameService;
     private final SimpMessagingTemplate messagingTemplate; // ✅ Khai báo biến
 
@@ -33,33 +35,89 @@ public class GameWebSocketController {
         System.out.println("📩 Nhận yêu cầu tham gia game với ID: " + request);
 
         String gameId = (String) request.get("gameId");
-        String playerUsername = (String) request.get("player");  // 🔥 Đảm bảo nhận đúng key từ FE
+        String playerUsername = (String) request.get("player");
 
         Optional<Game> optionalGame = gameService.getGameById(gameId);
         if (optionalGame.isEmpty()) {
             System.out.println("❌ Không tìm thấy gameId = " + gameId);
-            throw new RuntimeException("❌ Game không tồn tại!");
+            return;
         }
 
         Game game = optionalGame.get();
 
-        // 🏆 Nếu chưa có playerBlack, gán người đầu tiên vào
+        // 🔥 Kiểm tra nếu phòng đã đầy
+        if (game.getPlayerBlack() != null && game.getPlayerRed() != null) {
+            System.out.println("🚫 Phòng đã đầy! Người chơi " + playerUsername + " không thể tham gia.");
+
+            // 📨 Gửi lỗi về client
+            Map<String, Object> fullMessage = new HashMap<>();
+            fullMessage.put("type", "roomFull");
+            fullMessage.put("message", "Phòng đã đầy, bạn không thể tham gia.");
+
+            System.out.println("📡 [DEBUG] Gửi tin nhắn roomFull tới WebSocket user: " + playerUsername);
+            messagingTemplate.convertAndSendToUser(playerUsername, "/queue/errors", fullMessage);
+            return;
+        }
+
+        // 🏆 Cập nhật người chơi trong phòng
         if (game.getPlayerBlack() == null) {
             game.setPlayerBlack(playerUsername);
-        }
-        // 🏆 Nếu đã có playerBlack nhưng chưa có playerRed, gán người thứ hai vào
-        else if (game.getPlayerRed() == null && !game.getPlayerBlack().equals(playerUsername)) {
+        } else if (game.getPlayerRed() == null && !game.getPlayerBlack().equals(playerUsername)) {
             game.setPlayerRed(playerUsername);
-        }
-        else {
-            System.out.println("⚠ Người chơi đã có trong phòng hoặc không hợp lệ!");
         }
 
         gameService.updateGame(game);
 
-        System.out.println("✅ Cập nhật người chơi: Black =" + game.getPlayerBlack() + ", Red =" + game.getPlayerRed());
+        System.out.println("✅ Cập nhật người chơi: Black=" + game.getPlayerBlack() + ", Red=" + game.getPlayerRed());
 
-        // 🏆 Gửi cập nhật về WebSocket cho tất cả người chơi
+        // 🏆 Gửi cập nhật đến tất cả người chơi trong phòng
+        Map<String, Object> response = new HashMap<>();
+        response.put("type", "playerUpdate");
+        response.put("gameId", gameId);
+        response.put("playerBlack", game.getPlayerBlack());
+        response.put("playerRed", game.getPlayerRed());
+
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
+    }
+
+
+    @MessageMapping("/game/leave")
+    public void leaveGame(@Payload Map<String, Object> request) {
+        System.out.println("📩 Nhận yêu cầu rời phòng: " + request);
+
+        String gameId = (String) request.get("gameId");
+        String playerUsername = (String) request.get("player");
+
+        Optional<Game> optionalGame = gameService.getGameById(gameId);
+        if (optionalGame.isEmpty()) {
+            System.out.println("❌ Game không tồn tại!");
+            return;
+        }
+
+        Game game = optionalGame.get();
+
+        // 🔥 Kiểm tra xem người chơi có trong phòng không
+        if (playerUsername.equals(game.getPlayerBlack())) {
+            game.setPlayerBlack(null);
+        } else if (playerUsername.equals(game.getPlayerRed())) {
+            game.setPlayerRed(null);
+        } else {
+            System.out.println("⚠ Người chơi không có trong phòng!");
+            return;
+        }
+
+
+        if (game.getPlayerBlack() != null && game.getPlayerBlack().equals(playerUsername)) {
+            game.setPlayerBlack(null);
+        } else if (game.getPlayerRed() != null && game.getPlayerRed().equals(playerUsername)) {
+            game.setPlayerRed(null);
+        }
+
+        gameService.updateGame(game);
+
+        System.out.println("✅ Người chơi đã rời phòng: " + playerUsername);
+
+        // 🔥 Gửi thông báo cập nhật danh sách người chơi
         Map<String, Object> response = new HashMap<>();
         response.put("type", "playerUpdate");
         response.put("gameId", gameId);
@@ -72,8 +130,6 @@ public class GameWebSocketController {
     @MessageMapping("/game/{gameId}/move")
     public void handleMove(@DestinationVariable String gameId, @Payload Map<String, Object> moveData) {
         System.out.println("📩 Nhận nước đi từ WebSocket: " + moveData);
-
-
 
         Optional<Game> optionalGame = gameService.getGameById(gameId);
         if (optionalGame.isEmpty()) {
@@ -103,6 +159,9 @@ public class GameWebSocketController {
         messagingTemplate.convertAndSend("/topic/game/" + gameId, moveData);
         System.out.println("✅ Gửi nước đi tới WebSocket: " + moveData);
     }
+
+
+
 
 
 

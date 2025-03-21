@@ -58,11 +58,9 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
       });
       return;
     }
-
-    websocketService.subscribeToGame(gameId, handleGameMove);
-
     return () => {
       websocketService.unsubscribeFromGame(gameId);
+      websocketService.disconnect();
     };
 }, [gameId, gameMode]);
 
@@ -270,8 +268,7 @@ const handleGameMove = (message) => {
     setWinner(null);
   };
 
-  const boardSize = 500;
-  const cellSize = boardSize / 9;
+  
 
   const ProfileCard = () => {
     return (
@@ -304,13 +301,18 @@ const handleGameMove = (message) => {
 
   // export default ProfileCard;
 
+
+  const boardSize = 500;
+  const cellSize = boardSize / 9;
+  
+
+  
   return (
     <div className="flex justify-center items-center space-x-8">
       {/* ProfileCard */}
       <ProfileCard />
       <div className="relative w-[500px] h-[550px] mx-auto">
         <img src="/Assets/chessboard.png" alt="Chessboard" className="w-full h-full" />
-
         {board.map((row, rowIndex) =>
           row.map((piece, colIndex) =>
             piece ? (
@@ -347,13 +349,6 @@ const handleGameMove = (message) => {
             {errorMessage}
           </div>
         )}
-
-        {/* Hiển thị lượt hiện tại trên bàn cờ
-        <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-blue-500 text-white p-2 rounded">
-          Lượt hiện tại: {currentPlayer === "red" ? "Đỏ" : "Đen"}
-        </div> */}
-
-
         {/* Overlay hiển thị khi trò chơi kết thúc */}
         {gameOver && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">

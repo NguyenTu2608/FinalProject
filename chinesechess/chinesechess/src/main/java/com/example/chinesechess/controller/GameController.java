@@ -6,13 +6,12 @@ import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.repository.GameRepository;
 import com.example.chinesechess.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/games")
@@ -29,11 +28,6 @@ public class GameController {
         return gameService.getAllGames();
     }
 
-    // Create a new game
-//    @PostMapping("/create")
-//    public Game createGame(@RequestBody Game game) {
-//        return gameService.createGame(game.getPlayerRed(), game.getPlayerBlack());
-//    }
     @PostMapping("/create")
     public ResponseEntity<Game> createGame(@RequestBody GameRequest request) {
         if (request.getGameMode() == null || request.getGameMode().isEmpty()) {
@@ -41,11 +35,9 @@ public class GameController {
         }
         Game game = new Game();
         game.setPlayerBlack(request.getPlayerBlack());
-
         if ("practice".equals(request.getGameMode())) {
             game.setPlayerRed(request.getPlayerRed());
         }
-
         // 🌍 Nếu là phòng online, chưa có người chơi thứ hai
         else if ("online".equals(request.getGameMode())) {
             game.setPlayerRed(null);
@@ -79,12 +71,29 @@ public class GameController {
         return ResponseEntity.ok(game);
     }
 
-
-
     // Get a game by ID
     @GetMapping("/{gameId}")
     public Optional<Game> getGameById(@PathVariable String gameId) {
         return gameService.getGameById(gameId);
+    }
+
+    @GetMapping("/find-random-room")
+    public ResponseEntity<Game> findRandomRoom() {
+        Optional<Game> availableRoom = gameService.findRandomAvailableRoom();
+        if (availableRoom.isPresent()) {
+            return ResponseEntity.ok(availableRoom.get());
+        }
+        // Nếu không có phòng trống, tạo phòng mới
+        Game newGame = new Game();
+        newGame.setPlayerBlack(null); // Phòng mới chưa có người chơi
+        newGame.setPlayerRed(null);
+        newGame.setMoves(new ArrayList<>());
+        newGame.setCreatedAt(Instant.now().toString());
+        newGame.setGameMode("online");
+        newGame.setCurrentTurn("black");
+
+        Game savedGame = gameService.createGame(newGame);
+        return ResponseEntity.ok(savedGame); // ✅ Trả về phòng mới được tạo
     }
 
     // Get all games for a specific player

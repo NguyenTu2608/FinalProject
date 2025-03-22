@@ -9,4 +9,5 @@ public interface GameRepository extends MongoRepository<Game, String> {
     Optional<Game> findById(String Id);
     List<Game> findByPlayerRed(String playerRed);
     List<Game> findByPlayerBlack(String playerBlack);
+    List<Game> findByPlayerBlackIsNullOrPlayerRedIsNull();
 }

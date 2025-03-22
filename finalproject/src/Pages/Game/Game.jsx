@@ -46,22 +46,25 @@ const Game = () => {
                 setPlayerBlack(message.playerBlack);
                 setPlayerRed(message.playerRed);
             }
-
-            if (message.type === "roomFull") {
-                console.warn("🚫 Phòng đã đầy! Đang đẩy người chơi ra ngoài.");
-                setErrorMessage("Phòng đã đầy, bạn không thể tham gia.");
-                setTimeout(() => {
-                    websocketService.disconnect();
-                    navigate("/");
-                }, 2000);
-            }
         });
 
-       // ✅ Đăng ký nhận lỗi từ WebSocket (RẤT QUAN TRỌNG)
-       websocketService.subscribeToErrors((error) => {
-        console.error("⚠ Nhận lỗi từ WebSocket:", error);
-        setErrorMessage(error.message);
-    });
+        // ✅ Kiểm tra lỗi từ WebSocket
+        websocketService.subscribeToErrors((errorMessage) => {
+            try {
+                const error = JSON.parse(errorMessage.body); // 🛠 Kiểm tra lỗi có đúng JSON không
+                console.error("⚠ Nhận lỗi từ WebSocket:", error);
+
+                if (error.type === "roomFull") {
+                    setErrorMessage(error.message);
+                    setTimeout(() => {
+                        websocketService.disconnect();
+                        navigate("/"); // 🚪 Đẩy người chơi ra ngoài
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error("❌ LỖI: Không thể parse JSON từ WebSocket!", err);
+            }
+        });
     });
 
     return () => {
@@ -69,6 +72,7 @@ const Game = () => {
         websocketService.disconnect();
     };
 }, [gameId, username, navigate]);
+
   
   
   useEffect(() => {

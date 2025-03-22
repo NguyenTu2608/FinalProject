@@ -5,14 +5,17 @@ import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class GameService {
 
     @Autowired
     private GameRepository gameRepository;
+
 
     public List<Game> getAllGames() {
         return gameRepository.findAll();
@@ -36,6 +39,18 @@ public class GameService {
         }
 
         return game;
+    }
+
+    public Optional<Game> findRandomAvailableRoom() {
+        List<Game> availableRooms = gameRepository.findByPlayerBlackIsNullOrPlayerRedIsNull();
+
+        if (availableRooms.isEmpty()) {
+            return Optional.empty(); // Không có phòng trống
+        }
+
+        // Chọn phòng ngẫu nhiên từ danh sách phòng trống
+        Game randomRoom = availableRooms.get(new Random().nextInt(availableRooms.size()));
+        return Optional.of(randomRoom);
     }
 
 

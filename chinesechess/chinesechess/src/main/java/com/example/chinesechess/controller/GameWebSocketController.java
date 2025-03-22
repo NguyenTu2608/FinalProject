@@ -45,19 +45,6 @@ public class GameWebSocketController {
 
         Game game = optionalGame.get();
 
-        // 🔥 Kiểm tra nếu phòng đã đầy
-        if (game.getPlayerBlack() != null && game.getPlayerRed() != null) {
-            System.out.println("🚫 Phòng đã đầy! Người chơi " + playerUsername + " không thể tham gia.");
-
-            // 📨 Gửi lỗi về client
-            Map<String, Object> fullMessage = new HashMap<>();
-            fullMessage.put("type", "roomFull");
-            fullMessage.put("message", "Phòng đã đầy, bạn không thể tham gia.");
-
-            System.out.println("📡 [DEBUG] Gửi tin nhắn roomFull tới WebSocket user: " + playerUsername);
-            messagingTemplate.convertAndSendToUser(playerUsername, "/queue/errors", fullMessage);
-            return;
-        }
 
         // 🏆 Cập nhật người chơi trong phòng
         if (game.getPlayerBlack() == null) {

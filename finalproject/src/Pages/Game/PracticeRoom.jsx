@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import apiClient from "../../Services/apiConfig";
 import Chessboard from "../../Components/Chessboard";
 
-
-
 export default function PracticeRoom() {
   const navigate = useNavigate();
   const [playerRed, setPlayerRed] = useState("");

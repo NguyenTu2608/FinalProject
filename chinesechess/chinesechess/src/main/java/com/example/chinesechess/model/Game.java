@@ -13,7 +13,7 @@ public class Game {
     private String playerRed; // Username of the red player
     private String playerBlack; // Username of the black player
     private List<MoveDTO> moves; // List of moves in PGN format
-    private String gameStatus; // Game status: ongoing, white_won, black_won, draw
+    private String gameStatus; // Game status: waiting, ongoing, white_won, black_won, draw
     private String currentTurn; // "red" or "black"
     private String createdAt;
     private String gameMode;

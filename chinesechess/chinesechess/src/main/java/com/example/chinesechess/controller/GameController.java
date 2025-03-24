@@ -66,7 +66,6 @@ public class GameController {
         game.getMoves().add(move);
 
         // Chuyển lượt chơi
-
         gameRepository.save(game);
         return ResponseEntity.ok(game);
     }

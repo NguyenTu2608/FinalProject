@@ -55,8 +55,6 @@ class WebSocketService {
       setTimeout(() => this.subscribeToGame(gameId, callback), 500);
       return;
     }
-  
-
     this.client.subscribe(`/topic/game/${gameId}`, (message) => {
       
       try {
@@ -110,26 +108,6 @@ class WebSocketService {
     });
   }
 
-  subscribeToErrors(callback) {
-    console.log("📡 Đăng ký nhận lỗi từ WebSocket...");
-
-    if (!this.client || !this.client.connected) {
-        console.warn("⚠ WebSocket chưa kết nối, thử lại sau...");
-        setTimeout(() => this.subscribeToErrors(callback), 500);
-        return;
-    }
-
-    this.client.subscribe(`/user/queue/errors`, (message) => {
-        try {
-            const data = JSON.parse(message.body);
-            console.log("⚠ Nhận lỗi từ WebSocket:", data);
-            callback(data);
-        } catch (error) {
-            console.error("❌ LỖI: Không thể parse JSON từ WebSocket!", error);
-        }
-    });
-}
-  
   sendMove(gameId, move) {
     if (!this.client || !this.client.connected) {
       console.warn("⚠ WebSocket chưa kết nối, không thể gửi nước đi!");
@@ -142,6 +120,57 @@ class WebSocketService {
       body: JSON.stringify(move),
     });
   }
+  subscribeToChat(gameId, callback) {
+    console.log("✅ Đăng ký WebSocket chat với gameId:", gameId);
+  
+    if (!this.client || !this.client.connected) {
+      console.warn("⚠ WebSocket chưa kết nối, thử lại sau...");
+      setTimeout(() => this.subscribeToChat(gameId, callback), 500);
+      return;
+    }
+    
+    const subscription = this.client.subscribe(`/topic/game/${gameId}/chat`, (message) => {
+      try {
+        const data = JSON.parse(message.body);
+        console.log("💬 Tin nhắn chat nhận được:", data);
+        callback(data);
+      } catch (error) {
+        console.error("❌ Không thể parse JSON chat message!", error);
+      }
+    });
+  
+    this.subscriptions[`chat_${gameId}`] = subscription;
+  }
+  
+  unsubscribeFromChat(gameId) {
+    if (this.subscriptions[`chat_${gameId}`]) {
+      this.subscriptions[`chat_${gameId}`].unsubscribe();
+      delete this.subscriptions[`chat_${gameId}`];
+      console.log(`🔕 Unsubscribed from chat ${gameId}`);
+    }
+  }
+  
+  sendChatMessage(gameId, username, messageContent) {
+    if (!this.client || !this.client.connected) {
+      console.warn("⚠ WebSocket chưa kết nối, không thể gửi chat!");
+      return;
+    }
+  
+    const chatMessage = {
+      sender: username,
+      content: messageContent,
+      timestamp: new Date().toISOString(),
+    };
+  
+    console.log("📤 Gửi chat message:", chatMessage);
+  
+    this.client.publish({
+      destination: `/app/game/${gameId}/chat`, // Đúng với @MessageMapping của bạn
+      body: JSON.stringify(chatMessage),
+    });
+  }
+  
+
 }
 
 const websocketService = new WebSocketService();

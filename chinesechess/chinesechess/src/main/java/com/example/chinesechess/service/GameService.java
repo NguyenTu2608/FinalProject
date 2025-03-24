@@ -82,29 +82,6 @@ public class GameService {
     }
 
 
-    // 📌 Xử lý nước đi của người chơi
-    public Game processMove(String gameId, MoveDTO move) {
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
-
-        // 📌 Kiểm tra người chơi có hợp lệ không
-        if (!move.getPlayer().equals(game.getPlayerBlack()) && !move.getPlayer().equals(game.getPlayerRed())) {
-            throw new RuntimeException("Invalid player");
-        }
-
-        // 📌 Kiểm tra lượt chơi
-        if (!move.getPlayer().equals(game.getCurrentTurn())) {
-            throw new RuntimeException("Not your turn");
-        }
-        // 📌 Lưu nước đi vào lịch sử
-        game.getMoves().add(move);
-
-        // 📌 Chuyển lượt sau khi đi
-        game.setCurrentTurn(game.getCurrentTurn().equals("black") ? "red" : "black");
-
-        return gameRepository.save(game);
-    }
-
     // Update a game's moves and status
     public void updateGame(Game game) {
         if (gameRepository.existsById(game.getId())) {

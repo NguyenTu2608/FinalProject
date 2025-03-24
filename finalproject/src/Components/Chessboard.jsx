@@ -48,6 +48,21 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
   const [timeLeftBlack, setTimeLeftBlack] = useState(900);
   const [timerActive, setTimerActive] = useState(false);
 
+  useEffect(() => {
+    let interval;
+    if (timerActive && gameStarted && currentPlayer && !gameOver) {
+      interval = setInterval(() => {
+        if (currentPlayer === 'red') {
+          setTimeLeftRed(prev => prev > 0 ? prev - 1 : 0);
+        } else {
+          setTimeLeftBlack(prev => prev > 0 ? prev - 1 : 0);
+        }
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [timerActive, gameStarted, gameOver, currentPlayer]);
+
 
   useEffect(() => {
     if (gameMode !== "online") return;
@@ -68,40 +83,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
     };
 
   }, [gameId, gameMode]);
-  useEffect(() => {
-    let interval;
-
-    if (timerActive && gameStarted && currentPlayer && !gameOver) {
-      interval = setInterval(() => {
-        if (currentPlayer === 'red') {
-          setTimeLeftRed(prev => prev > 0 ? prev - 1 : 0);
-        } else {
-          setTimeLeftBlack(prev => prev > 0 ? prev - 1 : 0);
-        }
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [timerActive, gameStarted, gameOver, currentPlayer]);
-
-  const handleTimeOut = (player) => {
-    setGameOver(true);
-    setWinner(player === 'red' ? 'black' : 'red');
-    setErrorMessage(`${player === 'red' ? 'Đỏ' : 'Đen'} hết thời gian!`);
-  };
-  // Hàm định dạng thời gian
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-  const handleSurrender = (player) => {
-    if (gameOver) return; // Nếu game đã kết thúc, không cần xử lý
-    setGameOver(true);
-    setWinner(player === "red" ? "black" : "red");
-    setErrorMessage(`${player === "red" ? "Đỏ" : "Đen"} đã đầu hàng!`);
-  };
-
+  
   // 👉 Tách riêng logic xử lý nước đi từ WebSocket
   const handleGameMove = (message) => {
     if (message.type !== "gameMove") return;
@@ -148,7 +130,23 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
     }
   };
 
-
+  const handleTimeOut = (player) => {
+    setGameOver(true);
+    setWinner(player === 'red' ? 'black' : 'red');
+    setErrorMessage(`${player === 'red' ? 'Đỏ' : 'Đen'} hết thời gian!`);
+  };
+  // Hàm định dạng thời gian
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+  const handleSurrender = (player) => {
+    if (gameOver) return; // Nếu game đã kết thúc, không cần xử lý
+    setGameOver(true);
+    setWinner(player === "red" ? "black" : "red");
+    setErrorMessage(`${player === "red" ? "Đỏ" : "Đen"} đã đầu hàng!`);
+  };
 
 
   if (!gameStarted) {
@@ -241,14 +239,15 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
         if (gameMode === "online") {
           console.log("📡 Gửi nước đi qua WebSocket:", move);
           websocketService.sendMove(gameId, move);
+        } else {
+          try {
+            await apiClient.post(`/games/${gameId}/moves`, move);
+            console.log("Move successfully sent to server");
+          } catch (error) {
+            console.error("Failed to send move to server", error);
+          }
         }
-
-        try {
-          await apiClient.post(`/games/${gameId}/moves`, move); // Gửi nước đi lên server
-          console.log("Move successfully sent to server");
-        } catch (error) {
-          console.error("Failed to send move to server", error);
-        }
+        
 
         console.log("Nước đi mới:", move); // Kiểm tra log
         console.log("Lịch sử nước đi:", [...moveHistory, move]); // Kiểm tra toàn bộ lịch sử
@@ -328,7 +327,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
             className="w-24 h-24 rounded-full border-4 border-orange-500"
           />
           <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-orange-500 px-4 py-1 rounded-md text-lg font-bold">
-            {playerType === 'red' ? 'Đỏ' : 'Đen'}
+            {playerType === 'red' ? 'Đỏ' : 'Đen' || "Đang chờ..."} 
           </div>
         </div>
 
@@ -370,12 +369,8 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
     setTimeLeftBlack(900);
   };
 
-
-
   const boardSize = 500;
   const cellSize = boardSize / 9;
-
-
 
   return (
     <div className="flex justify-center items-center space-x-8">
@@ -451,14 +446,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
         playerType="red"
         onSurrender={() => handleSurrender("red")}
       />
-      <Link
-        to="/"
-        className="fixed bottom-4 left-4 bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded flex items-center shadow-lg"
-      >
-        <img src="/Assets/home.png" alt="Home" className="w-5 h-5 mr-2" />
-        Home
-
-      </Link>
+      
     </div>
   );
 

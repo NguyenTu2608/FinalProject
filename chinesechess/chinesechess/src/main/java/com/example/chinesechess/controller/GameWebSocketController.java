@@ -1,5 +1,6 @@
 package com.example.chinesechess.controller;
 
+import com.example.chinesechess.DTO.ChatMessage;
 import com.example.chinesechess.DTO.GameRequest;
 import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.model.Game;
@@ -42,10 +43,7 @@ public class GameWebSocketController {
             System.out.println("❌ Không tìm thấy gameId = " + gameId);
             return;
         }
-
         Game game = optionalGame.get();
-
-
         // 🏆 Cập nhật người chơi trong phòng
         if (game.getPlayerBlack() == null) {
             game.setPlayerBlack(playerUsername);
@@ -80,9 +78,7 @@ public class GameWebSocketController {
             System.out.println("❌ Game không tồn tại!");
             return;
         }
-
         Game game = optionalGame.get();
-
         // 🔥 Kiểm tra xem người chơi có trong phòng không
         if (playerUsername.equals(game.getPlayerBlack())) {
             game.setPlayerBlack(null);
@@ -92,7 +88,6 @@ public class GameWebSocketController {
             System.out.println("⚠ Người chơi không có trong phòng!");
             return;
         }
-
 
         if (game.getPlayerBlack() != null && game.getPlayerBlack().equals(playerUsername)) {
             game.setPlayerBlack(null);
@@ -114,28 +109,26 @@ public class GameWebSocketController {
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
     }
 
+
+
     @MessageMapping("/game/{gameId}/move")
     public void handleMove(@DestinationVariable String gameId, @Payload Map<String, Object> moveData) {
         System.out.println("📩 Nhận nước đi từ WebSocket: " + moveData);
-
         Optional<Game> optionalGame = gameService.getGameById(gameId);
         if (optionalGame.isEmpty()) {
             System.out.println("❌ Game không tồn tại!");
             return;
         }
         Game game = optionalGame.get();
-
         // 🔥 Kiểm tra nếu không đúng lượt chơi
         if (!moveData.get("player").equals(game.getCurrentTurn())) {
             System.out.println("❌ Không phải lượt của " + moveData.get("player") + " (Hiện tại: " + game.getCurrentTurn() + ")");
             return;
         }
 
-        // 🔄 Chuyển lượt chơi
         game.switchTurn();
         gameService.updateGame(game);
 
-        // 🔥 Gửi lại dữ liệu nước đi và lượt chơi mới
         moveData.put("type", "gameMove");
         moveData.put("gameId", gameId);
         moveData.put("currentTurn", game.getCurrentTurn()); // ✅ Cập nhật lượt chơi
@@ -149,43 +142,13 @@ public class GameWebSocketController {
 
 
 
+    @MessageMapping("/game/{gameId}/chat")
+    public void handleChatMessage(@DestinationVariable String gameId, @Payload ChatMessage chatMessage) {
+        System.out.println("💬 Nhận tin nhắn chat từ " + chatMessage.getSender() + ": " + chatMessage.getContent());
+
+        // Broadcast tới tất cả người chơi trong game room
+        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/chat", chatMessage);
+    }
 
 
-
-
-    /**
-     * Xử lý nước đi của người chơi.
-     * Client gửi nước đi lên `/app/game/{gameId}/move`, Server sẽ gửi lại cập nhật cho `/topic/game/{gameId}`
-     */
-//    @MessageMapping("/game/{gameId}/move")
-//    @SendTo("/topic/game/{gameId}")
-//    public Game makeMove(@DestinationVariable String gameId, @Payload MoveDTO move) {
-//        Optional<Game> optionalGame = gameService.getGameById(gameId);
-//        if (optionalGame.isEmpty()) {
-//            throw new RuntimeException("❌ Game không tồn tại!");
-//        }
-//
-//        Game game = optionalGame.get();
-//
-//        // Kiểm tra người chơi hợp lệ
-//        if (!move.getPlayer().equals(game.getPlayerBlack()) && !move.getPlayer().equals(game.getPlayerRed())) {
-//            throw new IllegalArgumentException("❌ Người chơi không hợp lệ!");
-//        }
-//
-//        // Kiểm tra lượt chơi
-//        if (!move.getPlayer().equals(game.getCurrentTurn())) {
-//            throw new IllegalArgumentException("❌ Không phải lượt của bạn!");
-//        }
-//
-//        // Lưu nước đi vào danh sách lịch sử
-//        game.getMoves().add(move);
-//
-//        // Chuyển lượt sau khi đi
-//        game.switchTurn();
-//
-//        // Cập nhật trạng thái game
-//        gameService.updateGame(game);
-//
-//        return game; // ✅ Gửi lại toàn bộ trạng thái game cho cả hai người chơi
-//    }
 }

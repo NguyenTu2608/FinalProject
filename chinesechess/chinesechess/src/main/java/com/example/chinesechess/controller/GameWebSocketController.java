@@ -65,7 +65,56 @@ public class GameWebSocketController {
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
     }
 
+    //san sang
+    @MessageMapping("/game/ready")
+    public void playerReady(@Payload Map<String, Object> request) {
+        System.out.println("Nhận trạng thái sẵn sàng của " + request);
+        String gameId = (String) request.get("gameId");
+        String player = (String) request.get("player");
 
+        Optional<Game> optionalGame = gameService.getGameById(gameId);
+        if (optionalGame.isEmpty()) {
+            System.out.println("❌ Không tìm thấy gameId = " + gameId);
+            return;
+        }
+        Game game = optionalGame.get();
+        // Kiểm tra nếu người chơi hợp lệ
+        if ((game.getPlayerBlack() == null || game.getPlayerRed() == null) ||
+                (!game.getPlayerBlack().equals(player) && !game.getPlayerRed().equals(player))) {
+            System.out.println("❌ Người chơi không hợp lệ hoặc chưa đủ người.");
+            return;
+        }
+        // Cập nhật trạng thái sẵn sàng
+        if (game.getPlayerBlack().equals(player)) {
+            game.setBlackReady(true);
+        } else if (game.getPlayerRed().equals(player)) {
+            game.setRedReady(true);
+        }
+        // Lưu thay đổi vào database
+        gameService.updateGame(game);
+        // Gửi cập nhật trạng thái đến frontend
+        Map<String, Object> response = new HashMap<>();
+        response.put("type", "readyStatus");
+        response.put("gameId", gameId);
+        response.put("blackReady", game.isBlackReady());
+        response.put("redReady", game.isRedReady());
+
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
+        System.out.println("123 " + response);
+
+        // Nếu cả hai đều sẵn sàng, bắt đầu game
+        if (game.isBlackReady() && game.isRedReady()) {
+            Map<String, Object> startGameMessage = new HashMap<>();
+            startGameMessage.put("type", "gameStart");
+            startGameMessage.put("message", "Game bắt đầu!");
+            messagingTemplate.convertAndSend("/topic/game/" + gameId, startGameMessage);
+            System.out.println("Gửi tin nhắn game bắt đầu : " + startGameMessage);
+        }
+    }
+
+
+
+    //roi phong
     @MessageMapping("/game/leave")
     public void leaveGame(@Payload Map<String, Object> request) {
         System.out.println("📩 Nhận yêu cầu rời phòng: " + request);
@@ -141,7 +190,7 @@ public class GameWebSocketController {
     }
 
 
-
+    //chat
     @MessageMapping("/game/{gameId}/chat")
     public void handleChatMessage(@DestinationVariable String gameId, @Payload ChatMessage chatMessage) {
         System.out.println("💬 Nhận tin nhắn chat từ " + chatMessage.getSender() + ": " + chatMessage.getContent());

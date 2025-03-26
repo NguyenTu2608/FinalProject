@@ -47,6 +47,20 @@ class WebSocketService {
     }
   }
 
+  sendReadyRequest(gameId, username) {
+    if (!gameId || !username) {
+        console.error("❌ LỖI: gameId hoặc username bị null hoặc undefined!");
+        return;
+    }
+
+    console.log("📩 Gửi trạng thái sẵn sàng:", { gameId, username });
+    this.client.publish({
+        destination: "/app/game/ready",
+        body: JSON.stringify({ gameId: gameId, player: username })
+    });
+  }
+
+
   subscribeToGame(gameId, callback) {
     console.log("✅ Đăng ký WebSocket với gameId:", gameId);
   
@@ -94,6 +108,8 @@ class WebSocketService {
       body: JSON.stringify({ gameId: gameId, player: username }) // ✅ Đảm bảo `gameId` không bị null
     });
   }
+
+  
   sendLeaveRequest(gameId, username) {
     console.log("📩 Gửi WebSocket rời phòng với:", JSON.stringify({ gameId, player: username }));
   

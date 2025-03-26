@@ -34,7 +34,6 @@ const initialBoard = [
   ["R", "N", "B", "A", "K", "A", "B", "N", "R"],
 ];
 const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
-  const [gameStarted, setGameStarted] = useState(false);
   const [board, setBoard] = useState(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
@@ -47,6 +46,8 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
   const [timeLeftRed, setTimeLeftRed] = useState(900); // 15 phút = 900 giây
   const [timeLeftBlack, setTimeLeftBlack] = useState(900);
   const [timerActive, setTimerActive] = useState(false);
+  const [readyStatus, setReadyStatus] = useState({ black: false, red: false });
+  const [gameStarted, setGameStarted] = useState(false);
 
   useEffect(() => {
     let interval;
@@ -66,23 +67,75 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
 
   useEffect(() => {
     if (gameMode !== "online") return;
-
+  
     console.log("📡 Kết nối WebSocket để nhận nước đi...");
-
+    
     if (!websocketService.isConnected) {
       console.warn("⚠ WebSocket chưa kết nối, thử kết nối lại...");
       websocketService.connect(() => {
         console.log("🔄 Đã kết nối lại WebSocket!");
         websocketService.subscribeToGame(gameId, handleGameMove);
       });
-      return;
+    } else {
+      websocketService.subscribeToGame(gameId, handleGameMove);
     }
+  
     return () => {
       websocketService.unsubscribeFromGame(gameId);
-      websocketService.disconnect();
     };
-
+  
   }, [gameId, gameMode]);
+  
+
+  //nhan message san sang`
+  useEffect(() => {
+    if (gameMode !== "online") return;
+  
+    const handleReadyMessage = (messageReady) => {
+      let response;
+  
+      // Kiểm tra nếu messageReady.body tồn tại và là chuỗi JSON
+      if (messageReady.body && typeof messageReady.body === "string") {
+          try {
+              response = JSON.parse(messageReady.body);
+          } catch (error) {
+              console.error("❌ LỖI: Không thể parse JSON từ WebSocket!", error);
+              return;
+          }
+      } else if (typeof messageReady === "object") {
+          response = messageReady; // Nếu đã là object thì sử dụng luôn
+      } else {
+          console.error("❌ LỖI: Dữ liệu WebSocket không hợp lệ!", messageReady);
+          return;
+      }
+  
+      console.log("📩 Nhận tin nhắn:", response);
+  
+      if (response.type === "readyStatus") {
+          setReadyStatus({
+              black: response.blackReady,
+              red: response.redReady,
+          });
+      } else if (response.type === "gameStart") {
+          setGameStarted(true);
+          setTimerActive(true);
+      }
+  };
+  
+  
+    websocketService.subscribeToGame(gameId, handleReadyMessage);
+  
+    return () => {
+      websocketService.unsubscribeFromGame(gameId);
+    };
+  
+  }, [gameId, gameMode]);
+  
+  //truyen san sang len server
+  const sendReadyStatus = () => {
+    websocketService.sendReadyRequest(gameId, username);
+};
+
   
   // 👉 Tách riêng logic xử lý nước đi từ WebSocket
   const handleGameMove = (message) => {
@@ -167,13 +220,14 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
             <div>
               <p className="mb-4 text-lg font-semibold">Đang chờ người chơi khác...</p>
               <button
-                onClick={() => {
-                  setGameStarted(true);
-                  setTimerActive(true); // Thêm dòng này
-                }}
+                onClick={sendReadyStatus}
                 className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
               >
-                Sẵn sàng
+                {readyStatus[username === playerBlack ? "black" : "red"]
+                        ? "Đã Sẵn Sàng"
+                        : "Sẵn Sàng"
+                        }
+                        
               </button>
             </div>
           )}
@@ -353,14 +407,6 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
       </div>
     );
   };
-  // const startGame = () => {
-  //   setGameStarted(true);
-  //   // Khởi tạo lượt chơi đầu tiên
-  //   setCurrentPlayer('black');
-  //   setTimerActive(true);
-  //   setTimeLeftRed(900);
-  //   setTimeLeftBlack(900);
-  // };
   const startGame = () => {
     setGameStarted(true);
     setCurrentPlayer("black");

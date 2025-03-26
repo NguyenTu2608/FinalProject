@@ -17,17 +17,21 @@ public class Game {
     private String currentTurn; // "red" or "black"
     private String createdAt;
     private String gameMode;
+    private boolean blackReady = false;
+    private boolean redReady = false;
 
 
     public Game() {
     }
 
-    public Game(String playerRed, String playerBlack, List<MoveDTO> moves, String gameStatus, String currentTurn) {
+    public Game(String playerRed, String playerBlack, List<MoveDTO> moves, String gameStatus, String currentTurn, Boolean blackReady, Boolean redReady) {
         this.playerRed = playerRed;
         this.playerBlack = playerBlack;
         this.moves = moves;
         this.gameStatus = gameStatus;
         this.currentTurn = "black";
+        this.blackReady = blackReady;
+        this.redReady = redReady;
     }
 
     // Getters and Setters
@@ -98,5 +102,21 @@ public class Game {
     public void switchTurn() {
         this.currentTurn = this.currentTurn.equals("black") ? "red" : "black";
         System.out.println("🔄 Chuyển lượt chơi: " + this.currentTurn);
+    }
+
+    public boolean isBlackReady() {
+        return blackReady;
+    }
+
+    public void setBlackReady(boolean blackReady) {
+        this.blackReady = blackReady;
+    }
+
+    public boolean isRedReady() {
+        return redReady;
+    }
+
+    public void setRedReady(boolean redReady) {
+        this.redReady = redReady;
     }
 }

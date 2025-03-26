@@ -47,9 +47,8 @@ const Game = () => {
         if (message.type === "playerUpdate") {
           setPlayerBlack(message.playerBlack);
           setPlayerRed(message.playerRed);
-        }
+        } 
       });
-
       // Chat subscription
       websocketService.subscribeToChat(gameId, (chatMsg) => {
         console.log("💬 Nhận tin nhắn chat:", chatMsg);
@@ -57,7 +56,6 @@ const Game = () => {
       });
 
     });
-
     return () => {
       websocketService.unsubscribeFromGame(gameId);
       websocketService.unsubscribeFromChat(gameId);
@@ -65,14 +63,15 @@ const Game = () => {
     };
   }, [gameId, username, navigate]);
 
+
   const sendMessage = () => {
     if (inputMessage.trim() === "") return;
     websocketService.sendChatMessage(gameId, username, inputMessage);
     setInputMessage("");
   };
+
   useEffect(() => {
     if (messages.length === 0) return;
-  
     if (!isVisible) {
       // Tin nhắn mới đến khi chat ẩn => bật nháy
       setHasNewMessage(true);
@@ -80,12 +79,12 @@ const Game = () => {
       // Chat đang hiển thị => tắt nháy (đã đọc)
       setHasNewMessage(false);
     }
-  
     // Scroll xuống cuối
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isVisible]);
+
 
   return (
     <div className="game-container p-4">
@@ -100,7 +99,7 @@ const Game = () => {
           <Chessboard 
             gameId={gameId} 
             playerBlack={playerBlack} 
-            playerRed={playerRed} 
+            playerRed={playerRed}
             gameMode={gameMode}
             username={username}
           />

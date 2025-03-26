@@ -131,8 +131,10 @@ public class GameWebSocketController {
         // 🔥 Kiểm tra xem người chơi có trong phòng không
         if (playerUsername.equals(game.getPlayerBlack())) {
             game.setPlayerBlack(null);
+            game.setBlackReady(false);
         } else if (playerUsername.equals(game.getPlayerRed())) {
             game.setPlayerRed(null);
+            game.setRedReady(false);
         } else {
             System.out.println("⚠ Người chơi không có trong phòng!");
             return;

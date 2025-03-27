@@ -41,6 +41,7 @@ public class GameController {
         // 🌍 Nếu là phòng online, chưa có người chơi thứ hai
         else if ("online".equals(request.getGameMode())) {
             game.setPlayerRed(null);
+            game.setGameStatus("waiting");
         } else {
             return ResponseEntity.badRequest().body(null);
         }

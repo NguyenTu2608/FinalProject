@@ -85,6 +85,8 @@ const Game = () => {
     }
   }, [messages, isVisible]);
 
+  
+
 
   return (
     <div className="game-container p-4">
@@ -102,6 +104,8 @@ const Game = () => {
             playerRed={playerRed}
             gameMode={gameMode}
             username={username}
+            setPlayerBlack={setPlayerBlack} 
+            setPlayerRed={setPlayerRed}
           />
         </div>
       </div>

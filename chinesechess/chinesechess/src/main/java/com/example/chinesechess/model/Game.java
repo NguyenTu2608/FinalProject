@@ -14,6 +14,8 @@ public class Game {
     private String playerBlack; // Username of the black player
     private List<MoveDTO> moves; // List of moves in PGN format
     private String gameStatus; // Game status: waiting, ongoing, white_won, black_won, draw
+    private String winner;
+    private String endReason;
     private String currentTurn; // "red" or "black"
     private String createdAt;
     private String gameMode;
@@ -73,6 +75,21 @@ public class Game {
 
     public void setGameStatus(String gameStatus) {
         this.gameStatus = gameStatus;
+    }
+    public String getWinner() {
+        return winner;
+    }
+
+    public void setWinner(String winner) {
+        this.winner = winner;
+    }
+
+    public String getEndReason() {
+        return endReason;
+    }
+
+    public void setEndReason(String endReason) {
+        this.winner = endReason;
     }
 
     public String getCurrentTurn() {

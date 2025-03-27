@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import GameManager from "./GameManager";
 import apiClient from "../Services/apiConfig";
 import websocketService from "../Services/webSocketServices";
-import { Link } from "react-router-dom";
 // Ảnh quân cờ
 const pieceImages = {
   r: "/Assets/red-rook.png",
@@ -33,7 +32,7 @@ const initialBoard = [
   ["", "", "", "", "", "", "", "", ""],
   ["R", "N", "B", "A", "K", "A", "B", "N", "R"],
 ];
-const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
+const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerRed, gameMode, username }) => {
   const [board, setBoard] = useState(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
@@ -48,6 +47,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
   const [timerActive, setTimerActive] = useState(false);
   const [readyStatus, setReadyStatus] = useState({ black: false, red: false });
   const [gameStarted, setGameStarted] = useState(false);
+  const [endReason, setEndReason] = useState(null);
 
   useEffect(() => {
     let interval;
@@ -85,6 +85,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
     };
   
   }, [gameId, gameMode]);
+
   
 
   //nhan message san sang`
@@ -122,7 +123,6 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
       }
   };
   
-  
     websocketService.subscribeToGame(gameId, handleReadyMessage);
   
     return () => {
@@ -130,11 +130,61 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
     };
   
   }, [gameId, gameMode]);
-  
+
+  useEffect(() => {
+    if (gameMode !== "online") return;
+
+    const handlePlayerLeft = (message) => {
+        let response;
+
+        // Kiểm tra xem message có phải là JSON hợp lệ không
+        if (message.body && typeof message.body === "string") {
+            try {
+                response = JSON.parse(message.body);
+            } catch (error) {
+                console.error("❌ LỖI: Không thể parse JSON!", error);
+                return;
+            }
+        } else if (typeof message === "object") {
+            response = message;
+        } else {
+            console.error("❌ LỖI: Dữ liệu WebSocket không hợp lệ!", message);
+            return;
+        }
+
+        console.log("📩 Nhận thông báo rời phòng:", response);
+
+        if (response.type === "playerUpdate") {
+            setPlayerBlack(response.playerBlack || null);
+            setPlayerRed(response.playerRed || null);
+            
+            // Nếu có một người rời đi, đặt lại trạng thái sẵn sàng
+            if (!response.playerBlack || !response.playerRed) {
+                console.log("🔄 Một người đã rời phòng, reset trạng thái sẵn sàng.");
+                setReadyStatus({ black: false, red: false });
+                setGameStarted(false);
+                setTimerActive(false);
+            }
+        }
+    };
+
+    websocketService.subscribeToGame(gameId, handlePlayerLeft);
+
+    return () => {
+        websocketService.unsubscribeFromGame(gameId);
+    };
+
+}, [gameId, gameMode]);
+
+
   //truyen san sang len server
   const sendReadyStatus = () => {
     websocketService.sendReadyRequest(gameId, username);
-};
+  };
+
+  const sendEndReason = () => {
+    websocketService.sendEndReason(gameId,username,endReason);
+  };
 
   
   // 👉 Tách riêng logic xử lý nước đi từ WebSocket
@@ -301,10 +351,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
             console.error("Failed to send move to server", error);
           }
         }
-        
-
         console.log("Nước đi mới:", move); // Kiểm tra log
-        console.log("Lịch sử nước đi:", [...moveHistory, move]); // Kiểm tra toàn bộ lịch sử
 
         setMoveHistory(prevHistory => [...prevHistory, move]); // Cập nhật lịch sử
 
@@ -312,6 +359,8 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
         // Xác định lượt chơi tiếp theo
         const nextPlayer = currentPlayer === "red" ? "black" : "red";
         const newGameManager = new GameManager(newBoard);
+
+
         // Kiểm tra xem bên được chuyển giao có bị chiếu bí hay không
         if (newGameManager.isCheckmate(nextPlayer === "red")) {
           setGameOver(true);
@@ -407,14 +456,6 @@ const Chessboard = ({ gameId, playerBlack, playerRed, gameMode, username }) => {
       </div>
     );
   };
-  const startGame = () => {
-    setGameStarted(true);
-    setCurrentPlayer("black");
-    setTimerActive(true);
-    setTimeLeftRed(900);
-    setTimeLeftBlack(900);
-  };
-
   const boardSize = 500;
   const cellSize = boardSize / 9;
 

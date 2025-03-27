@@ -136,6 +136,21 @@ class WebSocketService {
       body: JSON.stringify(move),
     });
   }
+
+
+  sendEndReason(gameId, username, reason)
+  {
+    console.log("📩 Gửi WebSocket endgame với:", JSON.stringify({ gameId, player: username, reason }));
+    if (!gameId) {
+      console.error("❌ LỖI: gameId bị null hoặc undefined!");
+      return;
+    }
+    this.client.publish({
+      destination: "/app/game/end",
+      body: JSON.stringify({ gameId: gameId, player: username, reason : reason }) // ✅ Đảm bảo `gameId` không bị null
+    });
+
+  }
   subscribeToChat(gameId, callback) {
     console.log("✅ Đăng ký WebSocket chat với gameId:", gameId);
   

@@ -43,12 +43,26 @@ public class GameWebSocketController {
             System.out.println("❌ Không tìm thấy gameId = " + gameId);
             return;
         }
+
         Game game = optionalGame.get();
-        // 🏆 Cập nhật người chơi trong phòng
-        if (game.getPlayerBlack() == null) {
-            game.setPlayerBlack(playerUsername);
-        } else if (game.getPlayerRed() == null && !game.getPlayerBlack().equals(playerUsername)) {
-            game.setPlayerRed(playerUsername);
+
+        // 🏆 Kiểm tra nếu người chơi đã ở trong phòng, giữ nguyên vị trí của họ
+        if (playerUsername.equals(game.getPlayerBlack()) || playerUsername.equals(game.getPlayerRed())) {
+            System.out.println("🔄 Người chơi đã có trong phòng, không thay đổi vị trí.");
+        } else {
+            // 🏆 Nếu chưa có, gán vào vị trí phù hợp
+            if (game.getPlayerBlack() == null) {
+                game.setPlayerBlack(playerUsername);
+            } else if (game.getPlayerRed() == null) {
+                game.setPlayerRed(playerUsername);
+            } else {
+                System.out.println("⚠ Phòng đã đầy, không thể thêm người chơi mới.");
+                return;
+            }
+        }
+
+        if (game.getPlayerBlack() != null && game.getPlayerRed() != null) {
+            game.setGameStatus("starting"); // Trạng thái game thành "starting"
         }
 
         gameService.updateGame(game);
@@ -64,6 +78,7 @@ public class GameWebSocketController {
 
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
     }
+
 
     //san sang
     @MessageMapping("/game/ready")
@@ -127,28 +142,37 @@ public class GameWebSocketController {
             System.out.println("❌ Game không tồn tại!");
             return;
         }
+
         Game game = optionalGame.get();
-        // 🔥 Kiểm tra xem người chơi có trong phòng không
+        boolean isPlayerInGame = false;
+
+        // 🔥 Kiểm tra và loại bỏ người chơi khỏi phòng
         if (playerUsername.equals(game.getPlayerBlack())) {
             game.setPlayerBlack(null);
             game.setBlackReady(false);
+            game.setGameStatus("waiting");
+            isPlayerInGame = true;
         } else if (playerUsername.equals(game.getPlayerRed())) {
             game.setPlayerRed(null);
             game.setRedReady(false);
-        } else {
+            game.setGameStatus("waiting");
+            isPlayerInGame = true;
+        }
+
+        if (!isPlayerInGame) {
             System.out.println("⚠ Người chơi không có trong phòng!");
             return;
         }
 
-        if (game.getPlayerBlack() != null && game.getPlayerBlack().equals(playerUsername)) {
-            game.setPlayerBlack(null);
-        } else if (game.getPlayerRed() != null && game.getPlayerRed().equals(playerUsername)) {
-            game.setPlayerRed(null);
+        // 🔥 Nếu không còn ai trong phòng => Xóa phòng
+        if (game.getPlayerBlack() == null && game.getPlayerRed() == null) {
+            gameService.deleteGame(gameId);
+            System.out.println("🚀 Phòng " + gameId + " đã được reset vì không còn người chơi.");
+        } else {
+            // 🔥 Cập nhật lại trạng thái phòng nếu vẫn còn người chơi
+            gameService.updateGame(game);
+            System.out.println("✅ Người chơi đã rời phòng: " + playerUsername);
         }
-
-        gameService.updateGame(game);
-
-        System.out.println("✅ Người chơi đã rời phòng: " + playerUsername);
 
         // 🔥 Gửi thông báo cập nhật danh sách người chơi
         Map<String, Object> response = new HashMap<>();
@@ -176,10 +200,8 @@ public class GameWebSocketController {
             System.out.println("❌ Không phải lượt của " + moveData.get("player") + " (Hiện tại: " + game.getCurrentTurn() + ")");
             return;
         }
-
         game.switchTurn();
         gameService.updateGame(game);
-
         moveData.put("type", "gameMove");
         moveData.put("gameId", gameId);
         moveData.put("currentTurn", game.getCurrentTurn()); // ✅ Cập nhật lượt chơi
@@ -190,6 +212,40 @@ public class GameWebSocketController {
         messagingTemplate.convertAndSend("/topic/game/" + gameId, moveData);
         System.out.println("✅ Gửi nước đi tới WebSocket: " + moveData);
     }
+
+    @MessageMapping("/game/end")
+    public void endGame(@Payload Map<String, Object> request) {
+        System.out.println("🏁 Nhận yêu cầu kết thúc game: " + request);
+
+        String gameId = (String) request.get("gameId");
+        String winner = (String) request.get("winner"); // Người chiến thắng
+        String reason = (String) request.get("reason"); // Lý do thắng/thua (Checkmate, Timeout, Resign, Draw)
+
+        Optional<Game> optionalGame = gameService.getGameById(gameId);
+        if (optionalGame.isEmpty()) {
+            System.out.println("❌ Không tìm thấy gameId = " + gameId);
+            return;
+        }
+
+        Game game = optionalGame.get();
+        game.setGameStatus("ended");
+        game.setWinner(winner);
+        game.setEndReason(reason);
+
+        gameService.updateGame(game);
+
+        System.out.println("🏆 Trò chơi kết thúc! Người thắng: " + winner + ", Lý do: " + reason);
+
+        // Gửi thông báo đến tất cả người chơi
+        Map<String, Object> response = new HashMap<>();
+        response.put("type", "gameEnd");
+        response.put("gameId", gameId);
+        response.put("winner", winner);
+        response.put("reason", reason);
+
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
+    }
+
 
 
     //chat

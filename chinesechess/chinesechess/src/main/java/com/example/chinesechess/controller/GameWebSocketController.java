@@ -151,11 +151,15 @@ public class GameWebSocketController {
             game.setPlayerBlack(null);
             game.setBlackReady(false);
             game.setGameStatus("waiting");
+            game.setRedReady(false);
+            game.setMoves(null);
             isPlayerInGame = true;
         } else if (playerUsername.equals(game.getPlayerRed())) {
             game.setPlayerRed(null);
             game.setRedReady(false);
+            game.setBlackReady(false);
             game.setGameStatus("waiting");
+            game.setMoves(null);
             isPlayerInGame = true;
         }
 
@@ -200,6 +204,23 @@ public class GameWebSocketController {
             System.out.println("❌ Không phải lượt của " + moveData.get("player") + " (Hiện tại: " + game.getCurrentTurn() + ")");
             return;
         }
+
+        // Lấy vị trí từ moveData (giả sử moveData chứa row và col dưới dạng số nguyên)
+        Map<String, Object> fromData = (Map<String, Object>) moveData.get("from");
+        Map<String, Object> toData = (Map<String, Object>) moveData.get("to");
+
+        // Chuyển đổi thành đối tượng Position
+        Position fromPos = new Position((int) fromData.get("row"), (int) fromData.get("col"));
+        Position toPos = new Position((int) toData.get("row"), (int) toData.get("col"));
+
+        // Tạo MoveDTO
+        MoveDTO move = new MoveDTO(fromPos, toPos, moveData.get("piece").toString(), game.getCurrentTurn());
+        if (game.getMoves() == null) {
+            game.setMoves(new ArrayList<>());
+        }
+        game.getMoves().add(move);
+
+
         game.switchTurn();
         gameService.updateGame(game);
         moveData.put("type", "gameMove");

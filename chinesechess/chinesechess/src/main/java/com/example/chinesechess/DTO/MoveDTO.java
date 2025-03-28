@@ -8,7 +8,6 @@ public class MoveDTO {
     private String piece; // Ký hiệu quân cờ (ví dụ: "C", "R", "H")
     private String player; // "red" hoặc "black"
 
-    public MoveDTO() {}
 
     public MoveDTO(Position from, Position to, String piece, String player) {
         this.from = from;

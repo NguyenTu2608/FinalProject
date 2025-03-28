@@ -4,6 +4,7 @@ import com.example.chinesechess.DTO.ChatMessage;
 import com.example.chinesechess.DTO.GameRequest;
 import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.model.Game;
+import com.example.chinesechess.model.Position;
 import com.example.chinesechess.service.GameService;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

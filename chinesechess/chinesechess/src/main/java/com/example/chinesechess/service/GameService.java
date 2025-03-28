@@ -16,7 +16,6 @@ public class GameService {
     @Autowired
     private GameRepository gameRepository;
 
-
     public List<Game> getAllGames() {
         return gameRepository.findAll();
     }
@@ -62,26 +61,6 @@ public class GameService {
         return redGames;
     }
 
-    public Game joinGame(String gameId, String username) {
-        Game game = gameRepository.findById(gameId)
-                .orElseGet(() -> {
-                    Game newGame = new Game();
-                    newGame.setId(gameId);
-                    return newGame;
-                });
-
-        if (game.getPlayerBlack() == null) {
-            game.setPlayerBlack(username);
-        } else if (game.getPlayerRed() == null) {
-            game.setPlayerRed(username);
-        } else {
-            throw new RuntimeException("Game is already full!");
-        }
-
-        return gameRepository.save(game);
-    }
-
-
     // Update a game's moves and status
     public void updateGame(Game game) {
         if (gameRepository.existsById(game.getId())) {
@@ -90,7 +69,6 @@ public class GameService {
             throw new RuntimeException("Game not found");
         }
     }
-
 
     // Delete a game
     public void deleteGame(String gameId) {

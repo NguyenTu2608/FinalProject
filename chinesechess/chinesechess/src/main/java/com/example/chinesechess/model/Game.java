@@ -15,12 +15,12 @@ public class Game {
     private List<MoveDTO> moves; // List of moves in PGN format
     private String gameStatus; // Game status: waiting, ongoing, white_won, black_won, draw
     private String winner;
-    private String endReason;
     private String currentTurn; // "red" or "black"
     private String createdAt;
     private String gameMode;
     private boolean blackReady = false;
     private boolean redReady = false;
+    private String[][] boardState;
 
 
     public Game() {
@@ -34,6 +34,7 @@ public class Game {
         this.currentTurn = "black";
         this.blackReady = blackReady;
         this.redReady = redReady;
+        this.boardState = new String[10][9];
     }
 
     // Getters and Setters
@@ -84,14 +85,6 @@ public class Game {
         this.winner = winner;
     }
 
-    public String getEndReason() {
-        return endReason;
-    }
-
-    public void setEndReason(String endReason) {
-        this.winner = endReason;
-    }
-
     public String getCurrentTurn() {
         return currentTurn;
     }
@@ -135,5 +128,13 @@ public class Game {
 
     public void setRedReady(boolean redReady) {
         this.redReady = redReady;
+    }
+
+    public String[][] getBoardState() {
+        return boardState;
+    }
+
+    public void setBoardState(String[][] boardState) {
+        this.boardState = boardState;
     }
 }

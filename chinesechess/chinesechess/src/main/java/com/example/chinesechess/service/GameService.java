@@ -1,7 +1,6 @@
 package com.example.chinesechess.service;
 
 import com.example.chinesechess.model.Game;
-import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,4 +73,6 @@ public class GameService {
     public void deleteGame(String gameId) {
         gameRepository.deleteById(gameId);
     }
+
+
 }

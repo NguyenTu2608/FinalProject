@@ -140,18 +140,6 @@ canMove(row, col, isRed) {
 
 
 
-  // // Di chuyển Mã (Knight)
-  // addKnightMoves(moves, row, col, isRed) {
-  //   const knightMoves = [[-2, -1], [-2, 1], [2, -1], [2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2]];
-  //   knightMoves.forEach(([dr, dc]) => {
-  //     const r = row + dr;
-  //     const c = col + dc;
-  //     if (this.canMove(r, c, isRed)) { // Truyền tham số isRed
-  //       moves.push([r, c]);
-  //     }
-  //   });
-  // }
-
   addKnightMoves(moves, row, col, isRed) {
     const knightMoves = [
         [-2, -1], [-2, 1], [2, -1], [2, 1],

@@ -1,7 +1,6 @@
 package com.example.chinesechess.controller;
 
 import com.example.chinesechess.DTO.ChatMessage;
-import com.example.chinesechess.DTO.GameRequest;
 import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.model.Game;
 import com.example.chinesechess.model.Position;
@@ -242,7 +241,6 @@ public class GameWebSocketController {
 
         String gameId = (String) request.get("gameId");
         String winner = (String) request.get("winner"); // Người chiến thắng
-        String reason = (String) request.get("reason"); // Lý do thắng/thua (Checkmate, Timeout, Resign, Draw)
 
         Optional<Game> optionalGame = gameService.getGameById(gameId);
         if (optionalGame.isEmpty()) {
@@ -253,18 +251,16 @@ public class GameWebSocketController {
         Game game = optionalGame.get();
         game.setGameStatus("ended");
         game.setWinner(winner);
-        game.setEndReason(reason);
+
 
         gameService.updateGame(game);
 
-        System.out.println("🏆 Trò chơi kết thúc! Người thắng: " + winner + ", Lý do: " + reason);
 
         // Gửi thông báo đến tất cả người chơi
         Map<String, Object> response = new HashMap<>();
         response.put("type", "gameEnd");
         response.put("gameId", gameId);
         response.put("winner", winner);
-        response.put("reason", reason);
 
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
     }

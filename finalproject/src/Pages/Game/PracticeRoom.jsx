@@ -19,7 +19,6 @@ export default function PracticeRoom() {
         gameMode: "practice",
         playerRed,
         playerBlack
-        
       }
       
     );
@@ -36,10 +35,19 @@ export default function PracticeRoom() {
     }
   };
 
-  // Theo dõi giá trị currentGame
-  useEffect(() => {
-    console.log("currentGame sau khi cập nhật:", currentGame);
-  }, [currentGame]);
+
+  const leaveGame = async () => {
+    if (currentGame?.id) {
+      try {
+        await apiClient.delete(`/games/${currentGame.id}`);
+      } catch (error) {
+        console.error("Lỗi khi thoát phòng:", error.response?.data || error.message);
+      }
+    }
+    setCurrentGame(null);
+    navigate("/practice");
+  };
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-cover bg-center"
@@ -64,10 +72,25 @@ export default function PracticeRoom() {
           <button onClick={createGame} className="bg-blue-500 text-white px-4 py-2 rounded">
             Tạo Ván Cờ
           </button>
+          {/* Nút Back */}
+          <button
+            onClick={() => navigate(-1)} // Quay lại trang trước
+            className="absolute bottom-5 left-5 px-6 py-3 bg-red-500 rounded-full text-lg font-semibold hover:bg-red-700 transition"
+          >
+          ⬅ Quay lại
+          </button>
         </div>
       ) : (
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col items-center">
           <Chessboard gameId={currentGame?.id} playerBlack={currentGame?.playerBlack} playerRed={currentGame?.playerRed} gameMode={currentGame?.gameMode} />
+          
+          {/* Nút Thoát Phòng */}
+          <button 
+            onClick={leaveGame} 
+            className="absolute bottom-5 left-5 px-6 py-3 bg-red-500 rounded-full text-lg font-semibold hover:bg-red-700 transition"
+          >
+            🚪 Thoát Phòng
+          </button>
         </div>
       )}
     </div>

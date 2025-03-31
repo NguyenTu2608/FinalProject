@@ -150,6 +150,7 @@ public class GameWebSocketController {
         // 🔥 Kiểm tra và loại bỏ người chơi khỏi phòng
         if (playerUsername.equals(game.getPlayerBlack())) {
             game.setPlayerBlack(null);
+            game.setCurrentTurn("black");
             game.setBlackReady(false);
             game.setGameStatus("waiting");
             game.setRedReady(false);
@@ -160,6 +161,7 @@ public class GameWebSocketController {
             game.setRedReady(false);
             game.setBlackReady(false);
             game.setGameStatus("waiting");
+            game.setCurrentTurn("black");
             game.setMoves(null);
             isPlayerInGame = true;
         }
@@ -189,6 +191,37 @@ public class GameWebSocketController {
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
     }
 
+    @MessageMapping("/game/check")
+    public void handleCheck(@Payload Map<String, Object> request) {
+        System.out.println("📩 Nhận thông báo chiếu từ client: " + request);
+        String gameId = (String) request.get("gameId");
+        boolean isCheck = (boolean) request.get("isCheck");
+        boolean isCheckmate = (boolean) request.get("isCheckmate");
+        String player = (String) request.get("player");
+        // Gửi thông báo về cho tất cả client trong phòng
+
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("type", "checkNotification");
+        response.put("gameId", gameId);
+        response.put("isCheck", isCheck);
+        response.put("isCheckmate", isCheckmate);
+        response.put("player", player);
+
+        if (isCheckmate) {
+            String winner = player; // Người chiếu bí là người thắng
+            try {
+                gameService.setWinner(gameId, winner); // ✅ Cập nhật người thắng trong DB
+                response.put("winner", winner);
+            } catch (Exception e) {
+                System.err.println("❌ Lỗi khi cập nhật người thắng vào DB: " + e.getMessage());
+            }
+        }
+
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
+
+        System.out.println("🔥 Gửi thông báo chiếu: " + (isCheckmate ? "Chiếu bí!" : "Chiếu tướng!"));
+    }
 
 
     @MessageMapping("/game/{gameId}/move")
@@ -234,38 +267,6 @@ public class GameWebSocketController {
         messagingTemplate.convertAndSend("/topic/game/" + gameId, moveData);
         System.out.println("✅ Gửi nước đi tới WebSocket: " + moveData);
     }
-
-    @MessageMapping("/game/end")
-    public void endGame(@Payload Map<String, Object> request) {
-        System.out.println("🏁 Nhận yêu cầu kết thúc game: " + request);
-
-        String gameId = (String) request.get("gameId");
-        String winner = (String) request.get("winner"); // Người chiến thắng
-
-        Optional<Game> optionalGame = gameService.getGameById(gameId);
-        if (optionalGame.isEmpty()) {
-            System.out.println("❌ Không tìm thấy gameId = " + gameId);
-            return;
-        }
-
-        Game game = optionalGame.get();
-        game.setGameStatus("ended");
-        game.setWinner(winner);
-
-
-        gameService.updateGame(game);
-
-
-        // Gửi thông báo đến tất cả người chơi
-        Map<String, Object> response = new HashMap<>();
-        response.put("type", "gameEnd");
-        response.put("gameId", gameId);
-        response.put("winner", winner);
-
-        messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
-    }
-
-
 
     //chat
     @MessageMapping("/game/{gameId}/chat")

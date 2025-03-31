@@ -137,6 +137,24 @@ class WebSocketService {
     });
   }
 
+  sendCheckNotification(gameId, player, isCheck, isCheckmate) {
+    console.log("📩 Gửi thông báo chiếu tướng:", JSON.stringify({ gameId, player, isCheck, isCheckmate }));
+
+    if (!gameId) {
+        console.error("❌ LỖI: gameId bị null hoặc undefined!");
+        return;
+    }
+
+    this.client.publish({
+        destination: "/app/game/check",
+        body: JSON.stringify({ 
+            gameId: gameId, 
+            player: player, 
+            isCheck: isCheck, 
+            isCheckmate: isCheckmate 
+        })
+    });
+}
 
   sendEndReason(gameId, username, reason)
   {

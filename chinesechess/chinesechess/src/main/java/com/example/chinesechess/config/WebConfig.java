@@ -13,7 +13,7 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002")
+                        .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://chinachess.io.vn")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowCredentials(true);
             }

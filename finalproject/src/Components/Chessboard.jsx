@@ -52,45 +52,48 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
   useEffect(() => {
     let interval;
     if (timerActive && gameStarted && currentPlayer && !gameOver) {
-      interval = setInterval(() => {
-        if (currentPlayer === 'red') {
-          setTimeLeftRed(prev => prev > 0 ? prev - 1 : 0);
-        } else {
-          setTimeLeftBlack(prev => prev > 0 ? prev - 1 : 0);
-        }
-      }, 1000);
+        interval = setInterval(() => {
+            if (currentPlayer === "red") {
+                setTimeLeftRed((prev) => (prev > 0 ? prev - 1 : 0));
+            } else {
+                setTimeLeftBlack((prev) => (prev > 0 ? prev - 1 : 0));
+            }
+        }, 1000);
     }
 
     return () => clearInterval(interval);
-  }, [timerActive, gameStarted, gameOver, currentPlayer]);
+}, [timerActive, gameStarted, gameOver, currentPlayer]);
 
 
-  useEffect(() => {
-    if (gameMode !== "online") return;
-  
-    console.log("📡 Kết nối WebSocket để nhận nước đi...");
-    
-    if (!websocketService.isConnected) {
+
+useEffect(() => {
+  if (gameMode !== "online") return;
+
+  console.log("📡 Kết nối WebSocket để nhận nước đi...");
+
+  if (!websocketService.isConnected) {
       console.warn("⚠ WebSocket chưa kết nối, thử kết nối lại...");
       websocketService.connect(() => {
-        console.log("🔄 Đã kết nối lại WebSocket!");
-        websocketService.subscribeToGame(gameId, handleGameMove);
+          console.log("🔄 Đã kết nối lại WebSocket!");
+          websocketService.subscribeToGame(gameId, handleGameMove);
+          websocketService.subscribeToGame(gameId, handleCheckNotification);
       });
-    } else {
+  } else {
       websocketService.subscribeToGame(gameId, handleGameMove);
-    }
-  
-    return () => {
+      websocketService.subscribeToGame(gameId, handleCheckNotification);
+  }
+
+  return () => {
       websocketService.unsubscribeFromGame(gameId);
-    };
-  
-  }, [gameId, gameMode]);
+      websocketService.unsubscribeFromGame(gameId);
+  };
+}, [gameId, gameMode]);
+
 
 
   //nhan message san sang`
   useEffect(() => {
     if (gameMode !== "online") return;
-  
     const handleReadyMessage = (messageReady) => {
       let response;
   
@@ -159,15 +162,17 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
           // Nếu một trong hai người rời đi, reset bàn cờ và trạng thái game
           if (!response.playerBlack || !response.playerRed) {
               console.log("🔄 Một người đã rời phòng, reset bàn cờ và trạng thái game.");
-              
               setBoard(initialBoard);  // 🟢 Reset bàn cờ về trạng thái ban đầu
               setMoveHistory([]);      // 🟢 Xóa lịch sử nước đi
-              setCurrentPlayer("black"); // 🟢 Đặt lại lượt chơi về "black"
+              setCurrentPlayer(currentPlayer); // 🟢 Đặt lại lượt chơi về "black"
               setGameStarted(false);   // 🟢 Dừng game
               setTimerActive(false);   // 🟢 Dừng bộ đếm thời gian
-              setTimeLeftRed(900);     // 🟢 Reset thời gian của red
-              setTimeLeftBlack(900);   // 🟢 Reset thời gian của black
               setReadyStatus({ black: false, red: false }); // 🟢 Đặt lại trạng thái sẵn sàng
+              setGameOver(false);
+              setWinner(null);
+              setSelectedPiece(null);
+              setValidMoves([]);
+              setErrorMessage("");
           }
       }
   };
@@ -187,7 +192,6 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
   };
 
 
-  // 👉 Tách riêng logic xử lý nước đi từ WebSocket
   const handleGameMove = (message) => {
     if (!message || message.type !== "gameMove") return;
 
@@ -225,6 +229,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
     // ✅ Cập nhật lịch sử nước đi
     setMoveHistory((prevHistory) => [...prevHistory, message]);
 
+
     // ✅ Cập nhật lượt chơi tiếp theo
     if (currentTurn) {
         console.log("🔄 [Client] Cập nhật lượt chơi:", currentTurn);
@@ -236,11 +241,18 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
 };
 
 
-  const handleTimeOut = (player) => {
-    setGameOver(true);
-    setWinner(player === 'red' ? 'black' : 'red');
-    setErrorMessage(`${player === 'red' ? 'Đỏ' : 'Đen'} hết thời gian!`);
-  };
+const handleCheckNotification = (message) => {
+  if (!message || message.type !== "checkNotification") return;
+
+  console.log("🔥 Nhận thông báo chiếu từ server:", message);
+
+  if (message.isCheckmate) {
+      setErrorMessage(`🏆 ${message.player} đã chiếu bí! Trò chơi kết thúc.`);
+      setGameOver(true);
+  } else {
+      setErrorMessage(`🔥 ${message.player} đã chiếu tướng!`);
+  }
+};
   // Hàm định dạng thời gian
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -370,9 +382,37 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
 
         // Xác định lượt chơi tiếp theo
         const nextPlayer = currentPlayer === "red" ? "black" : "red";
-        const newGameManager = new GameManager(newBoard);
 
+        setBoard([...newBoard]); // Ensure a new state reference
+        setSelectedPiece(null);
+        setValidMoves([]);
+        setErrorMessage("");
 
+        if (gameMode === "online") {
+          const opponentIsRed = currentPlayer === "black"; // Đối thủ của người vừa đi
+          const isCheck = gameManager.isKingInCheck(opponentIsRed);
+          const isCheckmate = gameManager.isCheckmate(opponentIsRed);
+      
+          if (isCheck || isCheckmate) {
+              console.log(isCheckmate ? "🔥 Chiếu bí!" : "⚠ Chiếu tướng!");
+      
+              // 📨 Gửi thông báo qua WebSocket
+              websocketService.sendCheckNotification(gameId, currentPlayer, isCheck, isCheckmate);
+              
+              // Hiển thị thông báo trên giao diện cho người chơi hiện tại
+              setErrorMessage(isCheckmate ? "Chiếu bí! Trò chơi kết thúc." : "Chiếu tướng!");
+              
+              // Nếu chiếu bí, có thể xử lý logic kết thúc game
+              if (isCheckmate) {
+                  setGameOver(true);
+                  setWinner(currentPlayer);
+              }
+          }
+      }
+
+        // Chỉ kiểm tra chiếu tướng trong chế độ practice
+        if (gameMode === "practice") {
+          const newGameManager = new GameManager(newBoard);
         // Kiểm tra xem bên được chuyển giao có bị chiếu bí hay không
         if (newGameManager.isCheckmate(nextPlayer === "red")) {
           setGameOver(true);
@@ -381,23 +421,18 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
             `${nextPlayer === "red" ? "Đỏ" : "Đen"} bị chiếu bí! Trò chơi kết thúc.`
           );
         }
-
-        setBoard([...newBoard]); // Ensure a new state reference
-        setSelectedPiece(null);
-        setValidMoves([]);
-        setErrorMessage("");
-
-        // Kiểm tra xem Tướng của đối phương có bị chiếu hay không
-        const opponentIsRed = currentPlayer === "black";
+            const opponentIsRed = currentPlayer === "black";
+            
         if (gameManager.isKingInCheck(opponentIsRed)) {
-          setErrorMessage("Chiếu tướng!");
-          // Kiểm tra xem có phải là chiếu bí hay không
-          if (gameManager.isCheckmate(opponentIsRed)) {
-            setErrorMessage("Chiếu bí! Trò chơi kết thúc.");
-            // Có thể thêm logic kết thúc trò chơi ở đây
-          }
-        }
-        if (!gameOver) setCurrentPlayer(nextPlayer);
+            setErrorMessage("Chiếu tướng!");
+            // Kiểm tra xem có phải là chiếu bí hay không
+        if (gameManager.isCheckmate(opponentIsRed)) {
+          setErrorMessage("Chiếu bí! Trò chơi kết thúc.");
+          // Có thể thêm logic kết thúc trò chơi ở đây
+      }
+  }
+}
+if (!gameOver) setCurrentPlayer(nextPlayer);
       } else {
         setSelectedPiece(null);
         setValidMoves([]);
@@ -522,21 +557,39 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
         )}
         {/* Overlay hiển thị khi trò chơi kết thúc */}
         {gameOver && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">Trò chơi kết thúc!</h2>
-            <p className="mb-4">
-              {errorMessage || `${winner === "red" ? "Đỏ" : "Đen"} thắng!`}
-            </p>
-            <button
-              onClick={restartGame}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
-            >
-              Start Game
-            </button>
-          </div>
-        </div>
+          <h2 className="text-2xl font-bold mb-4">Trò chơi kết thúc!</h2>
+
+          <p className="mb-4">
+          {gameMode === "online" ? (
+            (winner === "red" && username === playerRed) || 
+            (winner === "black" && username === playerBlack)
+              ? "🎉 Bạn đã thắng!"
+              : "😞 Bạn đã thua!"
+            ) : (
+            `${winner === "red" ? "Đỏ" : "Đen"} thắng!`
+            )}
+          </p>
+
+          {gameMode === "practice" ? (
+          <button
+            onClick={restartGame}
+            className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
+          >
+          Restart Game
+          </button>
+          ) : (
+          <button
+            onClick={restartGame}
+            className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
+          >
+            New Game
+          </button>
         )}
+      </div>
+    </div>
+)}
       </div>
       {/* ProfileCard bên phải (đối xứng) */}
       <ProfileCard

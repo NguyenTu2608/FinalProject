@@ -30,12 +30,13 @@ const Pratice = () => {
         >
           🔍 Chơi với AI
         </button>
+        
 
       </div>
 
       {/* Nút Back */}
       <button
-        onClick={() => navigate(-1)} // Quay lại trang trước
+        onClick={() => navigate("/")} // Quay lại trang trước
         className="absolute bottom-5 left-5 px-6 py-3 bg-red-500 rounded-full text-lg font-semibold hover:bg-red-700 transition"
       >
         ⬅ Quay lại

@@ -60,6 +60,19 @@ public class GameService {
         return redGames;
     }
 
+    public void setWinner(String gameId, String winner) {
+        Optional<Game> gameOpt = gameRepository.findById(gameId);
+        if (gameOpt.isPresent()) {
+            Game game = gameOpt.get();
+            game.setWinner(winner);
+            game.setGameStatus("finished"); // Cập nhật trạng thái game
+            gameRepository.save(game);
+            System.out.println("✅ Đã lưu người thắng vào DB: " + winner);
+        } else {
+            System.err.println("❌ Không tìm thấy game với ID: " + gameId);
+        }
+    }
+
     // Update a game's moves and status
     public void updateGame(Game game) {
         if (gameRepository.existsById(game.getId())) {

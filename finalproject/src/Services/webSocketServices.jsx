@@ -137,6 +137,25 @@ class WebSocketService {
     });
   }
 
+  sendSurrenderNotification(gameId, player) {
+    console.log(`📩 Gửi thông báo đầu hàng: ${player} đầu hàng`);
+  
+    if (!gameId) {
+      console.error("❌ LỖI: gameId bị null hoặc undefined!");
+      return;
+    }
+  
+    this.client.publish({
+      destination: "/app/game/surrender",
+      body: JSON.stringify({
+        gameId: gameId,
+        surrenderPlayer: player,
+        winner: player === "red" ? "black" : "red",  // Nếu người chơi đầu hàng là đỏ thì đen thắng, ngược lại
+      })
+    });
+  }
+
+
   sendCheckNotification(gameId, player, isCheck, isCheckmate) {
     console.log("📩 Gửi thông báo chiếu tướng:", JSON.stringify({ gameId, player, isCheck, isCheckmate }));
 
@@ -156,19 +175,6 @@ class WebSocketService {
     });
 }
 
-  sendEndReason(gameId, username, reason)
-  {
-    console.log("📩 Gửi WebSocket endgame với:", JSON.stringify({ gameId, player: username, reason }));
-    if (!gameId) {
-      console.error("❌ LỖI: gameId bị null hoặc undefined!");
-      return;
-    }
-    this.client.publish({
-      destination: "/app/game/end",
-      body: JSON.stringify({ gameId: gameId, player: username, reason : reason }) // ✅ Đảm bảo `gameId` không bị null
-    });
-
-  }
   subscribeToChat(gameId, callback) {
     console.log("✅ Đăng ký WebSocket chat với gameId:", gameId);
   

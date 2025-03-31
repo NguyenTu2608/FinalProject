@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import GameManager from "./GameManager";
 import apiClient from "../Services/apiConfig";
 import websocketService from "../Services/webSocketServices";
+
 // Ảnh quân cờ
 const pieceImages = {
   r: "/Assets/red-rook.png",
@@ -48,6 +49,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
   const [timerActive, setTimerActive] = useState(false);
   const [readyStatus, setReadyStatus] = useState({ black: false, red: false });
   const [gameStarted, setGameStarted] = useState(false);
+  const [surrenderPlayer, setSurrenderPlayer] = useState(null); // Thêm state mới
 
   useEffect(() => {
     let interval;
@@ -77,10 +79,12 @@ useEffect(() => {
           console.log("🔄 Đã kết nối lại WebSocket!");
           websocketService.subscribeToGame(gameId, handleGameMove);
           websocketService.subscribeToGame(gameId, handleCheckNotification);
+          websocketService.subscribeToGame(gameId, handleSurrenderNotification);
       });
   } else {
       websocketService.subscribeToGame(gameId, handleGameMove);
       websocketService.subscribeToGame(gameId, handleCheckNotification);
+      websocketService.subscribeToGame(gameId, handleSurrenderNotification);
   }
 
   return () => {
@@ -185,6 +189,16 @@ useEffect(() => {
 
 }, [gameId, gameMode]);
 
+const handleSurrenderNotification = (message) => {
+  if (!message || message.type !== "surrender") return;
+
+  console.log("🏳️ Nhận thông báo đầu hàng từ server:", message);
+
+  setSurrenderPlayer(message.surrenderPlayer); // Lưu người đầu hàng vào state
+  setWinner(message.winner); // Lưu người thắng vào state
+  setGameOver(true);
+};
+
 
   //truyen san sang len server
   const sendReadyStatus = () => {
@@ -247,10 +261,10 @@ const handleCheckNotification = (message) => {
   console.log("🔥 Nhận thông báo chiếu từ server:", message);
 
   if (message.isCheckmate) {
-      setErrorMessage(`🏆 ${message.player} đã chiếu bí! Trò chơi kết thúc.`);
+      setErrorMessage(`🏆 ${message.username} đã chiếu bí! Trò chơi kết thúc.`);
       setGameOver(true);
   } else {
-      setErrorMessage(`🔥 ${message.player} đã chiếu tướng!`);
+      setErrorMessage(`🔥 ${message.username} đã chiếu tướng!`);
   }
 };
   // Hàm định dạng thời gian
@@ -259,12 +273,21 @@ const handleCheckNotification = (message) => {
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
+
+  //dau hang
   const handleSurrender = (player) => {
     if (gameOver) return; // Nếu game đã kết thúc, không cần xử lý
-    setGameOver(true);
-    setWinner(player === "red" ? "black" : "red");
-    setErrorMessage(`${player === "red" ? "Đỏ" : "Đen"} đã đầu hàng!`);
+  
+    console.log(`🏳️ ${player} gửi yêu cầu đầu hàng`);
+  
+    if (gameMode === "online") {
+      websocketService.sendSurrenderNotification(gameId, player); // Gửi yêu cầu đầu hàng lên server
+    } else {
+      setErrorMessage(`${player === "red" ? "Đỏ" : "Đen"} thắng! ${player} đã đầu hàng.`);
+      setGameOver(true);
+    }
   };
+
 
 
   if (!gameStarted) {
@@ -309,7 +332,6 @@ const handleCheckNotification = (message) => {
     );
   }
   
-
   const handleClick = async (row, col) => {
     console.log("📍 Nhấn vào ô:", row, col, " | Người chơi hiện tại:", currentPlayer);
 
@@ -414,14 +436,14 @@ const handleCheckNotification = (message) => {
         if (gameMode === "practice") {
           const newGameManager = new GameManager(newBoard);
         // Kiểm tra xem bên được chuyển giao có bị chiếu bí hay không
-        if (newGameManager.isCheckmate(nextPlayer === "red")) {
-          setGameOver(true);
-          setWinner(nextPlayer);
-          setErrorMessage(
-            `${nextPlayer === "red" ? "Đỏ" : "Đen"} bị chiếu bí! Trò chơi kết thúc.`
-          );
-        }
-            const opponentIsRed = currentPlayer === "black";
+          if (newGameManager.isCheckmate(nextPlayer === "red")) {
+            setGameOver(true);
+            setWinner(nextPlayer);
+            setErrorMessage(
+              `${nextPlayer === "red" ? "Đỏ" : "Đen"} bị chiếu bí! Trò chơi kết thúc.`
+            );
+          }
+          const opponentIsRed = currentPlayer === "black";
             
         if (gameManager.isKingInCheck(opponentIsRed)) {
             setErrorMessage("Chiếu tướng!");
@@ -432,7 +454,7 @@ const handleCheckNotification = (message) => {
       }
   }
 }
-if (!gameOver) setCurrentPlayer(nextPlayer);
+  if (!gameOver) setCurrentPlayer(nextPlayer);
       } else {
         setSelectedPiece(null);
         setValidMoves([]);
@@ -491,14 +513,15 @@ if (!gameOver) setCurrentPlayer(nextPlayer);
         </div>
         <button
           onClick={onSurrender}
-          className="mt-4 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded flex items-center"
+          disabled={!(username === playerRed && playerType === "red") && !(username === playerBlack && playerType === "black")}
+          className={`mt-4 ${
+            (username === playerRed && playerType === "red") || (username === playerBlack && playerType === "black")
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-gray-500 cursor-not-allowed"
+          } text-white font-bold py-2 px-4 rounded flex items-center`}
         >
-          <img
-            src="/Assets/surrender.png"
-            alt="Flag"
-            className="w-5 h-5 mr-2"
-          />
-          Đầu hàng
+        <img src="/Assets/surrender.png" alt="Flag" className="w-5 h-5 mr-2" />
+            Đầu hàng
         </button>
       </div>
     );
@@ -513,6 +536,7 @@ if (!gameOver) setCurrentPlayer(nextPlayer);
         timeLeft={timeLeftBlack}
         isCurrentPlayer={currentPlayer === 'black' && !gameOver}
         playerType="black"
+        username={username}
         onSurrender={() => handleSurrender("black")}
       />
 
@@ -557,38 +581,40 @@ if (!gameOver) setCurrentPlayer(nextPlayer);
         )}
         {/* Overlay hiển thị khi trò chơi kết thúc */}
         {gameOver && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg text-center">
-          <h2 className="text-2xl font-bold mb-4">Trò chơi kết thúc!</h2>
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-white p-6 rounded shadow-lg text-center">
+      <h2 className="text-2xl font-bold mb-4">Trò chơi kết thúc!</h2>
 
-          <p className="mb-4">
-          {gameMode === "online" ? (
-            (winner === "red" && username === playerRed) || 
-            (winner === "black" && username === playerBlack)
-              ? "🎉 Bạn đã thắng!"
+      <p className="mb-4">
+        {gameMode === "online" ? (
+          surrenderPlayer === username
+            ? "😞 Bạn đã đầu hàng! Trò chơi kết thúc."
+            : (winner === "red" && username === playerRed) || 
+              (winner === "black" && username === playerBlack)
+              ? "🎉 Đối thủ đã đầu hàng! Bạn thắng!"
               : "😞 Bạn đã thua!"
-            ) : (
-            `${winner === "red" ? "Đỏ" : "Đen"} thắng!`
-            )}
-          </p>
-
-          {gameMode === "practice" ? (
-          <button
-            onClick={restartGame}
-            className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
-          >
-          Restart Game
-          </button>
-          ) : (
-          <button
-            onClick={restartGame}
-            className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
-          >
-            New Game
-          </button>
+        ) : (
+          `${winner === "red" ? "Đỏ" : "Đen"} thắng!`
         )}
-      </div>
+      </p>
+
+      {gameMode === "practice" ? (
+        <button
+          onClick={restartGame}
+          className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
+        >
+          Restart Game
+        </button>
+      ) : (
+        <button
+          onClick={restartGame}
+          className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
+        >
+          New Game
+        </button>
+      )}
     </div>
+  </div>
 )}
       </div>
       {/* ProfileCard bên phải (đối xứng) */}
@@ -596,9 +622,9 @@ if (!gameOver) setCurrentPlayer(nextPlayer);
         timeLeft={timeLeftRed}
         isCurrentPlayer={currentPlayer === 'red' && !gameOver}
         playerType="red"
+        username={username} 
         onSurrender={() => handleSurrender("red")}
       />
-      
     </div>
   );
 

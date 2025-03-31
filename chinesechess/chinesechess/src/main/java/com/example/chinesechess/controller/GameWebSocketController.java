@@ -191,6 +191,31 @@ public class GameWebSocketController {
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
     }
 
+    @MessageMapping("/game/surrender")
+    public void handleSurrender(@Payload Map<String, String> payload) {
+        String gameId = payload.get("gameId");
+        String surrenderPlayer = payload.get("surrenderPlayer");
+        String winner = surrenderPlayer.equals("red") ? "black" : "red";
+        System.out.println("Người win" + winner);
+
+        // Kiểm tra và cập nhật trạng thái game
+        Optional<Game> gameOpt = gameService.getGameById(gameId);
+        if (gameOpt.isPresent()) {
+            Game game = gameOpt.get();
+            game.setWinner(winner);
+            game.setGameStatus("finished");
+            gameService.updateGame(game);
+        }
+
+        // Gửi thông báo đầu hàng đến tất cả client trong phòng
+        Map<String, Object> response = new HashMap<>();
+        response.put("type", "surrender");
+        response.put("surrenderPlayer", surrenderPlayer);
+        response.put("winner", winner);
+
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
+    }
+
     @MessageMapping("/game/check")
     public void handleCheck(@Payload Map<String, Object> request) {
         System.out.println("📩 Nhận thông báo chiếu từ client: " + request);

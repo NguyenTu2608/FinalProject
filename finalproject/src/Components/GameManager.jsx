@@ -5,7 +5,12 @@ class GameManager {
 
   // Lấy danh sách các nước đi hợp lệ
   getValidMoves(piece, row, col) {
-    if (!piece) return []; // ✅ Trả về mảng rỗng nếu không có quân cờ
+    if (!piece || typeof piece !== "string") {
+        console.warn("⚠ Dữ liệu quân cờ không hợp lệ:", piece);
+        return [];
+    }
+
+    console.log("getValidMoves called with:", row, col, "Piece:", piece);
 
     const moves = [];
     const isRed = piece === piece.toLowerCase(); // Xác định quân đỏ hay đen
@@ -31,31 +36,25 @@ class GameManager {
         case "r": // 🏰 Xe (Rook)
             this.addLinearMoves(moves, row, col, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
             break;
-
         case "c": // 🔥 Pháo (Cannon)
             this.addCannonMoves(moves, row, col);
             break;
-
         case "n": // 🐴 Mã (Knight)
             this.addKnightMoves(moves, row, col, isRed);
             break;
-
         case "b": // 🎭 Tượng (Bishop)
             this.addBishopMoves(moves, row, col, isRed);
             break;
-
         case "a": // 🏯 Sĩ (Advisor)
             console.log("📍 Quân Sĩ tại:", row, col);
             this.addAdvisorMoves(moves, row, col, isRed);
             break;
-
         case "k": // 👑 Tướng (King)
             this.addKingMoves(moves, row, col, isRed);
             break;
-
         default:
             console.warn("⚠ Không xác định được quân cờ:", piece);
-            break;
+            break;             
     }
 
     console.log("✅ Nước đi hợp lệ:", moves);
@@ -66,7 +65,7 @@ canMove(row, col, isRed) {
   if (row < 0 || row >= 10 || col < 0 || col >= 9) return false; // ✅ Kiểm tra giới hạn bàn cờ
   const targetPiece = this.board[row][col];
 
-  if (!targetPiece) return true; // ✅ Nếu ô trống, có thể đi
+  if (!targetPiece || targetPiece === "") return true; // ✅ Nếu ô trống, có thể đi
 
   if (typeof targetPiece !== "string") {
       console.warn("⚠ targetPiece không hợp lệ tại", row, col, ":", targetPiece);
@@ -332,19 +331,21 @@ canMove(row, col, isRed) {
 
   // Cập nhật bàn cờ khi quân cờ di chuyển
   movePiece(fromRow, fromCol, toRow, toCol) {
+    if (!this.board[fromRow] || !this.board[fromRow][fromCol]) {
+        console.error("❌ Không thể di chuyển: vị trí không hợp lệ", fromRow, fromCol);
+        return this.board; // Trả về board hiện tại thay vì undefined
+    }
+
     const newBoard = this.board.map(row => [...row]);
     const movingPiece = newBoard[fromRow][fromCol];
-    const targetPiece = newBoard[toRow][toCol];
 
-    if (targetPiece !== "" && this.canMove(toRow, toCol, movingPiece === movingPiece.toUpperCase())) {
-    }
+    console.log(`🚀 Di chuyển quân từ (${fromRow}, ${fromCol}) đến (${toRow}, ${toCol})`);
 
     newBoard[toRow][toCol] = movingPiece;
     newBoard[fromRow][fromCol] = "";
     this.board = newBoard;
     return newBoard;
-  }
-  
+}
 
   // Kiểm tra xem Tướng của một bên có đang bị chiếu hay không
   isKingInCheck(isRed) {

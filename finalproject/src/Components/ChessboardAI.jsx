@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import GameManager from "./GameManager";
 
 const pieceImages = {
@@ -32,80 +34,201 @@ const initialBoard = [
 ];
 
 const ChessboardAI = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+
+  const mode = queryParams.get("mode") || "easy";
+  const playerColor = queryParams.get("color") || "black";
+  const aiColor = playerColor === "black" ? "red" : "black";
+
   const [board, setBoard] = useState(initialBoard);
-  const gameManager = new GameManager(board);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [currentTurn, setCurrentTurn] = useState("black"); // Đen đi trước
 
-  const boardSize = 500; // Thay đổi kích thước bàn cờ
+  const gameManager = new GameManager(board);
+
+  // Nếu AI là Đen, nó sẽ đi trước khi game bắt đầu
+  useEffect(() => {
+    if (currentTurn === aiColor) {
+      handleAIMove();
+    }
+  }, [currentTurn]);
+
+  // Xử lý nước đi của AI (chọn ngẫu nhiên từ danh sách nước hợp lệ)
+  const handleAIMove = () => {
+    if (currentTurn !== aiColor) return; // Chỉ chạy khi đến lượt AI
+    console.log("🤖 AI đang tính toán nước đi...");
+
+    let possibleMoves = [];
+    let captureMoves = []; // Lưu các nước có thể ăn quân
+    let centerMoves = [];  // Lưu các nước giúp AI kiểm soát bàn cờ
+
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 9; col++) {
+            const piece = board[row][col];
+            if (piece && ((aiColor === "black" && piece === piece.toUpperCase()) || 
+                          (aiColor === "red" && piece === piece.toLowerCase()))) {
+                const moves = gameManager.getValidMoves(piece, row, col);
+                moves.forEach(([toRow, toCol]) => {
+                    const targetPiece = board[toRow][toCol];
+
+                    
+                    if ((toRow >= 3 && toRow <= 6) && (toCol >= 3 && toCol <= 5)) {
+                        centerMoves.push({ fromRow: row, fromCol: col, toRow, toCol });
+                    }
+                    else if (targetPiece && targetPiece !== "") {
+                        captureMoves.push({ fromRow: row, fromCol: col, toRow, toCol });
+                    }
+                    // Nếu không thì đưa vào danh sách nước đi thông thường
+                    else {
+                        possibleMoves.push({ fromRow: row, fromCol: col, toRow, toCol });
+                    }
+                });
+            }
+        }
+    }
+
+    let chosenMove = null;
+    if (captureMoves.length > 0) {
+        chosenMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
+        console.log("🤖 AI chọn nước đi ĂN QUÂN:", chosenMove);
+    } else if (centerMoves.length > 0) {
+        chosenMove = centerMoves[Math.floor(Math.random() * centerMoves.length)];
+        console.log("🤖 AI chọn nước đi KIỂM SOÁT BÀN CỜ:", chosenMove);
+    } else if (possibleMoves.length > 0) {
+        chosenMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+        console.log("🤖 AI chọn nước đi THÔNG THƯỜNG:", chosenMove);
+    }
+
+    if (chosenMove) {
+        const newBoard = gameManager.movePiece(chosenMove.fromRow, chosenMove.fromCol, chosenMove.toRow, chosenMove.toCol);
+        if (!newBoard) {
+            console.error("❌ Lỗi: movePiece trả về undefined!");
+            return;
+        }
+        setBoard(newBoard);
+        setCurrentTurn(playerColor); // Chuyển lượt về người chơi
+    }
+};
+
+
+
+  // Xử lý khi người chơi chọn quân cờ hoặc di chuyển
+  const handleClick = (row, col) => {
+    console.log(`🎯 Clicked position: (${row}, ${col})`);
+    console.log("📌 Quân cờ tại vị trí:", board?.[row]?.[col]);
+
+    // 1️⃣ Kiểm tra vị trí có hợp lệ không
+    if (row < 0 || row >= 10 || col < 0 || col >= 9) {
+        console.warn(`⚠ Vị trí (${row}, ${col}) ngoài phạm vi bàn cờ!`);
+        return;
+    }
+    if (!board || !board[row] || board[row][col] === undefined) {
+        console.warn(`⚠ Dữ liệu quân cờ không hợp lệ tại (${row}, ${col})`);
+        return;
+    }
+    if (currentTurn !== playerColor) return;
+
+    const piece = board[row][col];
+
+    // 2️⃣ Nếu chọn quân cờ hợp lệ (cùng màu với người chơi)
+    if (piece && ((playerColor === "black" && piece === piece.toUpperCase()) || 
+                  (playerColor === "red" && piece === piece.toLowerCase()))) {
+        console.log("✅ Quân cờ hợp lệ:", piece);
+        setSelectedPiece({ row, col });
+        const validMoves = gameManager.getValidMoves(piece, row, col);
+        setValidMoves(validMoves);
+        console.log("📌 Nước đi hợp lệ:", validMoves);
+        return;
+    }
+
+    // 3️⃣ Nếu đã chọn quân cờ và bấm vào vị trí hợp lệ
+    if (selectedPiece) {
+        const { row: fromRow, col: fromCol } = selectedPiece;
+        console.log("🎯 Đang kiểm tra nước đi từ:", fromRow, fromCol, "đến", row, col);
+
+        // Kiểm tra nước đi có hợp lệ không
+        const isValidMove = validMoves.some(([r, c]) => r === row && c === col);
+        console.log("📌 Move valid?", isValidMove);
+
+        if (isValidMove) {
+            // Thực hiện di chuyển
+            const newBoard = gameManager.movePiece(fromRow, fromCol, row, col);
+            if (!newBoard) {
+                console.error("❌ Lỗi: movePiece trả về undefined!");
+                return;
+            }
+            setBoard(newBoard);
+            setSelectedPiece(null);
+            setValidMoves([]);
+            setCurrentTurn(aiColor); // Đến lượt AI
+
+            setTimeout(() => handleAIMove(), 3000); // AI đi sau 0.5s
+        } else {
+            console.warn("⚠ Nước đi không hợp lệ!");
+            setErrorMessage("Nước đi không hợp lệ!");
+            setTimeout(() => setErrorMessage(""), 1500);
+        }
+    }
+};
+
+
+
+  const boardSize = 500;
   const cellSize = boardSize / 9;
 
-  const handleClick = async (row, col) => {
-    const piece = board[row][col]; // Lấy quân cờ tại vị trí (row, col)
-    
-    if (piece && typeof piece === "string") {
-      // Đảm bảo rằng piece là một chuỗi
-      const pieceLower = piece.toLowerCase(); // Chuyển thành chữ thường nếu là chuỗi
-      if (selectedPiece) {
-        // Di chuyển quân cờ nếu đã có quân cờ được chọn
-        const newBoard = [...board];
-        newBoard[row][col] = selectedPiece.piece;
-        newBoard[selectedPiece.row][selectedPiece.col] = "";
-        setBoard(newBoard);
-        setSelectedPiece(null);
-        setValidMoves([]);
-      } else {
-        setSelectedPiece({ row, col, piece });
-        setValidMoves(gameManager.getValidMoves(row, col)); // Tìm các nước đi hợp lệ
-      }
-    } else {
-      console.log("Không có quân cờ tại vị trí này hoặc không phải là chuỗi.");
-    }
-  };
-  
-  
-  
-
   return (
-    <div className="relative w-[500px] h-[550px] mx-auto">
-      <img src="/Assets/chessboard.png" alt="Chessboard" className="w-full h-full" />
-      {board.map((row, rowIndex) =>
-        row.map((piece, colIndex) =>
-          piece ? (
-            <img
-              key={`${rowIndex}-${colIndex}`}
-              src={pieceImages[piece]}
-              alt={piece}
-              className="absolute w-[45px] h-[45px] transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-              style={{
-                left: `${colIndex * cellSize + cellSize / 2}px`,
-                top: `${rowIndex * cellSize + cellSize / 2}px`,
-              }}
-              onClick={() => handleClick(rowIndex, colIndex)}
-            />
-          ) : null
-        )
-      )}
+    <div className="flex flex-col items-center">
+  <h1 className="text-4xl font-bold text-center text-[#003366] mb-2">
+    Chế độ: {mode.toUpperCase()}
+  </h1>
+  <h2 className="text-2xl font-semibold text-center text-gray-700 mb-4">
+    Bạn chơi: {playerColor === "black" ? "♟️ Đen (Đi trước)" : "♟️ Đỏ"}
+  </h2>
 
-      {validMoves.map(([row, col]) => (
-        <div
-          key={`${row}-${col}`}
-          className="absolute w-[45px] h-[45px] bg-green-500 opacity-50 transform -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{
-            left: `${col * cellSize + cellSize / 2}px`,
-            top: `${row * cellSize + cellSize / 2}px`,
-          }}
-          onClick={() => handleClick(row, col)}
-        />
-      ))}
+  <div className="relative w-[500px] h-[550px]">
+        <img src="/Assets/chessboard.png" alt="Chessboard" className="w-full h-full" />
+        {board.map((row, rowIndex) =>
+          row.map((piece, colIndex) =>
+            piece ? (
+              <img
+                key={`${rowIndex}-${colIndex}`}
+                src={pieceImages[piece]}
+                alt={piece}
+                className="absolute w-[45px] h-[45px] transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+                style={{
+                  left: `${colIndex * cellSize + cellSize / 2}px`,
+                  top: `${rowIndex * cellSize + cellSize / 2}px`,
+                }}
+                onClick={() => handleClick(rowIndex, colIndex)}
+              />
+            ) : null
+          )
+        )}
 
-      {errorMessage && (
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-red-500 text-white p-2 rounded">
-          {errorMessage}
-        </div>
-      )}
-    </div>
+        {validMoves.map(([row, col]) => (
+          <div
+            key={`${row}-${col}`}
+            className="absolute w-[45px] h-[45px] bg-green-500 opacity-50 transform -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              left: `${col * cellSize + cellSize / 2}px`,
+              top: `${row * cellSize + cellSize / 2}px`,
+            }}
+            onClick={() => handleClick(row, col)}
+          />
+        ))}
+  </div>
+  <button
+        onClick={() => navigate("/")} // Quay lại trang trước
+        className="absolute bottom-5 left-5 px-6 py-3 bg-red-500 rounded-full text-lg font-semibold hover:bg-red-700 transition"
+      >
+        ⬅ Quay lại
+      </button>
+</div>
+
   );
 };
 

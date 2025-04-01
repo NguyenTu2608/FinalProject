@@ -199,13 +199,12 @@ const handleSurrenderNotification = (message) => {
   setGameOver(true);
 };
 
-
   //truyen san sang len server
   const sendReadyStatus = () => {
     websocketService.sendReadyRequest(gameId, username);
   };
 
-
+  //nhan nuoc di tu sever
   const handleGameMove = (message) => {
     if (!message || message.type !== "gameMove") return;
 
@@ -429,7 +428,7 @@ const handleCheckNotification = (message) => {
                   setWinner(currentPlayer);
               }
           }
-      }
+        }
 
         // Chỉ kiểm tra chiếu tướng trong chế độ practice
         if (gameMode === "practice") {
@@ -585,9 +584,15 @@ const handleCheckNotification = (message) => {
 
         {/* Hiển thị thông báo lỗi */}
         {errorMessage && (
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-red-500 text-white p-2 rounded">
-            {errorMessage}
-          </div>
+        <div
+          className="absolute left-1/2 transform -translate-x-1/2 bg-red-500 text-white p-2 rounded"
+          style={{
+            top: "100%", // Đưa thông báo xuống dưới bàn cờ
+            marginTop: "10px", // Tạo khoảng cách giữa bàn cờ và thông báo
+          }}
+        >
+        {errorMessage}
+        </div>
         )}
         {/* Overlay hiển thị khi trò chơi kết thúc */}
         {gameOver && (

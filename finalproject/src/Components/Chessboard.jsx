@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import GameManager from "./GameManager";
 import apiClient from "../Services/apiConfig";
 import websocketService from "../Services/webSocketServices";
-import axios from "axios";
 
 // Ảnh quân cờ
 const pieceImages = {
@@ -34,26 +33,7 @@ const initialBoard = [
   ["", "", "", "", "", "", "", "", ""],
   ["R", "N", "B", "A", "K", "A", "B", "N", "R"],
 ];
-const boardToFen = (board, currentPlayer) => {
-  let fen = "";
-  for (let row = 0; row < 10; row++) {
-    let emptyCount = 0;
-    for (let col = 0; col < 9; col++) {
-      const piece = board[row][col];
-      if (piece) {
-        if (emptyCount > 0) fen += emptyCount;
-        fen += piece;
-        emptyCount = 0;
-      } else {
-        emptyCount++;
-      }
-    }
-    if (emptyCount > 0) fen += emptyCount;
-    if (row < 9) fen += "/";
-  }
-  fen += ` ${currentPlayer === "black" ? "b" : "r"} - - 0 1`;
-  return fen;
-};
+
 const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerRed, gameMode, username }) => {
   const [board, setBoard] = useState(initialBoard);
   const gameManager = new GameManager(board);
@@ -70,35 +50,7 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
   const [readyStatus, setReadyStatus] = useState({ black: false, red: false });
   const [gameStarted, setGameStarted] = useState(false);
   const [surrenderPlayer, setSurrenderPlayer] = useState(null); // Thêm state mới
-  const getAIMove = async (fen) => {
-    try {
-      const response = await axios.post("http://localhost:5000/api/pikafish/move", { fen });
-      const move = response.data.move;
-      const fromCol = move.charCodeAt(0) - 97;
-      const fromRow = 9 - parseInt(move[1]);
-      const toCol = move.charCodeAt(2) - 97;
-      const toRow = 9 - parseInt(move[3]);
-      return { from: { row: fromRow, col: fromCol }, to: { row: toRow, col: toCol } };
-    } catch (error) {
-      console.error("Error getting AI move:", error);
-      return null;
-    }
-  };
 
-  const handleAIMove = async () => {
-    const fen = boardToFen(board, currentPlayer);
-    const aiMove = await getAIMove(fen);
-    if (aiMove) {
-      const { from, to } = aiMove;
-      const newBoard = gameManager.movePiece(from.row, from.col, to.row, to.col);
-      setBoard([...newBoard]);
-      setMoveHistory((prev) => [
-        ...prev,
-        { from, to, piece: board[from.row][from.col], player: "black" },
-      ]);
-      setCurrentPlayer("red");
-    }
-  };
   useEffect(() => {
     let interval;
     if (timerActive && gameStarted && currentPlayer && !gameOver) {
@@ -381,26 +333,7 @@ const handleCheckNotification = (message) => {
   
   const handleClick = async (row, col) => {
     console.log("📍 Nhấn vào ô:", row, col, " | Người chơi hiện tại:", currentPlayer);
-    if (gameMode === "ai" && currentPlayer === "red") {
-      const piece = board[row][col];
-      const isRedPiece = piece && piece === piece.toLowerCase();
-      if (selectedPiece && validMoves.some(([r, c]) => r === row && c === col)) {
-        const newBoard = gameManager.movePiece(selectedPiece.row, selectedPiece.col, row, col);
-        setBoard([...newBoard]);
-        setMoveHistory((prev) => [
-          ...prev,
-          { from: { row: selectedPiece.row, col: selectedPiece.col }, to: { row, col }, piece: selectedPiece.piece, player: "red" },
-        ]);
-        setSelectedPiece(null);
-        setValidMoves([]);
-        setCurrentPlayer("black");
-        await handleAIMove();
-      } else if (piece && isRedPiece) {
-        const valid = gameManager.getValidMoves(piece, row, col);
-        setSelectedPiece({ row, col, piece });
-        setValidMoves(valid);
-      }
-    }
+
     if (gameMode === "online") {
       if (!username) {
         console.warn("⚠ Không lấy được username! Kiểm tra token đăng nhập.");

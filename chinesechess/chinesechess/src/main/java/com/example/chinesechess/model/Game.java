@@ -20,7 +20,6 @@ public class Game {
     private String gameMode;
     private boolean blackReady = false;
     private boolean redReady = false;
-    private String[][] boardState;
 
 
     public Game() {
@@ -34,7 +33,6 @@ public class Game {
         this.currentTurn = "black";
         this.blackReady = blackReady;
         this.redReady = redReady;
-        this.boardState = new String[10][9];
     }
 
     // Getters and Setters
@@ -130,11 +128,4 @@ public class Game {
         this.redReady = redReady;
     }
 
-    public String[][] getBoardState() {
-        return boardState;
-    }
-
-    public void setBoardState(String[][] boardState) {
-        this.boardState = boardState;
-    }
 }

@@ -56,7 +56,7 @@ const Home = () => {
           </button>
 
           {/* Luyện Tập */}
-          <button onClick={() => navigate("/Practice")} className="relative group">
+          <button onClick={() => navigate("/Training")} className="relative group">
             <img
               src="/Assets/iconcotuong2.png"
               alt="Luyện Tập"

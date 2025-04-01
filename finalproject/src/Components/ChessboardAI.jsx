@@ -57,8 +57,27 @@ const ChessboardAI = () => {
     }
   }, [currentTurn]);
 
+    let aiDifficulty = "";
+
+    const handleAIMove = () => {
+        switch(aiDifficulty) {
+            case "easy":
+                handleAIMoveEasy();
+                break;
+            case "medium":
+                handleAIMoveMedium();
+                break;
+            case "hard":
+                handleAIMoveHard();
+                break;
+            default:
+                handleAIMoveEasy();
+        }
+    };
+
+
   // Xử lý nước đi của AI (chọn ngẫu nhiên từ danh sách nước hợp lệ)
-  const handleAIMove = () => {
+  const handleAIMoveEasy = () => {
     if (currentTurn !== aiColor) return; // Chỉ chạy khi đến lượt AI
     console.log("🤖 AI đang tính toán nước đi...");
 
@@ -113,7 +132,108 @@ const ChessboardAI = () => {
         setCurrentTurn(playerColor); // Chuyển lượt về người chơi
     }
 };
+const handleAIMoveMedium = () => {
+    // Chỉ thực hiện khi đến lượt AI
+    if (currentTurn !== aiColor) return;
 
+    console.log("🤖 AI (Medium) đang tính toán nước đi...");
+
+    let possibleMoves = [];
+    let captureMoves = [];
+    let centerMoves = [];
+
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 9; col++) {
+            const piece = board[row][col];
+            if (piece && ((aiColor === "black" && piece === piece.toUpperCase()) || 
+                          (aiColor === "red" && piece === piece.toLowerCase()))) {
+                const moves = gameManager.getValidMoves(piece, row, col);
+                moves.forEach(([toRow, toCol]) => {
+                    const targetPiece = board[toRow][toCol];
+
+                    // Nếu có thể ăn quân, ưu tiên nước này
+                    if (targetPiece && targetPiece !== "") {
+                        captureMoves.push({ fromRow: row, fromCol: col, toRow, toCol });
+                    }
+                    // Nếu di chuyển về giữa bàn cờ (chiến thuật cơ bản)
+                    else if ((toRow >= 3 && toRow <= 6) && (toCol >= 3 && toCol <= 5)) {
+                        centerMoves.push({ fromRow: row, fromCol: col, toRow, toCol });
+                    } 
+                    // Nếu không thì đưa vào danh sách nước đi thông thường
+                    else {
+                        possibleMoves.push({ fromRow: row, fromCol: col, toRow, toCol });
+                    }
+                });
+            }
+        }
+    }
+
+    // Ưu tiên các nước đi ăn quân đối thủ, sau đó là kiểm soát trung tâm
+    let chosenMove = null;
+    if (captureMoves.length > 0) {
+        chosenMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
+    } else if (centerMoves.length > 0) {
+        chosenMove = centerMoves[Math.floor(Math.random() * centerMoves.length)];
+    } else if (possibleMoves.length > 0) {
+        chosenMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+    }
+
+    if (chosenMove) {
+        const newBoard = gameManager.movePiece(chosenMove.fromRow, chosenMove.fromCol, chosenMove.toRow, chosenMove.toCol);
+        setBoard(newBoard);
+        setCurrentTurn(playerColor); // Đến lượt người chơi
+    }
+};
+const handleAIMoveHard = () => {
+    // Chỉ thực hiện khi đến lượt AI
+    if (currentTurn !== aiColor) return;
+
+    console.log("🤖 AI (Hard) đang tính toán nước đi...");
+
+    let possibleMoves = [];
+    let bestMove = null;
+    let bestMoveScore = -Infinity;
+
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 9; col++) {
+            const piece = board[row][col];
+            if (piece && ((aiColor === "black" && piece === piece.toUpperCase()) || 
+                          (aiColor === "red" && piece === piece.toLowerCase()))) {
+                const moves = gameManager.getValidMoves(piece, row, col);
+                moves.forEach(([toRow, toCol]) => {
+                    const targetPiece = board[toRow][toCol];
+                    const moveScore = evaluateMove(board, piece, row, col, toRow, toCol); // Hàm tính điểm nước đi
+
+                    if (moveScore > bestMoveScore) {
+                        bestMoveScore = moveScore;
+                        bestMove = { fromRow: row, fromCol: col, toRow, toCol };
+                    }
+                });
+            }
+        }
+    }
+
+    if (bestMove) {
+        const newBoard = gameManager.movePiece(bestMove.fromRow, bestMove.fromCol, bestMove.toRow, bestMove.toCol);
+        setBoard(newBoard);
+        setCurrentTurn(playerColor); // Đến lượt người chơi
+    }
+};
+
+// Hàm tính điểm nước đi, có thể sử dụng các chiến lược như kiểm soát bàn cờ, bảo vệ quân cờ, ăn quân đối thủ, ...
+const evaluateMove = (board, piece, fromRow, fromCol, toRow, toCol) => {
+    // Ví dụ tính điểm dựa trên việc ăn quân và kiểm soát bàn cờ
+    const targetPiece = board[toRow][toCol];
+    let score = 0;
+
+    if (targetPiece) {
+        score += 10; // Giả sử ăn quân đối thủ có điểm cao
+    }
+
+    // Thêm các tiêu chí khác như kiểm soát khu vực giữa, bảo vệ quân, v.v.
+
+    return score;
+};
 
 
   // Xử lý khi người chơi chọn quân cờ hoặc di chuyển

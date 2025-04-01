@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import apiClient from "../../Services/apiConfig";
 import Chessboard from "../../Components/Chessboard";
 
-export default function PracticeRoom() {
+export default function TrainingRoom() {
   const navigate = useNavigate();
   const [playerRed, setPlayerRed] = useState("");
   const [playerBlack, setPlayerBlack] = useState("");
@@ -22,7 +22,7 @@ export default function PracticeRoom() {
       }
       
     );
-    navigate(`/practice/practiceRoom/${response.data.id}`)
+    navigate(`/Training/TrainingRoom/${response.data.id}`)
       if (!response.data || !response.data.id) {
         alert("Lỗi khi tạo ván cờ!");
         return;
@@ -45,7 +45,7 @@ export default function PracticeRoom() {
       }
     }
     setCurrentGame(null);
-    navigate("/practice");
+    navigate("/Training");
   };
 
 

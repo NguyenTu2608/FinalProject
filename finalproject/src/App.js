@@ -6,10 +6,13 @@ import Home from "./Pages/Home/Home";
 import Game from "./Pages/Game/Game";
 import Lobby from "./Pages/Game/Lobby";
 import Menu from "./Components/Menu";
-import Practice from "./Pages/Game/Practice";
+import Training from "./Pages/Game/Training";
 import Profile from "./Components/Profile";
 import AuthPage from "./Pages/Home/AuthPage";
-import PracticeRoom from "./Pages/Game/PracticeRoom";
+import TrainingRoom from "./Pages/Game/TrainingRoom";
+import ChooseAI from "./Pages/Game/ChooseAI";
+import TrainingAI from "./Pages/Game/TrainingAI";
+import ChessboardAI from "./Components/ChessboardAI";
 import { UserProvider } from "./Pages/Context/userContext";
 import PrivateRoute from "./Pages/Context/PrivateRoute"; // Import PrivateRoute
 
@@ -81,26 +84,42 @@ function App() {
             }
           />
           <Route
-            path="/practice"
+            path="/Training"
             element={
               <PrivateRoute>
-                <Practice />
+                <Training />
               </PrivateRoute>
             }
           />
           <Route
-            path="/practice/practiceRoom"
+            path="/Training/TrainingRoom"
             element={
               <PrivateRoute>
-                <PracticeRoom />
+                <TrainingRoom />
               </PrivateRoute>
             }
           />
           <Route
-            path="/practice/practiceRoom/:gameId"
+            path="/Training/TrainingRoom/:gameId"
             element={
               <PrivateRoute>
-                <PracticeRoom />
+                <TrainingRoom />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/Training/ChooseAI"
+            element={
+              <PrivateRoute>
+                <ChooseAI />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/Training/ChooseAI/ChessboardAI"
+            element={
+              <PrivateRoute>
+                <ChessboardAI />
               </PrivateRoute>
             }
           />

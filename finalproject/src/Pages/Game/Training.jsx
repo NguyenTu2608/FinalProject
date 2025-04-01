@@ -18,20 +18,18 @@ const Pratice = () => {
       {/* Các nút lựa chọn */}
       <div className="flex flex-col gap-6 w-80">
         <button
-          onClick={() => navigate("/Practice/practiceRoom")}
+          onClick={() => navigate("/Training/TrainingRoom")}
           className="w-full py-4 bg-blue-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-blue-700 shadow-md"
         >
           🏠 Hai người chơi
         </button>
 
         <button
-          onClick={() => navigate("/Practice/tim-phong")}
+          onClick={() => navigate("/Training/ChooseAI")}
           className="w-full py-4 bg-green-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md"
         >
           🔍 Chơi với AI
         </button>
-        
-
       </div>
 
       {/* Nút Back */}

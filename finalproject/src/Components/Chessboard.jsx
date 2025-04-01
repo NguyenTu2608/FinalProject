@@ -337,8 +337,6 @@ const handleCheckNotification = (message) => {
     }
 };
 
-
-
   if (!gameStarted) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -596,9 +594,9 @@ const handleCheckNotification = (message) => {
               : "bg-red-500 hover:bg-red-600" // 🔹 Luôn bật ở chế độ practice
             } text-white font-bold py-2 px-4 rounded flex items-center`}
           >
-  <img src="/Assets/surrender.png" alt="Flag" className="w-5 h-5 mr-2" />
-  Đầu hàng
-</button>
+          <img src="/Assets/surrender.png" alt="Flag" className="w-5 h-5 mr-2" />
+            Đầu hàng
+          </button>
       </div>
     );
   };
@@ -684,14 +682,14 @@ const handleCheckNotification = (message) => {
         >
           Restart Game
         </button>
-      ) : (
-        <button
-          onClick={restartGame}
-          className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
-        >
-          New Game
-        </button>
-      )}
+        ) : (
+          <button
+            onClick={restartGame}
+            className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
+          >
+            New Game
+          </button>
+        )}
     </div>
   </div>
 )}

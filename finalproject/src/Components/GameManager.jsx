@@ -306,30 +306,6 @@ canMove(row, col, isRed) {
     // this.checkFaceToFaceKing(moves, row, col, isRed);
   }
 
-  // Hàm kiểm tra đối mặt trực tiếp với Tướng đối phương
-  // checkFaceToFaceKing(moves, row, col, isRed) {
-  //   console.log('chekc')
-  //   const kingRow = isRed ? 7 : 2; // Hàng của Tướng đối phương
-  //   let hasObstacle = false;
-
-  //   // Duyệt từ hàng hiện tại đến hàng của Tướng đối phương
-  //   for (let r = row + 1; r <= kingRow; r++) {
-  //     if (this.board[r][col] !== "") {
-  //       if (this.board[r][col].toLowerCase() === "k") {
-  //         // Nếu gặp Tướng đối phương mà không có quân chặn
-  //         if (!hasObstacle) {
-  //           // Loại bỏ nước đi thẳng lên hoặc xuống (tùy thuộc vào luật chơi)
-  //           moves = moves.filter(([moveRow, moveCol]) => moveCol !== col);
-  //         }
-  //         break;
-  //       } else {
-  //         hasObstacle = true; // Có quân chặn
-  //       }
-  //     }
-  //   }
-  // }
-
-  // Cập nhật bàn cờ khi quân cờ di chuyển
   movePiece(fromRow, fromCol, toRow, toCol) {
     if (!this.board[fromRow] || !this.board[fromRow][fromCol]) {
         console.error("❌ Không thể di chuyển: vị trí không hợp lệ", fromRow, fromCol);
@@ -389,17 +365,17 @@ canMove(row, col, isRed) {
     newBoard[fromRow][fromCol] = ""; // Xóa quân cờ ở vị trí cũ
     return newBoard;
   }
+  
   isMoveCausingCheck(fromRow, fromCol, toRow, toCol, isRed) {
-    const simulatedBoard = this.simulateMove(fromRow, fromCol, toRow, toCol); // Giả lập nước đi
-    const tempGameManager = new GameManager(simulatedBoard); // Tạo GameManager tạm thời với bàn cờ giả lập
-    return tempGameManager.isKingInCheck(isRed); // Kiểm tra xem Tướng có bị chiếu hay không
+    const simulatedBoard = this.simulateMove(fromRow, fromCol, toRow, toCol);
+    const tempGameManager = new GameManager(simulatedBoard);
+
+    return tempGameManager.isKingInCheck(isRed) ||
+      tempGameManager.areKingsFacing(simulatedBoard);
   }
   
   isCheckmate(isRed) {
     if (!this.isKingInCheck(isRed)) return false; // Nếu không bị chiếu thì không phải chiếu bí
-
-    // const kingSymbol = isRed ? "k" : "K";
-    // let kingPosition = null;
 
     // Duyệt qua tất cả các quân cờ của bên isRed
     for (let row = 0; row < 10; row++) {
@@ -491,13 +467,7 @@ canMove(row, col, isRed) {
   }
 
   // Cập nhật phương thức isMoveCausingCheck để kiểm tra cả hở mặt tướng
-  isMoveCausingCheck(fromRow, fromCol, toRow, toCol, isRed) {
-    const simulatedBoard = this.simulateMove(fromRow, fromCol, toRow, toCol);
-    const tempGameManager = new GameManager(simulatedBoard);
-
-    return tempGameManager.isKingInCheck(isRed) ||
-      tempGameManager.areKingsFacing(simulatedBoard);
-  }
+  
 
 }
 

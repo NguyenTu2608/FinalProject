@@ -159,17 +159,6 @@ const ChessboardAI = () => {
             checkmateMoves = possibleMoves; // Đặt tất cả các nước đi vào checkmateMoves để chọn
         }
     }
-    if (captureMoves.length > 0) {
-        chosenMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
-        console.log("🤖 AI chọn nước đi ĂN QUÂN:", chosenMove);
-    } else if (centerMoves.length > 0) {
-        chosenMove = centerMoves[Math.floor(Math.random() * centerMoves.length)];
-        console.log("🤖 AI chọn nước đi KIỂM SOÁT BÀN CỜ:", chosenMove);
-    } else if (possibleMoves.length > 0) {
-        chosenMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-        console.log("🤖 AI chọn nước đi THÔNG THƯỜNG:", chosenMove);
-    }
-
     // Ưu tiên chọn chiếu bí trước nếu có
     if (checkmateMoves.length > 0) {
         chosenMove = checkmateMoves[Math.floor(Math.random() * checkmateMoves.length)];

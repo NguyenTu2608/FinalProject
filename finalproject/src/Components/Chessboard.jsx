@@ -450,6 +450,22 @@ const handleCheckNotification = (message) => {
           setErrorMessage("Chiếu bí! Trò chơi kết thúc.");
           // Có thể thêm logic kết thúc trò chơi ở đây
       }
+
+          if (selectedPiece) {
+            if (validMoves.some(([r, c]) => r === row && c === col)) {
+              // Kiểm tra nước đi có gây chiếu hoặc hở mặt tướng không
+              if (gameManager.isMoveCausingCheck(
+                selectedPiece.row,
+                selectedPiece.col,
+                row,
+                col,
+                currentPlayer === "red"
+              )) {
+                setErrorMessage("Nước đi này không hợp lệ (gây chiếu tướng hoặc hở mặt tướng)!");
+                return;
+              }
+            }
+          }
   }
 }
   if (!gameOver) setCurrentPlayer(nextPlayer);

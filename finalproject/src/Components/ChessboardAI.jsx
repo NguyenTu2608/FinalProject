@@ -393,7 +393,7 @@ const handleAIMoveHard = () => {
     for (const move of moves) {
         let newBoard = JSON.parse(JSON.stringify(board));
         gameManager.movePiece(newBoard, move.fromRow, move.fromCol, move.toRow, move.toCol);
-        let score = minimax(newBoard, 1, false, aiColor, -Infinity, Infinity);
+        let score = minimax(newBoard, 2, false, aiColor, -Infinity, Infinity);
 
         if (score > bestScore) {
             bestScore = score;

@@ -424,6 +424,81 @@ canMove(row, col, isRed) {
     // Nếu không có nước đi nào cứu được Tướng, trả về true (chiếu bí)
     return true;
   }
+  /**
+   * Kiểm tra nước đi có làm hở mặt tướng hay không
+   * @param {number} fromRow - Hàng xuất phát
+   * @param {number} fromCol - Cột xuất phát
+   * @param {number} toRow - Hàng đích
+   * @param {number} toCol - Cột đích
+   * @param {boolean} isRed - Quân đỏ hay đen
+   * @returns {boolean} - true nếu nước đi làm hở mặt tướng
+   */
+  isMoveExposingKing(fromRow, fromCol, toRow, toCol, isRed) {
+    const simulatedBoard = this.simulateMove(fromRow, fromCol, toRow, toCol);
+    return this.areKingsFacing(simulatedBoard);
+  }
+  /**
+    * Kiểm tra xem hai tướng có đang đối mặt trực tiếp không
+    * @param {Array} board - Bàn cờ để kiểm tra
+    * @returns {boolean} - true nếu hai tướng đối mặt trực tiếp
+    */
+  areKingsFacing(board) {
+    let redKingPos = null;
+    let blackKingPos = null;
+
+    // Tìm vị trí hai tướng
+    for (let row = 0; row < 10; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (board[row][col] === 'k') {
+          redKingPos = { row, col };
+        } else if (board[row][col] === 'K') {
+          blackKingPos = { row, col };
+        }
+      }
+    }
+    // Nếu không tìm thấy một trong hai tướng
+    if (!redKingPos || !blackKingPos) return false;
+
+    // Hai tướng phải cùng cột
+    if (redKingPos.col !== blackKingPos.col) return false;
+
+    // Kiểm tra có quân cờ nào ở giữa không
+    const minRow = Math.min(redKingPos.row, blackKingPos.row);
+    const maxRow = Math.max(redKingPos.row, blackKingPos.row);
+
+    for (let row = minRow + 1; row < maxRow; row++) {
+      if (board[row][redKingPos.col] !== '') {
+        return false; // Có quân cờ chặn giữa
+      }
+    }
+
+    return true; // Hai tướng đối mặt trực tiếp
+  }
+  // Cập nhật phương thức kiểm tra nước đi hợp lệ
+  isValidMove(piece, fromRow, fromCol, toRow, toCol, isRed) {
+    // ... kiểm tra các điều kiện di chuyển cơ bản ...
+
+    // Giả lập nước đi và kiểm tra
+    const simulatedBoard = this.simulateMove(fromRow, fromCol, toRow, toCol);
+
+    // Không được để hai tướng đối mặt
+    if (this.areKingsFacing(simulatedBoard)) {
+      return false;
+    }
+
+    // ... các kiểm tra khác ...
+    return true;
+  }
+
+  // Cập nhật phương thức isMoveCausingCheck để kiểm tra cả hở mặt tướng
+  isMoveCausingCheck(fromRow, fromCol, toRow, toCol, isRed) {
+    const simulatedBoard = this.simulateMove(fromRow, fromCol, toRow, toCol);
+    const tempGameManager = new GameManager(simulatedBoard);
+
+    return tempGameManager.isKingInCheck(isRed) ||
+      tempGameManager.areKingsFacing(simulatedBoard);
+  }
+
 }
 
 

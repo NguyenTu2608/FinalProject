@@ -8,10 +8,11 @@ export default function TrainingRoom() {
   const [playerRed, setPlayerRed] = useState("");
   const [playerBlack, setPlayerBlack] = useState("");
   const [currentGame, setCurrentGame] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const createGame = async () => {
     if (!playerRed.trim() || !playerBlack.trim()) {
-      alert("Tên người chơi không được để trống!");
+      setErrorMessage("Tên người chơi không được để trống!");
       return;
     }
     try {
@@ -93,6 +94,7 @@ export default function TrainingRoom() {
           </button>
         </div>
       )}
+      
     </div>
   );
 }

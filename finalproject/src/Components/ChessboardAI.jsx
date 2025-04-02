@@ -391,8 +391,9 @@ const handleAIMoveHard = () => {
     }
 
     for (const move of moves) {
-        const newBoard = gameManager.movePiece(move.fromRow, move.fromCol, move.toRow, move.toCol);
-        let score = minimax(newBoard, 1, false, aiColor, -Infinity, Infinity);
+        let newBoard = JSON.parse(JSON.stringify(board));
+        gameManager.movePiece(newBoard, move.fromRow, move.fromCol, move.toRow, move.toCol);
+        let score = minimax(newBoard, 2, false, aiColor, -Infinity, Infinity);
 
         if (score > bestScore) {
             bestScore = score;
@@ -402,7 +403,7 @@ const handleAIMoveHard = () => {
 
     if (bestMove) {
         console.log("🤖 AI chọn nước đi:", bestMove);
-        let newBoard = gameManager.movePiece(board, bestMove.fromRow, bestMove.fromCol, bestMove.toRow, bestMove.toCol);
+        const newBoard = gameManager.movePiece(bestMove.fromRow, bestMove.fromCol, bestMove.toRow, bestMove.toCol);
         setBoard(newBoard);
         setCurrentTurn(playerColor);
 

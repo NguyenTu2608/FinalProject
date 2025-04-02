@@ -8,13 +8,11 @@ const ProfileCard = ({ user }) => {
       <div className="flex items-center">
         <div className="relative w-20 h-20">
           <img
+            onClick={123}
             src={user?.avatar || "../Assets/avatar.png"}
             alt="Avatar"
             className="w-full h-full object-cover rounded-full border-4 border-yellow-500"
           />
-          <div className="absolute top-0 left-0 bg-black/50 rounded-full p-1">
-            <Camera size={18} color="white" />
-          </div>
         </div>
 
         {/* Thông tin user */}

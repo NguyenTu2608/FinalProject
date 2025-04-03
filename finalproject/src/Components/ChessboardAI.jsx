@@ -197,126 +197,6 @@ const ChessboardAI = () => {
     }
   };
 
-
-
-  const getAllValidMoves = () => {
-    let moves = [];
-
-    console.log("🎯 aiColor hiện tại:", aiColor);
-
-    if (!Array.isArray(board) || board.length !== 10 || board[0].length !== 9) {
-        console.error("❌ LỖI: Board không phải là mảng 10x9 hợp lệ!", board);
-        return [];
-    }
-
-    for (let row = 0; row < 10; row++) {
-        for (let col = 0; col < 9; col++) {
-            const piece = board[row][col];
-            if (!piece) continue; // Ô trống thì bỏ qua
-
-            // Kiểm tra quân cờ có phải của AI không
-            if ((aiColor === "black" && piece === piece.toUpperCase()) ||
-                (aiColor === "red" && piece === piece.toLowerCase())) {
-
-                    const validMoves = gameManager.getValidMoves(piece, row, col);
-                    if (validMoves.length === 0) {
-                        console.warn(`⚠ Không có nước đi hợp lệ cho quân ${piece} tại (${row}, ${col})`);
-                    } else {
-                        validMoves.forEach(([toRow, toCol]) => {
-                            if (toRow < 0 || toRow >= 10 || toCol < 0 || toCol >= 9) {
-                                console.error(`❌ Nước đi ${toRow}, ${toCol} không hợp lệ.`);
-                            }
-                        });
-                    }
-                    
-
-                validMoves.forEach(([toRow, toCol]) => {
-                    const isCausingCheck = gameManager.isMoveCausingCheck(row, col, toRow, toCol, aiColor === "red");
-
-                    console.log(`🔍 Xét nước đi (${row},${col}) → (${toRow},${toCol}) | Gây chiếu: ${isCausingCheck}`);
-
-                    if (!isCausingCheck) {
-                        moves.push({ fromRow: row, fromCol: col, toRow, toCol });
-                    }
-                });
-            }
-        }
-    }
-
-    console.log(`✅ AI (${aiColor}) có ${moves.length} nước đi hợp lệ:`, moves);
-    return moves;
-};
-
-
-
-
-
-const evaluateBoard = (board, aiColor) => {
-    let score = 0;
-    const pieceValues = {
-        "p": 10, "c": 30, "m": 30, "x": 20, "s": 20, "j": 90, "k": 1000, // Quân Đỏ
-        "P": 10, "C": 30, "M": 30, "X": 20, "S": 20, "J": 90, "K": 1000  // Quân Đen
-    };
-
-    for (let row = 0; row < 10; row++) {
-        for (let col = 0; col < 9; col++) {
-            const piece = board[row][col];
-            if (piece) {
-                let value = pieceValues[piece] || 0;
-                if ((aiColor === "black" && piece === piece.toUpperCase()) ||
-                    (aiColor === "red" && piece === piece.toLowerCase())) {
-                    score += value; // AI có điểm cộng
-                } else {
-                    score -= value; // Người chơi có điểm trừ
-                }
-            }
-        }
-    }
-    return score;
-};
-
-const minimax = (boardState, depth, isMaximizing, aiColor, alpha, beta) => {
-    if (depth === 0 || gameManager.isCheckmate(aiColor === "red")) {
-        let score = evaluateBoard(boardState, aiColor);
-        console.log(`🎯 Điểm của bàn cờ (depth ${depth}):`, score);
-        return score;
-    }
-
-    const moves = getAllValidMoves(boardState, isMaximizing ? aiColor : (aiColor === "red" ? "black" : "red"));
-    console.log(`🚀 Có ${moves.length} nước đi khả thi ở depth ${depth}`);
-
-    if (moves.length === 0) {
-        console.warn("⚠ Không có nước đi hợp lệ!");
-        return isMaximizing ? -9999 : 9999;
-    }
-
-    if (isMaximizing) {
-        let bestScore = -Infinity;
-        for (const move of moves) {
-            let newBoard = JSON.parse(JSON.stringify(boardState));
-            gameManager.movePiece(newBoard, move.fromRow, move.fromCol, move.toRow, move.toCol);
-            let score = minimax(newBoard, depth - 1, false, aiColor, alpha, beta);
-            bestScore = Math.max(bestScore, score);
-            alpha = Math.max(alpha, score);
-            if (beta <= alpha) break;
-        }
-        return bestScore;
-    } else {
-        let bestScore = Infinity;
-        for (const move of moves) {
-            let newBoard = JSON.parse(JSON.stringify(boardState));
-            gameManager.movePiece(newBoard, move.fromRow, move.fromCol, move.toRow, move.toCol);
-            let score = minimax(newBoard, depth - 1, true, aiColor, alpha, beta);
-            bestScore = Math.min(bestScore, score);
-            beta = Math.min(beta, score);
-            if (beta <= alpha) break;
-        }
-        return bestScore;
-    }
-};
-
-
-
 //xu ly AI che do kho
 const handleAIMoveMedium = () => {
     if (gameOver || currentTurn !== aiColor) return;
@@ -374,6 +254,144 @@ const handleAIMoveMedium = () => {
 };
 
 
+const getAllValidMoves = () => {
+    let moves = [];
+
+    console.log("🎯 aiColor hiện tại:", aiColor);
+
+    if (!Array.isArray(board) || board.length !== 10 || board[0].length !== 9) {
+        console.error("❌ LỖI: Board không phải là mảng 10x9 hợp lệ!", board);
+        return [];
+    }
+
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 9; col++) {
+            const piece = board[row][col];
+            if (!piece) continue; // Ô trống thì bỏ qua
+
+            // Kiểm tra quân cờ có phải của AI không
+            if ((aiColor === "black" && piece === piece.toUpperCase()) ||
+                (aiColor === "red" && piece === piece.toLowerCase())) {
+
+                    const validMoves = gameManager.getValidMoves(piece, row, col);
+                    if (validMoves.length === 0) {
+                        console.warn(`⚠ Không có nước đi hợp lệ cho quân ${piece} tại (${row}, ${col})`);
+                    } else {
+                        validMoves.forEach(([toRow, toCol]) => {
+                            if (toRow < 0 || toRow >= 10 || toCol < 0 || toCol >= 9) {
+                                console.error(`❌ Nước đi ${toRow}, ${toCol} không hợp lệ.`);
+                            }
+                        });
+                    }
+                    
+
+                validMoves.forEach(([toRow, toCol]) => {
+                    const isCausingCheck = gameManager.isMoveCausingCheck(row, col, toRow, toCol, aiColor === "red");
+
+                    console.log(`🔍 Xét nước đi (${row},${col}) → (${toRow},${toCol}) | Gây chiếu: ${isCausingCheck}`);
+
+                    if (!isCausingCheck) {
+                        moves.push({ fromRow: row, fromCol: col, toRow, toCol });
+                    }
+                });
+            }
+        }
+    }
+
+    console.log(`✅ AI (${aiColor}) có ${moves.length} nước đi hợp lệ:`, moves);
+    return moves;
+};
+
+const evaluateBoard = (board, aiColor) => {
+    let score = 0;
+    const pieceValues = {
+        "p": 10,  // Tốt Đỏ (Pawn)
+        "c": 30,  // Pháo Đỏ (Cannon)
+        "n": 30,  // Mã Đỏ (Knight)
+        "b": 20,  // Tượng Đỏ (Elephant)
+        "a": 20,  // Sĩ Đỏ (Advisor)
+        "r": 90,  // Xe Đỏ (Rook)
+        "k": 1000, // Tướng Đỏ (King)
+
+        "P": 10,  // Tốt Đen (Pawn)
+        "C": 30,  // Pháo Đen (Cannon)
+        "N": 30,  // Mã Đen (Knight)
+        "B": 20,  // Tượng Đen (Elephant)
+        "A": 20,  // Sĩ Đen (Advisor)
+        "R": 90,  // Xe Đen (Rook)
+        "K": 1000 // Tướng Đen (King)
+    };
+
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 9; col++) {
+            const piece = board[row][col];
+            if (piece) {
+                let value = pieceValues[piece] || 0;
+                
+                // Nếu quân cờ thuộc AI, cộng điểm, ngược lại trừ điểm
+                if ((aiColor === "black" && piece === piece.toUpperCase()) ||
+                    (aiColor === "red" && piece === piece.toLowerCase())) {
+                    score += value;  
+                } else {
+                    score -= value;  
+                }
+            }
+        }
+    }
+    return score;
+};
+
+
+const minimax = (boardState, depth, isMaximizing, aiColor, alpha, beta) => {
+    if (depth === 0 || gameManager.isCheckmate(aiColor)) {
+        let score = evaluateBoard(boardState, aiColor);
+        console.log(`🎯 Điểm của bàn cờ (depth ${depth}):`, score);
+        return score;
+    }
+
+    const moves = getAllValidMoves(boardState, isMaximizing ? aiColor : (aiColor === "red" ? "black" : "red"));
+    console.log(`🚀 Có ${moves.length} nước đi khả thi ở depth ${depth}`);
+
+    if (moves.length === 0) {
+        console.warn("⚠ Không có nước đi hợp lệ!");
+        return isMaximizing ? -9999 : 9999;
+    }
+
+    if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (const move of moves) {
+            let newBoard = boardState.map(row => [...row]); // Sao chép đúng cách
+            let updatedBoard = gameManager.movePiece(move.fromRow, move.fromCol, move.toRow, move.toCol, newBoard);
+            
+            if (!updatedBoard) continue; // Nếu nước đi không hợp lệ, bỏ qua
+
+            let score = minimax(updatedBoard, depth - 1, false, aiColor, alpha, beta);
+            bestScore = Math.max(bestScore, score);
+            alpha = Math.max(alpha, score);
+
+            if (beta <= alpha) break; // Alpha-beta pruning
+        }
+        return bestScore;
+    } else {
+        let bestScore = Infinity;
+        for (const move of moves) {
+            let newBoard = boardState.map(row => [...row]); // Sao chép đúng cách
+            let updatedBoard = gameManager.movePiece(move.fromRow, move.fromCol, move.toRow, move.toCol, newBoard);
+            
+            if (!updatedBoard) continue; // Nếu nước đi không hợp lệ, bỏ qua
+
+            let score = minimax(updatedBoard, depth - 1, true, aiColor, alpha, beta);
+            bestScore = Math.min(bestScore, score);
+            beta = Math.min(beta, score);
+
+            if (beta <= alpha) break; // Alpha-beta pruning
+        }
+        return bestScore;
+    }
+};
+
+
+
   
 //xu li AI che do sieu kho
 const handleAIMoveHard = () => {
@@ -391,10 +409,13 @@ const handleAIMoveHard = () => {
     }
 
     for (const move of moves) {
-        let newBoard = JSON.parse(JSON.stringify(board));
-        gameManager.movePiece(newBoard, move.fromRow, move.fromCol, move.toRow, move.toCol);
-        let score = minimax(newBoard, 2, false, aiColor, -Infinity, Infinity);
-
+        let newBoard = board.map(row => [...row]); // Sao chép đúng cách
+        let updatedBoard = gameManager.movePiece(move.fromRow, move.fromCol, move.toRow, move.toCol, newBoard);
+        
+        if (!updatedBoard) continue; // Nếu nước đi không hợp lệ, bỏ qua
+    
+        let score = minimax(updatedBoard, 1, false, aiColor, -Infinity, Infinity);
+    
         if (score > bestScore) {
             bestScore = score;
             bestMove = move;
@@ -414,10 +435,6 @@ const handleAIMoveHard = () => {
         }
     }
 };
-
-
-
-
 
   // Xử lý khi người chơi chọn quân cờ hoặc di chuyển
   const handleClick = (row, col) => {

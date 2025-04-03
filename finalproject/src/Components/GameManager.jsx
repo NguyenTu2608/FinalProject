@@ -10,12 +10,10 @@ class GameManager {
         return [];
     }
 
-    console.log("getValidMoves called with:", row, col, "Piece:", piece);
 
     const moves = [];
     const isRed = piece === piece.toLowerCase(); // Xác định quân đỏ hay đen
 
-    console.log("♟ Xử lý nước đi cho:", piece, " tại vị trí (", row, ",", col, ")");
 
     switch (piece.toLowerCase()) {
         case "p": // 🛠 Tốt (Pawn)
@@ -46,7 +44,6 @@ class GameManager {
             this.addBishopMoves(moves, row, col, isRed);
             break;
         case "a": // 🏯 Sĩ (Advisor)
-            console.log("📍 Quân Sĩ tại:", row, col);
             this.addAdvisorMoves(moves, row, col, isRed);
             break;
         case "k": // 👑 Tướng (King)
@@ -57,7 +54,6 @@ class GameManager {
             break;             
     }
 
-    console.log("✅ Nước đi hợp lệ:", moves);
     return moves;
 }
 
@@ -309,19 +305,27 @@ canMove(row, col, isRed) {
   movePiece(fromRow, fromCol, toRow, toCol) {
     if (!this.board[fromRow] || !this.board[fromRow][fromCol]) {
         console.error("❌ Không thể di chuyển: vị trí không hợp lệ", fromRow, fromCol);
-        return this.board; // Trả về board hiện tại thay vì undefined
+        return null; // Trả về null nếu không hợp lệ
     }
 
+    if (!this.isValidMove(fromRow, fromCol, toRow, toCol)) {
+        console.warn(`⚠ Không thể di chuyển: nước đi (${fromRow}, ${fromCol}) → (${toRow}, ${toCol}) không hợp lệ`);
+        return null; // Trả về null nếu nước đi không hợp lệ
+    }
+
+    // Tạo bản sao bàn cờ mới (Không làm thay đổi this.board)
     const newBoard = this.board.map(row => [...row]);
     const movingPiece = newBoard[fromRow][fromCol];
 
-    console.log(`🚀 Di chuyển quân từ (${fromRow}, ${fromCol}) đến (${toRow}, ${toCol})`);
+    console.log(`🚀 Di chuyển quân ${movingPiece} từ (${fromRow}, ${fromCol}) đến (${toRow}, ${toCol})`);
 
     newBoard[toRow][toCol] = movingPiece;
     newBoard[fromRow][fromCol] = "";
-    this.board = newBoard;
-    return newBoard;
+
+    return newBoard; // Trả về bàn cờ mới thay vì thay đổi this.board
 }
+
+
 
   // Kiểm tra xem Tướng của một bên có đang bị chiếu hay không
   isKingInCheck(isRed) {
@@ -467,9 +471,10 @@ canMove(row, col, isRed) {
   }
 
   // Cập nhật phương thức isMoveCausingCheck để kiểm tra cả hở mặt tướng
-  
+
 
 }
+
 
 
 

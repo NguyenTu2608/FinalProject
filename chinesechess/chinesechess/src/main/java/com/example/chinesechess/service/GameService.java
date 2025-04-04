@@ -18,11 +18,17 @@ public class GameService {
     @Autowired
     private GameRepository gameRepository;
 
+
     @Autowired
     private MatchHistoryRepository matchHistoryRepository; // Inject repository
 
     public List<Game> getAllGames() {
         return gameRepository.findAll();
+    }
+
+    public List<MatchHistory> getAllMatchHistory()
+    {
+        return matchHistoryRepository.findAll();
     }
 
     public Game createGame(Game game) {
@@ -31,6 +37,10 @@ public class GameService {
 
     public Optional<Game> findByRoomName(String name) {
         return gameRepository.findByName(name);
+    }
+
+    public boolean existsByName(String name) {
+        return gameRepository.existsByName(name);
     }
 
     // Get a game by ID

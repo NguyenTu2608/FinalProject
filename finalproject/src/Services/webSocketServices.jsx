@@ -7,13 +7,11 @@ class WebSocketService {
     this.isConnected = false;
     this.subscriptions = {}; // ✅ Lưu danh sách các subscriptions
   }
-
   connect(callback) {
     if (this.client && this.isConnected) {
       console.log("⚠ WebSocket đã được kết nối!");
       return;
     }
-
     const socket = new SockJS("http://localhost:8080/ws");
     this.client = new Client({
       webSocketFactory: () => socket,
@@ -47,6 +45,7 @@ class WebSocketService {
     }
   }
 
+
   sendReadyRequest(gameId, username) {
     if (!gameId || !username) {
         console.error("❌ LỖI: gameId hoặc username bị null hoặc undefined!");
@@ -59,7 +58,6 @@ class WebSocketService {
         body: JSON.stringify({ gameId: gameId, player: username })
     });
   }
-
 
   subscribeToGame(gameId, callback) {
     console.log("✅ Đăng ký WebSocket với gameId:", gameId);

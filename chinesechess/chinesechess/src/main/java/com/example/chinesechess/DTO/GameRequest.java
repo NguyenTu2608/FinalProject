@@ -6,6 +6,8 @@ public class GameRequest {
     @JsonProperty("gameId") // ✅ Đảm bảo Spring Boot đọc đúng dữ liệu JSON
     private String gameId;
 
+    private String name;
+
     private String playerRed;
 
     @JsonProperty("playerBlack")
@@ -22,6 +24,13 @@ public class GameRequest {
     public void setGameId(String gameId)
     {
         this.gameId = gameId;
+    }
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
     public String getPlayerRed()
     {

@@ -10,6 +10,7 @@ public class Game {
 
     @Id
     private String id; // Unique ID for the game
+    private String name;
     private String playerRed; // Username of the red player
     private String playerBlack; // Username of the black player
     private List<MoveDTO> moves; // List of moves in PGN format
@@ -42,6 +43,14 @@ public class Game {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getPlayerRed() {

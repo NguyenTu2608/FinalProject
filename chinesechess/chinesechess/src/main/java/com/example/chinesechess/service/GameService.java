@@ -1,7 +1,10 @@
 package com.example.chinesechess.service;
 
+import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.model.Game;
+import com.example.chinesechess.model.MatchHistory;
 import com.example.chinesechess.repository.GameRepository;
+import com.example.chinesechess.repository.MatchHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +18,19 @@ public class GameService {
     @Autowired
     private GameRepository gameRepository;
 
+    @Autowired
+    private MatchHistoryRepository matchHistoryRepository; // Inject repository
+
     public List<Game> getAllGames() {
         return gameRepository.findAll();
     }
 
-
     public Game createGame(Game game) {
         return gameRepository.save(game);
+    }
+
+    public Optional<Game> findByRoomName(String name) {
+        return gameRepository.findByName(name);
     }
 
     // Get a game by ID
@@ -80,6 +89,22 @@ public class GameService {
         } else {
             throw new RuntimeException("Game not found");
         }
+    }
+
+    // Phương thức lưu trận đấu vào cơ sở dữ liệu
+    public void saveMatchHistory(String gameId, String playerRed, String playerBlack, String winner, List<MoveDTO> moves, String gameMode) {
+        // Tạo đối tượng MatchHistory
+        MatchHistory matchHistory = new MatchHistory();
+        matchHistory.setGameId(gameId);
+        matchHistory.setPlayerRed(playerRed);
+        matchHistory.setPlayerBlack(playerBlack);
+        matchHistory.setWinner(winner);
+        matchHistory.setMoves(moves);
+        matchHistory.setGameMode(gameMode);
+
+        // Lưu đối tượng MatchHistory vào MongoDB
+        matchHistoryRepository.save(matchHistory);
+        System.out.println("✅ Trận đấu đã được lưu vào lịch sử!");
     }
 
     // Delete a game

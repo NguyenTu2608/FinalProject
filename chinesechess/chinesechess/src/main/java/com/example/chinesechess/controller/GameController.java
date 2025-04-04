@@ -1,12 +1,11 @@
 package com.example.chinesechess.controller;
 
 import com.example.chinesechess.DTO.GameRequest;
-import com.example.chinesechess.model.Game;
 import com.example.chinesechess.DTO.MoveDTO;
+import com.example.chinesechess.model.Game;
 import com.example.chinesechess.repository.GameRepository;
 import com.example.chinesechess.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,8 +39,15 @@ public class GameController {
         }
         // 🌍 Nếu là phòng online, chưa có người chơi thứ hai
         else if ("online".equals(request.getGameMode())) {
+            String name = request.getName();
+            if (name != null && !name.isEmpty()) {
+                game.setName(name);
+            } else {
+                return ResponseEntity.badRequest().body(null);  // Trả về lỗi nếu không có tên phòng
+            }
             game.setPlayerRed(null);
             game.setGameStatus("waiting");
+
         } else {
             return ResponseEntity.badRequest().body(null);
         }
@@ -76,6 +82,14 @@ public class GameController {
     public Optional<Game> getGameById(@PathVariable String gameId) {
         return gameService.getGameById(gameId);
     }
+
+    @GetMapping("/find-by-room-name")
+    public ResponseEntity<Game> findGameByRoomName(@RequestParam String name) {
+        Optional<Game> gameOpt = gameService.findByRoomName(name);
+        return gameOpt.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+
 
     @GetMapping("/find-random-room")
     public ResponseEntity<Game> findRandomRoom() {

@@ -5,21 +5,13 @@ import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.model.Game;
 import com.example.chinesechess.model.Position;
 import com.example.chinesechess.service.GameService;
-import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 public class GameWebSocketController {
@@ -34,7 +26,6 @@ public class GameWebSocketController {
 
     @MessageMapping("/game/join")
     public void joinGame(@Payload Map<String, Object> request) {
-        System.out.println("📩 Nhận yêu cầu tham gia game với ID: " + request);
 
         String gameId = (String) request.get("gameId");
         String playerUsername = (String) request.get("player");
@@ -44,9 +35,7 @@ public class GameWebSocketController {
             System.out.println("❌ Không tìm thấy gameId = " + gameId);
             return;
         }
-
         Game game = optionalGame.get();
-
         // 🏆 Kiểm tra nếu người chơi đã ở trong phòng, giữ nguyên vị trí của họ
         if (playerUsername.equals(game.getPlayerBlack()) || playerUsername.equals(game.getPlayerRed())) {
             System.out.println("🔄 Người chơi đã có trong phòng, không thay đổi vị trí.");
@@ -61,15 +50,12 @@ public class GameWebSocketController {
                 return;
             }
         }
-
         if (game.getPlayerBlack() != null && game.getPlayerRed() != null) {
             game.setGameStatus("starting"); // Trạng thái game thành "starting"
         }
 
         gameService.updateGame(game);
-
         System.out.println("✅ Cập nhật người chơi: Black=" + game.getPlayerBlack() + ", Red=" + game.getPlayerRed());
-
         // 🏆 Gửi cập nhật đến tất cả người chơi trong phòng
         Map<String, Object> response = new HashMap<>();
         response.put("type", "playerUpdate");
@@ -116,7 +102,6 @@ public class GameWebSocketController {
         response.put("redReady", game.isRedReady());
 
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
-        System.out.println("123 " + response);
 
         // Nếu cả hai đều sẵn sàng, bắt đầu game
         if (game.isBlackReady() && game.isRedReady()) {
@@ -183,7 +168,7 @@ public class GameWebSocketController {
 
         // 🔥 Gửi thông báo cập nhật danh sách người chơi
         Map<String, Object> response = new HashMap<>();
-        response.put("type", "playerUpdate");
+        response.put("type", "playerLeft");
         response.put("gameId", gameId);
         response.put("playerBlack", game.getPlayerBlack());
         response.put("playerRed", game.getPlayerRed());
@@ -196,14 +181,33 @@ public class GameWebSocketController {
         String gameId = payload.get("gameId");
         String surrenderPlayer = payload.get("surrenderPlayer");
         String winner = surrenderPlayer.equals("red") ? "black" : "red";
-        System.out.println("Người win" + winner);
 
         // Kiểm tra và cập nhật trạng thái game
         Optional<Game> gameOpt = gameService.getGameById(gameId);
         if (gameOpt.isPresent()) {
             Game game = gameOpt.get();
+
+            // Lưu lịch sử trận đấu trước khi reset trạng thái game
+            String playerRed = game.getPlayerRed();
+            String playerBlack = game.getPlayerBlack();
+            List<MoveDTO> moves = game.getMoves();  // Lưu lại các bước đi hiện tại
+            String gameMode = game.getGameMode();
+            try {
+                // Lưu lịch sử trận đấu vào cơ sở dữ liệu
+                gameService.saveMatchHistory(gameId, playerRed, playerBlack, winner, moves, gameMode);  // Lưu lịch sử trận đấu
+            } catch (Exception e) {
+                System.err.println("❌ Lỗi khi lưu lịch sử trận đấu: " + e.getMessage());
+            }
+
+            // Cập nhật người thắng và trạng thái game sau khi lưu lịch sử
             game.setWinner(winner);
-            game.setGameStatus("finished");
+            game.setGameStatus("waiting");  // Đặt trạng thái game là "waiting" (chờ)
+            game.setBlackReady(false);  // Reset trạng thái người chơi đen
+            game.setRedReady(false);  // Reset trạng thái người chơi đỏ
+            game.setCurrentTurn(game.getCurrentTurn());  // Giữ nguyên lượt chơi (hoặc có thể reset)
+            game.setMoves(null);  // Xóa nước đi cũ
+
+            // Cập nhật game vào DB sau khi reset
             gameService.updateGame(game);
         }
 
@@ -222,29 +226,56 @@ public class GameWebSocketController {
         String gameId = (String) request.get("gameId");
         boolean isCheck = (boolean) request.get("isCheck");
         boolean isCheckmate = (boolean) request.get("isCheckmate");
-        String player = (String) request.get("player");
+        String currentPlayer = (String) request.get("currentPlayer");
+
         // Gửi thông báo về cho tất cả client trong phòng
-
-
         Map<String, Object> response = new HashMap<>();
         response.put("type", "checkNotification");
         response.put("gameId", gameId);
         response.put("isCheck", isCheck);
         response.put("isCheckmate", isCheckmate);
-        response.put("player", player);
+        response.put("player", currentPlayer);
 
         if (isCheckmate) {
-            String winner = player; // Người chiếu bí là người thắng
+            String winner = currentPlayer; // Người chiếu bí là người thắng
             try {
                 gameService.setWinner(gameId, winner); // ✅ Cập nhật người thắng trong DB
+                Optional<Game> optionalGame = gameService.getGameById(gameId);
+                Game game = optionalGame.orElse(null);
+                if (game != null) {
+                    String playerRed = game.getPlayerRed();
+                    String playerBlack = game.getPlayerBlack();
+                    List<MoveDTO> moves = game.getMoves();
+                    String gameMode = game.getGameMode();
+                    gameService.saveMatchHistory(gameId, playerRed, playerBlack, winner, moves, gameMode);
+                } else {
+                    // Xử lý trường hợp không tìm thấy game
+                    System.err.println("Trận đấu không tồn tại!");
+                }
                 response.put("winner", winner);
             } catch (Exception e) {
                 System.err.println("❌ Lỗi khi cập nhật người thắng vào DB: " + e.getMessage());
             }
+            // Reset trạng thái game
+            Optional<Game> gameOpt = gameService.getGameById(gameId);
+            if (gameOpt.isPresent()) {
+                Game game = gameOpt.get();
+
+                // Cập nhật lại thông tin game sau khi có người thắng
+                game.setWinner(winner); // Cập nhật người thắng
+                game.setGameStatus("waiting"); // Đặt trạng thái game là chờ
+                game.setMoves(null);
+                game.setBlackReady(false); // Reset trạng thái người chơi đen
+                game.setRedReady(false); // Reset trạng thái người chơi đỏ
+                game.setCurrentTurn(game.getCurrentTurn()); // Reset lượt chơi (hoặc có thể để lại giá trị cũ nếu cần)
+
+                // Cập nhật game vào DB
+                gameService.updateGame(game);
+            } else {
+                System.err.println("Trận đấu không tồn tại khi reset!");
+            }
         }
-
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
-
         System.out.println("🔥 Gửi thông báo chiếu: " + (isCheckmate ? "Chiếu bí!" : "Chiếu tướng!"));
     }
 

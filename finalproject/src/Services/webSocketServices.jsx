@@ -156,19 +156,20 @@ class WebSocketService {
   }
 
 
-  sendCheckNotification(gameId, player, isCheck, isCheckmate) {
-    console.log("📩 Gửi thông báo chiếu tướng:", JSON.stringify({ gameId, player, isCheck, isCheckmate }));
+  sendCheckNotification(gameId, currentPlayer, isCheck, isCheckmate) {
+    console.log("📩 Gửi thông báo chiếu tướng:", JSON.stringify({ gameId, currentPlayer, isCheck, isCheckmate }));
 
     if (!gameId) {
         console.error("❌ LỖI: gameId bị null hoặc undefined!");
         return;
     }
 
+    console.log("Gửi thông báo chiếu: ", { gameId, currentPlayer, isCheck, isCheckmate });
     this.client.publish({
         destination: "/app/game/check",
         body: JSON.stringify({ 
             gameId: gameId, 
-            player: player, 
+            currentPlayer: currentPlayer, 
             isCheck: isCheck, 
             isCheckmate: isCheckmate 
         })

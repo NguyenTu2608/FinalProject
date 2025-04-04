@@ -12,6 +12,8 @@ const Lobby = () => {
   const [roomId, setRoomId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [showJoinInput, setShowJoinInput] = useState(false);
+  const [roomName, setRoomName] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     websocketService.connect();
@@ -37,6 +39,22 @@ const Lobby = () => {
     }
   };
 
+   // Hàm để mở modal nhập tên phòng
+   const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // Hàm để đóng modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setRoomName(""); // Reset tên phòng
+  };
+
+  const openModal1 = () => {
+    setIsModalOpen(true);
+  };
+
+
   const handleCreateRoom = async () => {
     setLoading(true);
     try {
@@ -46,7 +64,12 @@ const Lobby = () => {
         setLoading(false);
         return;
       }
+      if (!roomName) {
+        alert("Vui lòng nhập tên phòng!");
+        return;
+      }
       const response = await apiClient.post("/games/create", {
+        name : roomName,
         gameMode: "online",
         playerBlack: username,
       });
@@ -65,15 +88,21 @@ const Lobby = () => {
 
   const handleJoinRoom = async () => {
     if (!roomId.trim()) {
-      setErrorMessage("⚠ Vui lòng nhập ID phòng!");
+      setErrorMessage("⚠ Vui lòng nhập tên phòng!");
       return;
     }
     try {
-      const response = await apiClient.get(`/games/${roomId}`);
-      if (response.data) {
-        navigate(`/Lobby/game/${roomId}`); // Chuyển sang phòng nếu tồn tại
+      // Gửi request tìm phòng theo tên
+      const response = await apiClient.get(`/games/find-by-room-name`, {
+        params: { name: roomId.trim() },
+      });
+  
+      const foundGame = response.data;
+
+      if (foundGame && foundGame.id) {
+        navigate(`/Lobby/game/${foundGame.id}`); // ✅ Chuyển sang phòng nếu tồn tại
       } else {
-        setErrorMessage("❌ Phòng không tồn tại hoặc đã đầy!");
+        setErrorMessage("❌ Không tìm thấy phòng hoặc phòng đã đầy!");
       }
     } catch (error) {
       console.error("❌ Lỗi khi tìm phòng:", error);
@@ -84,7 +113,6 @@ const Lobby = () => {
   const handleRandomRoom = async () => {
     setLoading(true);
     setErrorMessage("");
-  
     try {
       const username = getUsernameFromToken();
       if (!username) {
@@ -132,50 +160,88 @@ const Lobby = () => {
         <Profile />
       </div>
 
-      <h1 className="text-6xl font-bold mb-10 text-[#003366] drop-shadow-lg">Chế độ Online</h1>
+      <h1 
+      className="text-6xl font-bold mb-10 text-[#003366] drop-shadow-lg">
+        Chế độ Online
+      </h1>
 
       <div className="flex flex-col gap-6 w-80">
+
+      {/* tao phong */}
         <button
-          onClick={handleCreateRoom}
+          onClick={openModal}
           disabled={loading}
           className="w-full py-4 bg-blue-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-blue-700 shadow-md"
         >
           {loading ? "⏳ Đang tạo phòng..." : "🏠 Tạo phòng"}
         </button>
+        {isModalOpen && (
+        <div className="fixed inset-0 flex justify-center items-center bg-gray-500 bg-opacity-50">
+        <div className="bg-white p-8 rounded-xl shadow-xl w-96">
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Nhập tên phòng</h2>
+          <input
+            type="text"
+            value={roomName}
+            onChange={(e) => setRoomName(e.target.value)}
+            placeholder="🔢 Nhập tên phòng"
+            className="mb-6 px-4 py-3 border border-gray-300 rounded-lg text-lg w-full focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={handleCreateRoom}
+              disabled={loading}
+              className="w-full py-3 bg-green-600 text-white rounded-lg text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md disabled:bg-gray-400"
+            >
+              {loading ? "Đang tạo..." : "Tạo phòng"}
+            </button>
+          </div>
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={closeModal}
+              className="w-full py-2 bg-gray-500 text-white rounded-lg text-lg font-semibold transition duration-300 hover:bg-gray-600 shadow-md"
+            >
+              ❌ Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      )}
 
          {/* 🔍 Hiện nút trước, chỉ khi bấm vào mới hiển thị ô nhập ID */}
-        {!showJoinInput ? (
+         {!showJoinInput ? (
           <button
             onClick={() => setShowJoinInput(true)}
             className="w-full py-4 bg-green-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md"
-          >
-            🔍 Tìm phòng
+            >
+          🔍 Tìm phòng
           </button>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="w-full p-4 rounded-xl flex flex-col gap-4">
             <input
               type="text"
               value={roomId}
               onChange={(e) => setRoomId(e.target.value)}
-              placeholder="Nhập ID phòng..."
+              placeholder="🔢 Nhập ID phòng..."
               className="w-full px-4 py-3 border rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             />
-            <button
-              onClick={handleJoinRoom}
-              className="w-full py-4 bg-green-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md"
-            >
-              ✅ Xác nhận
-            </button>
-            <button
-              onClick={() => setShowJoinInput(false)}
-              className="w-full py-2 bg-gray-500 rounded-lg text-lg font-semibold transition duration-300 hover:bg-gray-600 shadow-md"
-            >
-              ❌ Hủy
-            </button>
-            {errorMessage && <p className="text-red-500 text-center">{errorMessage}</p>}
-          </div>
+          <button
+            onClick={handleJoinRoom}
+            className="w-full py-4 bg-green-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md"
+          >
+            ✅ Vào phòng
+          </button>
+        <button
+          onClick={() => setShowJoinInput(false)}
+          className="w-full py-2 bg-gray-500 rounded-lg text-lg font-semibold transition duration-300 hover:bg-gray-600 shadow-md"
+        >
+          ❌ Hủy
+        </button>
+        {errorMessage && (
+          <p className="text-red-500 text-center">{errorMessage}</p>
         )}
-
+      </div>
+    )}
         <button
           onClick={handleRandomRoom}
           className="w-full py-4 bg-yellow-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-yellow-700 shadow-md"

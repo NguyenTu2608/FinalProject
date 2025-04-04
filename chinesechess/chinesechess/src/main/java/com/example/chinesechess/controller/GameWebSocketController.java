@@ -26,16 +26,15 @@ public class GameWebSocketController {
 
     @MessageMapping("/game/join")
     public void joinGame(@Payload Map<String, Object> request) {
-
         String gameId = (String) request.get("gameId");
         String playerUsername = (String) request.get("player");
-
         Optional<Game> optionalGame = gameService.getGameById(gameId);
         if (optionalGame.isEmpty()) {
             System.out.println("❌ Không tìm thấy gameId = " + gameId);
             return;
         }
         Game game = optionalGame.get();
+
         // 🏆 Kiểm tra nếu người chơi đã ở trong phòng, giữ nguyên vị trí của họ
         if (playerUsername.equals(game.getPlayerBlack()) || playerUsername.equals(game.getPlayerRed())) {
             System.out.println("🔄 Người chơi đã có trong phòng, không thay đổi vị trí.");
@@ -53,7 +52,6 @@ public class GameWebSocketController {
         if (game.getPlayerBlack() != null && game.getPlayerRed() != null) {
             game.setGameStatus("starting"); // Trạng thái game thành "starting"
         }
-
         gameService.updateGame(game);
         System.out.println("✅ Cập nhật người chơi: Black=" + game.getPlayerBlack() + ", Red=" + game.getPlayerRed());
         // 🏆 Gửi cập nhật đến tất cả người chơi trong phòng

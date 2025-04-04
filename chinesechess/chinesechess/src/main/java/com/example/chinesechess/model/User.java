@@ -11,6 +11,9 @@ public class User {
     private String username; // Unique username
     private String password; // Hashed password
     private String email; // Email address
+    private int chessElo = 1200;
+    private int chessDownElo = 1200;
+    private String avatar = "";
 
     public User() {
     }
@@ -52,5 +55,29 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public int getChessElo() {
+        return chessElo;
+    }
+
+    public void setChessElo(int chessElo) {
+        this.chessElo = chessElo;
+    }
+
+    public String getAvatar() {
+        return avatar.isEmpty() ? "/assets/avatar.png" : avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public int getChessDownElo() {
+        return chessDownElo;
+    }
+
+    public void setChessDownElo(int chessDownElo) {
+        this.chessDownElo = chessDownElo;
     }
 }

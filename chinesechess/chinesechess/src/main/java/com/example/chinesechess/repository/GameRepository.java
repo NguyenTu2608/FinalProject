@@ -11,4 +11,5 @@ public interface GameRepository extends MongoRepository<Game, String> {
     List<Game> findByPlayerBlack(String playerBlack);
     List<Game> findByPlayerBlackIsNullOrPlayerRedIsNull();
     Optional<Game> findByName(String name);
+    boolean existsByName(String name);
 }

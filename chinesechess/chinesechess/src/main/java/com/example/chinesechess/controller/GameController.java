@@ -3,9 +3,12 @@ package com.example.chinesechess.controller;
 import com.example.chinesechess.DTO.GameRequest;
 import com.example.chinesechess.DTO.MoveDTO;
 import com.example.chinesechess.model.Game;
+import com.example.chinesechess.model.MatchHistory;
 import com.example.chinesechess.repository.GameRepository;
+import com.example.chinesechess.repository.MatchHistoryRepository;
 import com.example.chinesechess.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,34 +25,48 @@ public class GameController {
     @Autowired
     private GameRepository gameRepository;
 
+    @Autowired
+    private MatchHistoryRepository matchHistoryRepository; // Inject repository
+
     @GetMapping
     public List<Game> getAllUsers() {
         return gameService.getAllGames();
     }
 
+
+
+
     @PostMapping("/create")
-    public ResponseEntity<Game> createGame(@RequestBody GameRequest request) {
+    public ResponseEntity<?> createGame(@RequestBody GameRequest request) {
         if (request.getGameMode() == null || request.getGameMode().isEmpty()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Game mode is required");
         }
+
         Game game = new Game();
         game.setPlayerBlack(request.getPlayerBlack());
+
         if ("practice".equals(request.getGameMode())) {
             game.setPlayerRed(request.getPlayerRed());
         }
-        // 🌍 Nếu là phòng online, chưa có người chơi thứ hai
+        // 🌍 Nếu là phòng online, cần kiểm tra tên phòng
         else if ("online".equals(request.getGameMode())) {
             String name = request.getName();
-            if (name != null && !name.isEmpty()) {
-                game.setName(name);
-            } else {
-                return ResponseEntity.badRequest().body(null);  // Trả về lỗi nếu không có tên phòng
+
+            if (name == null || name.isEmpty()) {
+                return ResponseEntity.badRequest().body("Room name is required");
             }
+
+            // Kiểm tra xem phòng đã tồn tại hay chưa
+            boolean roomExists = gameService.existsByName(name);
+            if (roomExists) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Room name already exists");
+            }
+            game.setName(name);
             game.setPlayerRed(null);
             game.setGameStatus("waiting");
-
-        } else {
-            return ResponseEntity.badRequest().body(null);
+        }
+        else {
+            return ResponseEntity.badRequest().body("Invalid game mode");
         }
 
         game.setMoves(new ArrayList<>());
@@ -60,6 +77,7 @@ public class GameController {
         Game savedGame = gameService.createGame(game);
         return ResponseEntity.ok(savedGame);
     }
+
 
     @PostMapping("/{gameId}/moves")
     public ResponseEntity<Game> saveMove(@PathVariable String gameId, @RequestBody MoveDTO move) {
@@ -84,12 +102,23 @@ public class GameController {
     }
 
     @GetMapping("/find-by-room-name")
-    public ResponseEntity<Game> findGameByRoomName(@RequestParam String name) {
+    public ResponseEntity<?> findGameByRoomName(@RequestParam String name) {
         Optional<Game> gameOpt = gameService.findByRoomName(name);
-        return gameOpt.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+
+        if (gameOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Game game = gameOpt.get();
+
+        // ✅ Kiểm tra nếu đã đủ 2 người chơi
+        if (game.getPlayerBlack() != null && game.getPlayerRed() != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("❌ Phòng đã đủ người chơi!");
+        }
+
+        return ResponseEntity.ok(game);
     }
-
-
 
     @GetMapping("/find-random-room")
     public ResponseEntity<Game> findRandomRoom() {

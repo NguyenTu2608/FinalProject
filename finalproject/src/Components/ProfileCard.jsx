@@ -9,7 +9,7 @@ const ProfileCard = ({ user }) => {
         <div className="relative w-20 h-20">
           <img
             onClick={123}
-            src={user?.avatar || "../Assets/avatar.png"}
+            src={user?.avatar || ""}  // Hiển thị avatar hoặc hình mặc định
             alt="Avatar"
             className="w-full h-full object-cover rounded-full border-4 border-yellow-500"
           />
@@ -17,14 +17,58 @@ const ProfileCard = ({ user }) => {
 
         {/* Thông tin user */}
         <div className="ml-3 flex flex-col">
-          <div className="text-lg font-bold italic text-yellow-600">
+          {/* Hiển thị tên user */}
+          <div 
+            className="text-lg font-bold italic"
+            style={{
+              backgroundColor: "gray",  // Màu nền xám
+              width: "200px",  // Chiều rộng nền
+              border: "solid",  // Thêm border đen dày 2px
+              borderRadius: "10px",  // Bo góc cho border (tuỳ chọn)
+              padding: "5px",  // Thêm khoảng cách trong nội dung
+            }}
+          >
             {user?.username || "Loading..."}
           </div>
           
+          <div className="flex items-center mt-1">
+            {/* Hiển thị chessElo */}
+            <div 
+              className="text-sm font-bold text-gray-600"
+              style={{
+                backgroundColor: "gray",  // Màu nền xám
+                width: "85px",  // Chiều rộng nền
+                border: "solid",  // Thêm border đen dày 2px
+                borderRadius: "10px",  // Bo góc cho border (tuỳ chọn)
+                padding: "5px",  // Thêm khoảng cách trong nội dung
+              }}
+            >
+              {user?.chessElo || "Loading..."} {/* Hiển thị elo nếu có, nếu chưa có thì hiển thị "Loading..." */}
+            </div>
+
+            {/* Tạo khoảng cách 15px */}
+            <div className="ml-6">
+
+              {/* Hiển thị chessDownElo */}
+              <div 
+                className="text-sm font-bold text-gray-600"
+                style={{
+                  backgroundColor: "gray",  // Màu nền xám
+                  width: "85px",  // Chiều rộng nền
+                  border: "solid",  // Thêm border đen dày 2px
+                  borderRadius: "10px",  // Bo góc cho border (tuỳ chọn)
+                  padding: "5px",  // Thêm khoảng cách trong nội dung
+                }}
+              >
+                {user?.chessDownElo || "Loading..."} {/* Hiển thị chessDownElo nếu có */}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
 
 export default ProfileCard;

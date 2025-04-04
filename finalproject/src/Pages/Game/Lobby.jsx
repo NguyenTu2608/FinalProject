@@ -4,6 +4,9 @@ import {jwtDecode} from "jwt-decode";
 import Profile from "../../Components/Profile";
 import apiClient from "../../Services/apiConfig";
 import websocketService from "../../Services/webSocketServices";
+import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Lobby = () => {
   const navigate = useNavigate();
@@ -50,38 +53,41 @@ const Lobby = () => {
     setRoomName(""); // Reset tên phòng
   };
 
-  const openModal1 = () => {
-    setIsModalOpen(true);
-  };
-
-
   const handleCreateRoom = async () => {
     setLoading(true);
     try {
       const username = getUsernameFromToken();
       if (!username) {
-        alert("Không thể lấy thông tin người dùng. Vui lòng đăng nhập lại!");
+        toast.error("Không thể lấy thông tin người dùng. Vui lòng đăng nhập lại!");
         setLoading(false);
         return;
       }
+  
       if (!roomName) {
-        alert("Vui lòng nhập tên phòng!");
+        toast.warn("⚠️ Vui lòng nhập tên phòng!");
+        setLoading(false);
         return;
       }
+  
       const response = await apiClient.post("/games/create", {
-        name : roomName,
+        name: roomName,
         gameMode: "online",
         playerBlack: username,
       });
-
+  
       const newGameId = response.data.id;
-      setGameId(newGameId); // ✅ Lưu gameId để dùng trong `unsubscribeFromGame`
+      setGameId(newGameId);
       navigate(`/Lobby/game/${newGameId}`);
-
+  
       websocketService.sendJoinRequest(newGameId, username);
     } catch (error) {
       console.error("❌ Lỗi khi tạo phòng:", error);
-      alert("Không thể tạo phòng. Vui lòng thử lại!");
+  
+      if (error.response?.status === 400 || error.response?.status === 409) {
+        toast.error("❌ Phòng đã tồn tại. Vui lòng chọn tên khác!");
+      } else {
+        toast.error("❌ Không thể tạo phòng. Vui lòng thử lại sau!");
+      }
     }
     setLoading(false);
   };
@@ -105,8 +111,7 @@ const Lobby = () => {
         setErrorMessage("❌ Không tìm thấy phòng hoặc phòng đã đầy!");
       }
     } catch (error) {
-      console.error("❌ Lỗi khi tìm phòng:", error);
-      setErrorMessage("❌ Không thể tìm phòng, thử lại sau!");
+      toast.error("❌ Không tìm thấy phòng hoặc phòng đã đầy! ", error);
     }
   };
 
@@ -203,6 +208,16 @@ const Lobby = () => {
               ❌ Đóng
             </button>
           </div>
+          {/* ...router or other app components */}
+          <ToastContainer
+            position="top-center"
+            hideProgressBar={true}
+            closeOnClick
+            pauseOnHover
+            draggable
+            autoClose={3000}
+            toastClassName="bg-red-500 text-white text-center text-lg font-semibold rounded-lg shadow-md px-6 py-4"
+          />
         </div>
       </div>
       
@@ -237,10 +252,18 @@ const Lobby = () => {
         >
           ❌ Hủy
         </button>
-        {errorMessage && (
-          <p className="text-red-500 text-center">{errorMessage}</p>
-        )}
+        {/* ...router or other app components */}
+        <ToastContainer
+            position="top-center"
+            hideProgressBar={true}
+            closeOnClick
+            pauseOnHover
+            draggable
+            autoClose={3000}
+            toastClassName="bg-red-500 text-white text-center text-lg font-semibold rounded-lg shadow-md px-6 py-4"
+          />
       </div>
+      
     )}
         <button
           onClick={handleRandomRoom}

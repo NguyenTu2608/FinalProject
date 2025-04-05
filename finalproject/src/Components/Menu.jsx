@@ -24,7 +24,7 @@ const MatchHistory = ({ player1, player2, result, onViewClick }) => {
   return (
     <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-md flex items-center justify-between mb-6 w-[1000px] hover:shadow-xl transition duration-300">
       {/* Người chơi + Kết quả */}
-      <div className="flex items-center flex-1 justify-center text-white text-2xl font-semibold">
+      <div className="flex items-center flex-1 justify-center text-black text-2xl font-semibold">
         <div className="flex-1 text-right pr-8 truncate">{player1}</div>
         <div
           className={`mx-10 px-4 py-1 rounded-full text-xl font-bold ${isWin ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
@@ -98,7 +98,6 @@ const Menu = () => {
           };
         });
         setMatches(matchData);  // Cập nhật state với dữ liệu lấy được từ API
-        console.log('Lịch sử trận đấu:', response.data);
       } catch (error) {
         console.error('Lỗi khi gọi API:', error);
       }
@@ -133,8 +132,8 @@ const Menu = () => {
       {/* Giao diện lịch sử đấu */}
       {showHistory && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <div className="bg-gray-900 px-10 pt-14 pb-6 rounded-2xl max-h-[80vh] overflow-y-auto shadow-2xl relative w-[1080px]">
-            <h2 className="text-white text-4xl font-bold mb-10 text-center">Lịch sử trận đấu</h2>
+          <div className="bg-[#f7e3c4] px-10 pt-14 pb-6 rounded-2xl max-h-[80vh] overflow-y-auto shadow-2xl relative w-[1080px]">
+            <h2 className="text-black text-4xl font-bold mb-10 text-center">Lịch sử trận đấu của bạn </h2>
             {/* Nút X */}
             <button
               onClick={handleHistoryClick}

@@ -4,16 +4,19 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "users")
-public class User {
+    public class User {
 
-    @Id
-    private String id; // Unique user ID
-    private String username; // Unique username
-    private String password; // Hashed password
-    private String email; // Email address
-    private int chessElo = 1200;
-    private int chessDownElo = 1200;
-    private String avatar = "";
+        @Id
+        private String id; // Unique user ID
+        private String username; // Unique username
+        private String password; // Hashed password
+        private String email; // Email address
+        private int chessElo = 1200;
+        private int chessDownElo = 1200;
+        private String avatar = "";
+        private String role = "player";
+        private String rankChess ="Tập Sự";
+        private String rankChessDown ="Tập Sự";
 
     public User() {
     }
@@ -79,5 +82,29 @@ public class User {
 
     public void setChessDownElo(int chessDownElo) {
         this.chessDownElo = chessDownElo;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getRankChess() {
+        return rankChess;
+    }
+
+    public void setRankChess(String rankChess) {
+        this.rankChess = rankChess;
+    }
+
+    public String getRankChessDown() {
+        return rankChessDown;
+    }
+
+    public void setRankChessDown(String rankChessDown) {
+        this.rankChessDown = rankChessDown;
     }
 }

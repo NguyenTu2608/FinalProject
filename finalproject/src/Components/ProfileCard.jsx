@@ -1,74 +1,229 @@
-import React from "react";
-import { Camera } from "lucide-react";
+import React, { useState } from "react";
+import { Star } from "lucide-react";
 
 const ProfileCard = ({ user }) => {
-  return (
-    <div className="absolute top-5 left-5 w-[350px] h-[150px] border-4 border-yellow-600 rounded-lg shadow-lg p-4 flex z-10">
-      {/* Avatar + Thông tin */}
-      <div className="flex items-center">
-        <div className="relative w-20 h-20">
-          <img
-            onClick={123}
-            src={user?.avatar || ""}  // Hiển thị avatar hoặc hình mặc định
-            alt="Avatar"
-            className="w-full h-full object-cover rounded-full border-4 border-yellow-500"
-          />
-        </div>
+  const [isModalOpen, setIsModalOpen] = useState(false); // state để điều khiển modal
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false); // state điều khiển modal đổi mật khẩu
 
-        {/* Thông tin user */}
-        <div className="ml-3 flex flex-col">
-          {/* Hiển thị tên user */}
-          <div 
-            className="text-lg font-bold italic"
-            style={{
-              backgroundColor: "gray",  // Màu nền xám
-              width: "200px",  // Chiều rộng nền
-              border: "solid",  // Thêm border đen dày 2px
-              borderRadius: "10px",  // Bo góc cho border (tuỳ chọn)
-              padding: "5px",  // Thêm khoảng cách trong nội dung
-            }}
-          >
-            {user?.username || "Loading..."}
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleAvatarClick = () => {
+    setIsModalOpen(true); // Mở modal khi click avatar
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Đóng modal
+  };
+
+  const handleOpenPasswordModal = () => {
+    setIsPasswordModalOpen(true); // Mở modal đổi mật khẩu
+  };
+
+  const handleClosePasswordModal = () => {
+    setIsPasswordModalOpen(false); // Đóng modal đổi mật khẩu
+  };
+
+  const handleChangePassword = () => {
+    if (newPassword !== confirmPassword) {
+      alert("Mật khẩu mới và mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    alert("Đổi mật khẩu thành công!");
+    setIsPasswordModalOpen(false); // Đóng modal đổi mật khẩu
+  };
+
+  return (
+    <>
+      {/* ProfileCard */}
+      <div className="absolute top-2 left-5 w-[400px] h-[180px] p-4 flex z-50 bg-transparent">
+        <div className="flex items-center">
+          {/* Avatar */}
+          <div className="relative flex flex-col items-center">
+            <img
+              src={user?.avatar || ""}
+              alt="Avatar"
+              className="w-24 h-24 object-cover rounded-full border-4 border-yellow-500 cursor-pointer"
+              onClick={handleAvatarClick} // Mở modal khi click
+            />
           </div>
-          
-          <div className="flex items-center mt-1">
-            {/* Hiển thị chessElo */}
-            <div 
-              className="text-sm font-bold text-gray-600"
+
+          {/* Thông tin user */}
+          <div className="ml-5 flex flex-col justify-center">
+            <div
+              className="italic font-bold text-green-400 text-xl text-center"
               style={{
-                backgroundColor: "gray",  // Màu nền xám
-                width: "85px",  // Chiều rộng nền
-                border: "solid",  // Thêm border đen dày 2px
-                borderRadius: "10px",  // Bo góc cho border (tuỳ chọn)
-                padding: "5px",  // Thêm khoảng cách trong nội dung
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                color: "#56C596",
+                borderRadius: "10px",
+                padding: "4px 12px",
+                width: "200px",
+                textAlign: "center",
               }}
             >
-              {user?.chessElo || "Loading..."} {/* Hiển thị elo nếu có, nếu chưa có thì hiển thị "Loading..." */}
+              {user?.username || "Loading..."}
             </div>
 
-            {/* Tạo khoảng cách 15px */}
-            <div className="ml-6">
+            <div className="flex mt-4 space-x-6">
+              <div className="flex items-center bg-gray-800 text-yellow-200 px-3 py-2 rounded-full space-x-2">
+                <img src="/Assets/red-dumpling.png" alt="Icon1" className="w-6 h-6" />
+                <span className="text-base font-semibold">{user?.chessElo || "Loading..."}</span>
+              </div>
 
-              {/* Hiển thị chessDownElo */}
-              <div 
-                className="text-sm font-bold text-gray-600"
-                style={{
-                  backgroundColor: "gray",  // Màu nền xám
-                  width: "85px",  // Chiều rộng nền
-                  border: "solid",  // Thêm border đen dày 2px
-                  borderRadius: "10px",  // Bo góc cho border (tuỳ chọn)
-                  padding: "5px",  // Thêm khoảng cách trong nội dung
-                }}
-              >
-                {user?.chessDownElo || "Loading..."} {/* Hiển thị chessDownElo nếu có */}
+              <div className="flex items-center bg-gray-800 text-yellow-200 px-3 py-2 rounded-full space-x-2">
+                <img src="/Assets/gold-potato.png" alt="Icon2" className="w-6 h-6" />
+                <span className="text-base font-semibold">{user?.chessDownElo || "Loading..."}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Modal thông tin người dùng */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-[#f7e3c4] w-[600px] rounded-xl p-6 relative shadow-xl border-4 border-yellow-800">
+            {/* Nút đóng */}
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-2 right-2 text-black font-bold text-xl"
+            >
+              ✖
+            </button>
+
+            <h2 className="text-2xl font-bold text-center mb-4">Thông tin</h2>
+
+            {/* Avatar + tên */}
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="relative">
+                <img
+                  src={user.avatar}
+                  alt="Avatar"
+                  className="w-24 h-24 rounded-full border-4 border-yellow-500"
+                />
+                <div className="absolute top-0 right-0 bg-black bg-opacity-70 p-1 rounded-full">
+                  📸
+                </div>
+              </div>
+              <div>
+                <div className="bg-[#d1bb93] px-4 py-1 rounded-lg italic text-lg font-bold">
+                  {user.username}
+                </div>
+                <div className="mt-1 bg-yellow-200 text-orange-700 px-3 py-1 rounded-full inline-block text-sm font-semibold">
+                  {user.rankChess} ⭐
+                </div>
+              </div>
+            </div>
+
+            {/* Elo Info */}
+            <div className="space-y-4 text-lg font-semibold ">
+              <div className="flex items-center gap-4">
+                <img src="/Assets/red-dumpling.png" className="w-12 h-12" />
+                <div>
+                  Elo Cờ Tướng : {user.chessElo} <br />
+                  Win: <span className="text-red-600">{user.win1}</span> &nbsp;
+                  Lose: <span className="text-red-600">{user.lose1}</span> &nbsp;
+                  Rank: {user.rankChess} ⭐
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <img src="/Assets/gold-potato.png" className="w-12 h-12" />
+                <div>
+                  Elo Cờ Úp: {user.chessDownElo} <br />
+                  Win: <span className="text-red-600">{user.win2}</span> &nbsp;
+                  Lose: <span className="text-red-600">{user.lose2}</span> &nbsp;
+                  Rank: {user.rankChessDown} ⭐
+                </div>
+              </div>
+            </div>
+            {/* Nút Đổi Mật Khẩu */}
+            <div className="mt-6 text-center">
+              <button
+                onClick={handleOpenPasswordModal} // Mở modal đổi mật khẩu
+                className="px-4 py-2 bg-blue-500 text-white rounded-full font-semibold"
+              >
+                Đổi Mật Khẩu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal đổi mật khẩu */}
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-[#f7e3c4] w-[400px] rounded-xl p-6 relative shadow-xl border-4 border-yellow-800">
+            {/* Nút đóng */}
+            <button
+              onClick={handleClosePasswordModal}
+              className="absolute top-2 right-2 text-black font-bold text-xl"
+            >
+              ✖
+            </button>
+
+            <h2 className="text-2xl font-bold text-center mb-4">Đổi Mật Khẩu</h2>
+
+            {/* Mật khẩu cũ */}
+            <div className="mb-4">
+              <label htmlFor="oldPassword" className="block text-lg font-semibold">
+                Mật khẩu cũ
+              </label>
+              <input
+                type="password"
+                id="oldPassword"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-yellow-800 rounded-xl mt-2"
+                placeholder="Nhập mật khẩu cũ"
+              />
+              
+            </div>
+
+            {/* Mật khẩu mới */}
+            <div className="mb-4">
+              <label htmlFor="newPassword" className="block text-lg font-semibold">
+                Mật khẩu mới
+              </label>
+              <input
+                type="password"
+                id="newPassword"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-yellow-800 rounded-xl mt-2"
+                placeholder="Nhập mật khẩu mới"
+              />
+            </div>
+
+            {/* Xác nhận mật khẩu mới */}
+            <div className="mb-4">
+              <label htmlFor="confirmPassword" className="block text-lg font-semibold">
+                Xác nhận mật khẩu mới
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-yellow-800 rounded-xl mt-2"
+                placeholder="Nhập lại mật khẩu mới"
+              />
+            </div>
+            {/* Nút đổi mật khẩu */}
+            <div className="text-center mt-4">
+              <button
+                onClick={handleChangePassword}
+                className="px-6 py-2 bg-blue-500 text-white rounded-xl font-semibold"
+              >
+                Đổi Mật Khẩu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
-
 
 export default ProfileCard;

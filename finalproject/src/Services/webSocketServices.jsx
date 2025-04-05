@@ -45,7 +45,6 @@ class WebSocketService {
     }
   }
 
-
   sendReadyRequest(gameId, username) {
     if (!gameId || !username) {
         console.error("❌ LỖI: gameId hoặc username bị null hoặc undefined!");

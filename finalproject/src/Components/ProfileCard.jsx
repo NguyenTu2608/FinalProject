@@ -128,7 +128,7 @@ const ProfileCard = ({ user }) => {
               ✖
             </button>
 
-            <h2 className="text-2xl font-bold text-center mb-4">Thông tin</h2>
+            <h2 className="text-2xl font-bold text-center mb-4">Thông tin người chơi</h2>
 
             {/* Avatar + tên */}
             <div className="flex items-center justify-center gap-4 mb-6">

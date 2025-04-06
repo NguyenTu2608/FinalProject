@@ -27,11 +27,15 @@ public class AdminController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-
     //get all admins
     @GetMapping
     public List<Admin> getAllAdmins() {
         return userService.getAllAdmins();
+    }
+
+    @PostMapping
+    public Admin createAdmin(@RequestBody Admin admin) {
+        return userService.saveAdmin(admin);
     }
 
     @GetMapping("/{id}")

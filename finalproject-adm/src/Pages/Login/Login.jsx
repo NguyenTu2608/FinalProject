@@ -73,9 +73,9 @@ const Login = () => {
             Đăng Nhập
           </button>
         </form>
-        <p className="text-center text-gray-600 text-sm mt-4 font-mono">
-          Chưa có tài khoản? <a href="/register" className="text-blue-600 font-semibold hover:underline">Đăng ký</a>
-        </p>
+        {/* <p className="text-center text-gray-600 text-sm mt-4 font-mono">
+          Chưa có tài khoản? <a href="/login" className="text-blue-600 font-semibold hover:underline">Đăng ký</a>
+        </p> */}
       </div>
     </div>
   );

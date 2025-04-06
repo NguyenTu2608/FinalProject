@@ -1,5 +1,6 @@
 package com.example.chinesechess.controller;
 
+import com.example.chinesechess.model.Admin;
 import com.example.chinesechess.model.User;
 import com.example.chinesechess.security.JwtUtil;
 import com.example.chinesechess.service.UserService;
@@ -62,6 +63,26 @@ public class AuthController {
 
         // Generate JWT token
         String token = JwtUtil.generateToken(user.getEmail(), user.getUsername());
+
+        // Return the token
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/admin/sign-in")
+    public ResponseEntity<?> signInAdmin(@RequestBody Map<String, String> loginRequest) {
+        String username = loginRequest.get("username");
+        String password = loginRequest.get("password");
+        // Find the user by email
+        Admin admin = userService.getAdminByUsername(username);
+        if (admin == null || !passwordEncoder.matches(password, admin.getPassword())) {
+            return new ResponseEntity<>("Invalid username or password", HttpStatus.UNAUTHORIZED);
+        }
+
+        // Generate JWT token
+        String token = JwtUtil.generateToken(admin.getEmail(), admin.getUsername());
 
         // Return the token
         Map<String, String> response = new HashMap<>();

@@ -34,8 +34,6 @@ public class GameController {
     }
 
 
-
-
     @PostMapping("/create")
     public ResponseEntity<?> createGame(@RequestBody GameRequest request) {
         if (request.getGameMode() == null || request.getGameMode().isEmpty()) {

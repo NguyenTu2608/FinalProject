@@ -14,7 +14,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
         private int chessElo = 1200;
         private int chessDownElo = 1200;
         private String avatar = "";
-        private String role = "player";
         private String rankChess ="Tập Sự";
         private String rankChessDown ="Tập Sự";
 
@@ -82,14 +81,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
     public void setChessDownElo(int chessDownElo) {
         this.chessDownElo = chessDownElo;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 
     public String getRankChess() {

@@ -302,7 +302,6 @@ canMove(row, col, isRed) {
 
   movePiece(fromRow, fromCol, toRow, toCol) {
     if (!this.board[fromRow] || !this.board[fromRow][fromCol]) {
-        
         return null; // Trả về null nếu không hợp lệ
     }
 
@@ -310,7 +309,7 @@ canMove(row, col, isRed) {
     const newBoard = this.board.map(row => [...row]);
     const movingPiece = newBoard[fromRow][fromCol];
 
-    console.log(`🚀 Di chuyển quân ${movingPiece} từ (${fromRow}, ${fromCol}) đến (${toRow}, ${toCol})`);
+    // console.log(`🚀 Di chuyển quân ${movingPiece} từ (${fromRow}, ${fromCol}) đến (${toRow}, ${toCol})`);
 
     newBoard[toRow][toCol] = movingPiece;
     newBoard[fromRow][fromCol] = "";

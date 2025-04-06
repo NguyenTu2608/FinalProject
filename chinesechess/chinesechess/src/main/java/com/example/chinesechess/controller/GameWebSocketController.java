@@ -49,21 +49,18 @@ public class GameWebSocketController {
                 return;
             }
         }
-        if (game.getPlayerBlack() != null && game.getPlayerRed() != null) {
-            game.setGameStatus("starting"); // Trạng thái game thành "starting"
-        }
         gameService.updateGame(game);
-        System.out.println("✅ Cập nhật người chơi: Black=" + game.getPlayerBlack() + ", Red=" + game.getPlayerRed());
+
         // 🏆 Gửi cập nhật đến tất cả người chơi trong phòng
         Map<String, Object> response = new HashMap<>();
         response.put("type", "playerUpdate");
+        response.put("name", game.getName());
         response.put("gameId", gameId);
         response.put("playerBlack", game.getPlayerBlack());
         response.put("playerRed", game.getPlayerRed());
 
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
     }
-
 
     //san sang
     @MessageMapping("/game/ready")
@@ -90,6 +87,7 @@ public class GameWebSocketController {
         } else if (game.getPlayerRed().equals(player)) {
             game.setRedReady(true);
         }
+
         // Lưu thay đổi vào database
         gameService.updateGame(game);
         // Gửi cập nhật trạng thái đến frontend
@@ -103,6 +101,9 @@ public class GameWebSocketController {
 
         // Nếu cả hai đều sẵn sàng, bắt đầu game
         if (game.isBlackReady() && game.isRedReady()) {
+            game.setGameStatus("starting");  // Thay đổi gameStatus thành "starting"
+            gameService.updateGame(game);
+
             Map<String, Object> startGameMessage = new HashMap<>();
             startGameMessage.put("type", "gameStart");
             startGameMessage.put("message", "Game bắt đầu!");
@@ -110,8 +111,6 @@ public class GameWebSocketController {
             System.out.println("Gửi tin nhắn game bắt đầu : " + startGameMessage);
         }
     }
-
-
 
     //roi phong
     @MessageMapping("/game/leave")
@@ -321,6 +320,72 @@ public class GameWebSocketController {
         messagingTemplate.convertAndSend("/topic/game/" + gameId, moveData);
         System.out.println("✅ Gửi nước đi tới WebSocket: " + moveData);
     }
+
+    @MessageMapping("/game/refresh")
+    public void handlePlayerRefresh(@Payload Map<String, String> payload) {
+        String gameId = payload.get("gameId");
+        String username = payload.get("player"); // Lấy username
+
+        // Kiểm tra trạng thái game
+        Optional<Game> gameOpt = gameService.getGameById(gameId);
+        if (gameOpt.isPresent()) {
+            Game game = gameOpt.get();
+
+            // Kiểm tra xem game đã bắt đầu chưa
+            if (!"starting".equals(game.getGameStatus())) {
+                // Chỉ reset khi game chưa bắt đầu, nếu game đã bắt đầu thì không làm gì thêm
+                if (game.getPlayerRed().equals(username)) {
+                    game.setBlackReady(false);
+                    game.setRedReady(false);
+                    game.setGameStatus("waiting");
+                } else if (game.getPlayerBlack().equals(username)) {
+                    game.setBlackReady(false);
+                    game.setRedReady(false);
+                    game.setGameStatus("waiting");
+                }
+
+                game.setMoves(null); // Clear the moves if the game isn't started
+                gameService.updateGame(game); // Lưu thay đổi vào DB
+
+                // Gửi thông báo về client
+                Map<String, Object> response = new HashMap<>();
+                response.put("type", "refresh");
+                response.put("player", username); // Sử dụng username
+                response.put("message", "Người chơi " + username + " đã refresh. Trạng thái 'Sẵn sàng' đã được đặt lại.");
+                messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
+                return;
+            }
+
+            // Nếu game đang diễn ra, xác định người còn lại thắng
+            String winner = "";
+
+            // Nếu người chơi là "red", thì "black" sẽ thắng và ngược lại
+            if (game.getPlayerRed().equals(username)) {
+                winner = "black"; // Nếu người refresh là đỏ, thì đen thắng
+            } else if (game.getPlayerBlack().equals(username)) {
+                winner = "red"; // Nếu người refresh là đen, thì đỏ thắng
+            }
+
+            // Cập nhật trạng thái game và người thắng
+            game.setGameStatus("waiting");
+            game.setBlackReady(false);
+            game.setRedReady(false);
+            game.setWinner(winner); // Gán người thắng
+            gameService.updateGame(game); // Lưu thay đổi vào DB
+
+            // Gửi thông báo về client
+            Map<String, Object> response = new HashMap<>();
+            response.put("type", "player-refresh-during-game");
+            response.put("message", "Người chơi " + username + " đã rời trận. " + winner + " chiến thắng!");
+            response.put("winner", winner); // Gửi winner (red hoặc black)
+            messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
+        }
+    }
+
+
+
+
+
 
     //chat
     @MessageMapping("/game/{gameId}/chat")

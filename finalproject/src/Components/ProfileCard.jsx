@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { Star } from "lucide-react";
+import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import apiClient from "../Services/apiConfig";
+
 
 const ProfileCard = ({ user }) => {
   const [isModalOpen, setIsModalOpen] = useState(false); // state để điều khiển modal
@@ -25,14 +29,44 @@ const ProfileCard = ({ user }) => {
     setIsPasswordModalOpen(false); // Đóng modal đổi mật khẩu
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert("Mật khẩu mới và mật khẩu xác nhận không khớp!");
+      toast.error("Mật khẩu mới và mật khẩu xác nhận không khớp!", {
+        className:
+          "bg-red-500 text-white text-center text-lg font-semibold shadow-md px-6 py-4 border-2 border-red-600 rounded-full my-2"
+      });
       return;
     }
-
-    alert("Đổi mật khẩu thành công!");
-    setIsPasswordModalOpen(false); // Đóng modal đổi mật khẩu
+  
+    try {
+      const response = await apiClient.post(
+        "/users/changepassword",
+        {
+          oldPassword,
+          newPassword,
+          confirmPassword,
+        }
+      );
+  
+      toast.success(response.data || "Đổi mật khẩu thành công!" , {
+        className:"bg-green-500 text-white text-center text-lg font-semibold shadow-md px-6 py-4 border-2 border-green-600 rounded-full my-2"
+      }
+        );
+      setIsPasswordModalOpen(false); // Đóng modal sau khi thành công
+      // Reset form nếu cần
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      if (error.response) {
+        toast.error(error.response.data || "Đổi mật khẩu thất bại!", {
+          className:
+            "bg-red-500 text-white text-center text-lg font-semibold shadow-md px-6 py-4 border-2 border-red-600 rounded-full my-2"
+        });
+      } else {
+        alert.error("Lỗi kết nối đến máy chủ!");
+      }
+    }
   };
 
   return (
@@ -43,12 +77,13 @@ const ProfileCard = ({ user }) => {
           {/* Avatar */}
           <div className="relative flex flex-col items-center">
             <img
-              src={user?.avatar || ""}
+              src={user?.avatar || "/Assets/avatarloading"}
               alt="Avatar"
               className="w-24 h-24 object-cover rounded-full border-4 border-yellow-500 cursor-pointer"
               onClick={handleAvatarClick} // Mở modal khi click
             />
           </div>
+          
 
           {/* Thông tin user */}
           <div className="ml-5 flex flex-col justify-center">
@@ -65,7 +100,7 @@ const ProfileCard = ({ user }) => {
             >
               {user?.username || "Loading..."}
             </div>
-
+            
             <div className="flex mt-4 space-x-6">
               <div className="flex items-center bg-gray-800 text-yellow-200 px-3 py-2 rounded-full space-x-2">
                 <img src="/Assets/red-dumpling.png" alt="Icon1" className="w-6 h-6" />
@@ -214,14 +249,24 @@ const ProfileCard = ({ user }) => {
             <div className="text-center mt-4">
               <button
                 onClick={handleChangePassword}
-                className="px-6 py-2 bg-blue-500 text-white rounded-xl font-semibold"
+                className="px-6 py-2 bg-blue-500 text-white rounded-full font-semibold"
               >
                 Đổi Mật Khẩu
               </button>
             </div>
+            {/* ...router or other app components */}
           </div>
+          
         </div>
       )}
+      <ToastContainer
+            position="top-center"
+            hideProgressBar={true}
+            closeOnClick
+            pauseOnHover
+            draggable
+            autoClose={3000}
+          />
     </>
   );
 };

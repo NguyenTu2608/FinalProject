@@ -56,6 +56,22 @@ const ChessboardAI = () => {
   const aiHasMoved = useRef(false);
 
   useEffect(() => {
+    // Khi trang tải, thay đổi lịch sử trình duyệt để ngăn người dùng quay lại trang trước
+    window.history.pushState(null, document.title, window.location.href);
+  
+    // Lắng nghe sự kiện khi người dùng nhấn nút "quay lại" (back)
+    window.onpopstate = function(event) {
+      // Chuyển hướng lại trang hiện tại nếu người dùng nhấn nút back
+      window.history.go(1);  // Điều hướng người dùng tới trang hiện tại
+    };
+  
+    // Dọn dẹp khi component bị unmount
+    return () => {
+      window.onpopstate = null;
+    };
+  }, []);
+
+  useEffect(() => {
     if (gameOver) return;
   
     if (currentTurn === aiColor && !aiHasMoved.current) {
@@ -211,9 +227,6 @@ const handleAIMoveMedium = () => {
     let possibleMoves = [];
     let captureMoves = [];
     let centerMoves = [];
-
-    const isPlayerOnlyKing = (playerColor === "red" && board.flat().filter(piece => piece === "k").length === 1) || 
-                             (playerColor === "black" && board.flat().filter(piece => piece === "K").length === 1);
 
     for (let row = 0; row < 10; row++) {
         for (let col = 0; col < 9; col++) {

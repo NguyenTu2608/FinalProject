@@ -122,5 +122,9 @@ public class GameService {
         gameRepository.deleteById(gameId);
     }
 
+    public void deleteMatchHistory(String matchId)
+    {
+        matchHistoryRepository.deleteById(matchId);
+    }
 
 }

@@ -108,7 +108,7 @@ const Lobby = () => {
       if (foundGame && foundGame.id) {
         navigate(`/Lobby/game/${foundGame.id}`); // ✅ Chuyển sang phòng nếu tồn tại
       } else {
-        setErrorMessage("❌ Không tìm thấy phòng hoặc phòng đã đầy!");
+        toast.error("❌ Không tìm thấy phòng hoặc phòng đã đầy!");
       }
     } catch (error) {
       toast.error("❌ Không tìm thấy phòng hoặc phòng đã đầy! ", error);

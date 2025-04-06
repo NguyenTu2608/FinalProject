@@ -14,10 +14,11 @@ const Game = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isVisible, setIsVisible] = useState(true); // ✅ Trạng thái hiển thị chat box
   const [hasNewMessage, setHasNewMessage] = useState(false);
-  
+  const [nameGame, setNameGame] = useState(null);
   const messagesEndRef = useRef(null); // 👉 Auto scroll
 
   const navigate = useNavigate();
+
   
   const handleLeaveGame = () => {
     if (!gameId || !username) return;
@@ -44,7 +45,9 @@ const Game = () => {
     websocketService.connect(() => {
       websocketService.sendJoinRequest(gameId, username);
       websocketService.subscribeToGame(gameId, (message) => {
+        
         if (message.type === "playerUpdate") {
+          setNameGame(message.name);
           setPlayerBlack(message.playerBlack);
           setPlayerRed(message.playerRed);
         } 
@@ -89,16 +92,11 @@ const Game = () => {
 
 
   return (
-    <div className="game-container p-4">
-      <h1 className="text-2xl font-bold mb-4">Trận đấu: {gameId}</h1>
-      {errorMessage && <p className="error">{errorMessage}</p>}
-
-      <h2 className="mb-2">Người chơi Đen: <span className="font-semibold">{playerBlack || "Đang chờ..."}</span></h2>
-      <h2 className="mb-4">Người chơi Đỏ: <span className="font-semibold">{playerRed || "Đang chờ..."}</span></h2>
-
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+    <div className="game-container p-4 min-h-screen flex items-center justify-center">
+      <div className="flex flex-col md:flex-row gap-4 justify-center items-center w-full">
+        <div className="flex-1 max-w-full flex justify-center">
           <Chessboard 
+            nameGame={nameGame}
             gameId={gameId} 
             playerBlack={playerBlack} 
             playerRed={playerRed}
@@ -138,7 +136,6 @@ const Game = () => {
               ✖
             </button>
           </div>
-
           {/* Messages */}
           <div className="flex-1 p-2 overflow-y-auto max-h-64">
           {messages.map((msg, index) => {

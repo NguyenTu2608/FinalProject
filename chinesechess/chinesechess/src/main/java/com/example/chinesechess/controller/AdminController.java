@@ -1,6 +1,7 @@
 package com.example.chinesechess.controller;
 
 import com.example.chinesechess.DTO.PasswordChangeRequest;
+import com.example.chinesechess.model.Admin;
 import com.example.chinesechess.model.User;
 import com.example.chinesechess.security.JwtUtil;
 import com.example.chinesechess.service.UserService;
@@ -14,8 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/users")
-public class UserController {
+@RequestMapping("/api/admins")
+public class AdminController {
 
     @Autowired
     private UserService userService;
@@ -26,34 +27,22 @@ public class UserController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+
+    //get all admins
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<Admin> getAllAdmins() {
+        return userService.getAllAdmins();
     }
+
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable String id) {
-        Optional<User> user = userService.getUserById(id);
-        return user.map(ResponseEntity::ok)
+    public ResponseEntity<Admin> getAdminById(@PathVariable String id) {
+        Optional<Admin> admin = userService.getAdminById(id);
+        return admin.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.saveUser(user);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
-        if (userService.getUserById(id).isPresent()) {
-            userService.deleteUser(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
     @GetMapping("/me")
-    public ResponseEntity<?> getUserFromToken(HttpServletRequest request) {
+    public ResponseEntity<?> getAdminFromToken(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
 
         if (token == null || !token.startsWith("Bearer ")) {
@@ -66,13 +55,23 @@ public class UserController {
             return ResponseEntity.status(401).body("Token không hợp lệ hoặc đã hết hạn");
         }
         String email = JwtUtil.extractEmail(token); // Lấy email từ token
-        User user = userService.getUserByEmail(email);
+        Admin admin = userService.getAdminByEmail(email);
 
-        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+        return admin != null ? ResponseEntity.ok(admin) : ResponseEntity.notFound().build();
     }
 
+    //delete admin
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAdmin(@PathVariable String id) {
+        if (userService.getAdminById(id).isPresent()) {
+            userService.deleteAdmin(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
-    @PostMapping("/changepassword")
+    @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(HttpServletRequest request, @RequestBody PasswordChangeRequest passwordChangeRequest) {
         String token = request.getHeader("Authorization");
 
@@ -87,14 +86,14 @@ public class UserController {
         }
 
         String email = JwtUtil.extractEmail(token);
-        User user = userService.getUserByEmail(email);
+        Admin admin = userService.getAdminByEmail(email);
 
-        if (user == null) {
+        if (admin == null) {
             return ResponseEntity.status(404).body("Không tìm thấy người dùng");
         }
 
         // Kiểm tra mật khẩu cũ
-        if (!passwordEncoder.matches(passwordChangeRequest.getOldPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(passwordChangeRequest.getOldPassword(), admin.getPassword())) {
             return ResponseEntity.status(403).body("Mật khẩu cũ không đúng");
         }
 
@@ -104,9 +103,11 @@ public class UserController {
         }
 
         // Cập nhật mật khẩu mới
-        user.setPassword(passwordEncoder.encode(passwordChangeRequest.getNewPassword()));
-        userService.saveUser(user);
+        admin.setPassword(passwordEncoder.encode(passwordChangeRequest.getNewPassword()));
+        userService.saveAdmin(admin);
 
         return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
+
+
 }

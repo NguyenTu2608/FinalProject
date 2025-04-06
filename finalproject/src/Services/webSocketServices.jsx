@@ -44,7 +44,6 @@ class WebSocketService {
       this.client = null;
     }
   }
-
   sendReadyRequest(gameId, username) {
     if (!gameId || !username) {
         console.error("❌ LỖI: gameId hoặc username bị null hoặc undefined!");
@@ -92,6 +91,44 @@ class WebSocketService {
       console.log(`🔕 Unsubscribed from game ${gameId}`);
     }
   }
+
+  sendRefreshRequest(gameId, username) {
+    console.log("🔄 Gửi WebSocket REFRESH với:", JSON.stringify({ gameId, player: username }));
+  
+    // Kiểm tra gameId và username có hợp lệ không
+    if (!gameId || !username) {
+      console.error("❌ LỖI: gameId hoặc username bị null hoặc undefined!");
+      return;
+    }
+  
+    // Kiểm tra WebSocket có kết nối không
+    if (!this.isConnected || !this.client) {
+      console.error("❌ LỖI: WebSocket chưa kết nối!");
+      return;
+    }
+  
+    // Gửi yêu cầu REFRESH thông qua WebSocket
+    this.client.publish({
+      destination: "/app/game/refresh",
+      body: JSON.stringify({ gameId: gameId, player: username })
+    });
+  }
+  
+
+  setupRefreshOnUnload(gameId, username) {
+    this.unloadHandler = () => {
+      // Kiểm tra kết nối WebSocket trước khi gửi yêu cầu REFRESH
+      if (this.isConnected && this.client) {
+        this.sendRefreshRequest(gameId, username);
+      } else {
+        console.warn("⚠ WebSocket không kết nối khi người chơi refresh trang!");
+      }
+    };
+  
+    // Thêm sự kiện beforeunload
+    window.addEventListener("beforeunload", this.unloadHandler);
+  }
+  
 
   sendJoinRequest(gameId, username) {
     console.log("📩 Gửi WebSocket tham gia game với:", JSON.stringify({ gameId, player: username }));

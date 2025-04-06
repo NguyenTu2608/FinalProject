@@ -5,10 +5,7 @@ import com.example.chinesechess.repository.GameRepository;
 import com.example.chinesechess.repository.MatchHistoryRepository;
 import com.example.chinesechess.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -35,5 +32,9 @@ public class GameHistoryController {
         return matchHistoryRepository.findByPlayerBlackOrPlayerRed(username, username);
     }
 
+    @DeleteMapping("/{matchId}")
+    public void deleteMatchHistory(@PathVariable String matchId) {
+        gameService.deleteMatchHistory(matchId);
+    }
 
 }

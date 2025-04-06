@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import GameManager from "./GameManager";
 import apiClient from "../Services/apiConfig";
 import websocketService from "../Services/webSocketServices";
-
+import { getCurrentUser } from "../Services/userServices";
+import { toast } from "react-toastify";
 // Ảnh quân cờ
 const pieceImages = {
   r: "/Assets/red-rook.png",
@@ -34,7 +35,7 @@ const initialBoard = [
   ["R", "N", "B", "A", "K", "A", "B", "N", "R"],
 ];
 
-const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerRed, gameMode, username }) => {
+const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerRed, gameMode, username, nameGame }) => {
   const [board, setBoard] = useState(initialBoard);
   const gameManager = new GameManager(board);
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -51,13 +52,22 @@ const Chessboard = ({ gameId, playerBlack, playerRed, setPlayerBlack, setPlayerR
   const [gameStarted, setGameStarted] = useState(false);
   const [surrenderPlayer, setSurrenderPlayer] = useState(null); // Thêm state mới
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-  console.log("playerBlack:", playerBlack);
-  console.log("playerRed:", playerRed);
-  console.log("username:", username);
-}, [playerBlack, playerRed, username]);
+    // Gọi API để lấy thông tin người dùng từ token
+    const fetchUserData = async () => {
+      try {
+        const data = await getCurrentUser(); // Sử dụng hàm getCurrentUser từ userService
+        setUserData(data); // Cập nhật state với thông tin người dùng
+      } catch (error) {
+        console.error('Lỗi khi lấy thông tin người dùng:', error);
+      }
+    };
+
+    fetchUserData(); // Gọi hàm khi component được render
+  }, []); // Gọi 1 lần khi component được render
 
   useEffect(() => {
     let interval;
@@ -82,25 +92,53 @@ useEffect(() => {
   console.log("📡 Kết nối WebSocket để nhận nước đi...");
 
   if (!websocketService.isConnected) {
-      console.warn("⚠ WebSocket chưa kết nối, thử kết nối lại...");
-      websocketService.connect(() => {
-          console.log("🔄 Đã kết nối lại WebSocket!");
-          websocketService.subscribeToGame(gameId, handleGameMove);
-          websocketService.subscribeToGame(gameId, handleCheckNotification);
-          websocketService.subscribeToGame(gameId, handleSurrenderNotification);
-      });
-  } else {
+    console.warn("⚠ WebSocket chưa kết nối, thử kết nối lại...");
+    websocketService.connect(() => {
+      console.log("🔄 Đã kết nối lại WebSocket!");
       websocketService.subscribeToGame(gameId, handleGameMove);
       websocketService.subscribeToGame(gameId, handleCheckNotification);
       websocketService.subscribeToGame(gameId, handleSurrenderNotification);
+      websocketService.subscribeToGame(gameId, handlePlayerRefreshNotification); // 👈 thêm dòng này
+    });
+  } else {
+    websocketService.subscribeToGame(gameId, handleGameMove);
+    websocketService.subscribeToGame(gameId, handleCheckNotification);
+    websocketService.subscribeToGame(gameId, handleSurrenderNotification);
+    websocketService.subscribeToGame(gameId, handlePlayerRefreshNotification); // 👈 thêm dòng này
   }
 
   return () => {
-      websocketService.unsubscribeFromGame(gameId);
-      websocketService.unsubscribeFromGame(gameId);
+    websocketService.unsubscribeFromGame(gameId);
+    websocketService.unsubscribeFromChat(gameId);
   };
 }, [gameId, gameMode]);
 
+
+useEffect(() => {
+  // Khi trang tải, thay đổi lịch sử trình duyệt để ngăn người dùng quay lại trang trước
+  window.history.pushState(null, document.title, window.location.href);
+
+  // Lắng nghe sự kiện khi người dùng nhấn nút "quay lại" (back)
+  window.onpopstate = function(event) {
+    // Chuyển hướng lại trang hiện tại nếu người dùng nhấn nút back
+    window.history.go(1);  // Điều hướng người dùng tới trang hiện tại
+  };
+
+  // Dọn dẹp khi component bị unmount
+  return () => {
+    window.onpopstate = null;
+  };
+}, []);
+
+useEffect(() => {
+  if (gameMode === "online") {
+    websocketService.setupRefreshOnUnload(gameId, username);
+  }
+
+  return () => {
+    websocketService.disconnect(); // sẽ remove listener luôn
+  };
+}, [gameMode, gameId, username]);
 
 
   //nhan message san sang`
@@ -165,8 +203,6 @@ useEffect(() => {
           return;
       }
   
-      console.log("📩 Nhận thông báo rời phòng:", response);
-  
       if (response.type === "playerLeft") {
           setPlayerBlack(response.playerBlack || null);
           setPlayerRed(response.playerRed || null);
@@ -197,10 +233,43 @@ useEffect(() => {
 
 }, [gameId, gameMode]);
 
+
+// Giữ lại trang hiện tại trong lịch sử và ngăn không cho người dùng quay lại trang trước
+window.history.pushState(null, document.title, window.location.href);
+
+// Ngăn chặn hành động quay lại
+window.onpopstate = function(event) {
+  window.history.go(1); // Điều hướng tới trang hiện tại nếu người dùng nhấn "Back"
+};
+
+const handlePlayerRefreshNotification = (payload) => {
+  if (payload.type === "refresh") {
+    toast.info(payload.message); // Hiển thị thông báo về việc refresh
+    // Nếu game chưa bắt đầu, reset lại trạng thái
+    setReadyStatus({ black: false, red: false });
+    setGameStarted(false);
+  }
+
+  if (payload.type === "player-refresh-during-game") {
+    // Thông báo người chơi còn lại thắng
+    toast.success(payload.message); // Thông báo người còn lại thắng
+
+    // Cập nhật trạng thái game khi người chơi đã refresh giữa trận
+    setReadyStatus({ black: false, red: false });
+    setWinner(payload.winner);
+    setGameOver(true);  // Đánh dấu game kết thúc
+    setBoard(initialBoard);  // 🟢 Reset bàn cờ về trạng thái ban đầu
+    setMoveHistory([]);  // Xóa lịch sử các nước đi
+    setSelectedPiece(null);  // Deselect quân cờ đã chọn
+    setValidMoves([]);  // Xóa các nước đi hợp lệ
+    setErrorMessage("");  // Xóa thông báo lỗi
+    
+}
+
+};
+
 const handleSurrenderNotification = (message) => {
   if (!message || message.type !== "surrender") return;
-
-  console.log("🏳️ Nhận thông báo đầu hàng từ server:", message);
 
   setSurrenderPlayer(message.surrenderPlayer); // Lưu người đầu hàng vào state
   setWinner(message.winner); // Lưu người thắng vào state
@@ -219,6 +288,8 @@ const resetGameOnline = () => {
   setErrorMessage("");
   setGameOver(false);
   setWinner(null);
+  setTimeLeftRed(900);
+  setTimeLeftBlack(900);
   setTimerActive(true);
   setReadyStatus({ black: false, red: false });
 };
@@ -232,16 +303,7 @@ const resetGameOnline = () => {
   const handleGameMove = (message) => {
     if (!message || message.type !== "gameMove") return;
 
-    console.log("♟️ Nhận gameMove từ WebSocket:", message);
-
     const { from, to, movedPiece, currentTurn } = message;
-
-     if (message && message.gameId) {
-    // Giả sử message có gameId và các thông tin cần thiết
-    console.log("♟️ gameId:", message.gameId);
-    console.log("♟️ player:", message.player);
-    console.log("♟️ move details:", message.from, message.to);
-     }
 
     // 🔹 Kiểm tra dữ liệu hợp lệ
     if (!from || !to || typeof movedPiece !== "string") {
@@ -259,7 +321,7 @@ const resetGameOnline = () => {
         const updatedBoard = prevBoard.map(row => [...row]); // 🔥 Copy mảng 2D
 
         if (!updatedBoard[from.row][from.col]) {
-            console.warn("⚠ Không tìm thấy quân cờ ở vị trí cũ:", from);
+            // console.warn("⚠ Không tìm thấy quân cờ ở vị trí cũ:", from);
             return prevBoard;
         }
 
@@ -276,7 +338,6 @@ const resetGameOnline = () => {
 
     // ✅ Cập nhật lượt chơi tiếp theo
     if (currentTurn) {
-        console.log("🔄 [Client] Cập nhật lượt chơi:", currentTurn);
         setCurrentPlayer(currentTurn);
         setTimerActive(true);
     } else {
@@ -317,51 +378,70 @@ const handleCheckNotification = (message) => {
     } else {
         const winner = player === "red" ? "black" : "red"; // Xác định người thắng
         setErrorMessage(`${winner === "red" ? "Đỏ" : "Đen"} thắng! ${player === "red" ? "Đỏ" : "Đen"} đã đầu hàng.`);
+        setWinner(winner);
         setGameOver(true);
     }
 };
 
-  if (!gameStarted) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white p-8 rounded-lg text-center animate-fade-in">
-          {gameMode === "practice" ? (
-            <button
-              onClick={() => {
-                setGameStarted(true);
-                setTimerActive(true);
-              }}
-              className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
-            >
-              Bấm để bắt đầu
-            </button>
-          ) : (
-            <div>
-              {playerBlack && playerRed ? (
-                <>
-                  <p className="mb-4 text-lg font-semibold text-green-600">
-                    Người chơi đã vào phòng! Hãy sẵn sàng.
-                  </p>
-                  <button
-                    onClick={sendReadyStatus}
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
-                  >
-                    {readyStatus[username === playerBlack ? "black" : "red"]
-                      ? "Đã Sẵn Sàng"
-                      : "Sẵn Sàng"}
-                  </button>
-                </>
-              ) : (
-                <p className="mb-4 text-lg font-semibold">
-                  Đang chờ người chơi khác...
+if (!gameStarted) {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-8 rounded-lg text-center animate-fade-in max-w-md w-full">
+        {/* Chỉ hiển thị tên phòng nếu là chế độ online */}
+        {gameMode !== "practice" && <h2 className="text-2xl font-semibold mb-4"> Tên phòng : {nameGame}</h2>}
+        
+        {gameMode === "practice" ? (
+          <button
+            onClick={() => {
+              setGameStarted(true);
+              setTimerActive(true);
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
+          >
+            Bấm để bắt đầu
+          </button>
+        ) : (
+          <div>
+            {playerBlack && playerRed ? (
+              <>
+                <div className="flex justify-between mb-4 text-lg font-semibold">
+                  <div className="text-black">
+                    {playerBlack} {username === playerBlack && "(Bạn)"}
+                    {readyStatus["black"] && (
+                      <p className="text-green-500 text-sm">Đã Sẵn Sàng</p>
+                    )}
+                  </div>
+                  <div className="text-red-600">
+                    {playerRed} {username === playerRed && "(Bạn)"}
+                    {readyStatus["red"] && (
+                      <p className="text-green-500 text-sm">Đã Sẵn Sàng</p>
+                    )}
+                  </div>
+                </div>
+                <p className="mb-4 text-lg font-semibold text-green-600">
+                  Đã đủ người chơi ! Hãy sẵn sàng.
                 </p>
-              )}
-            </div>
-          )}
-        </div>
+                <button
+                  onClick={sendReadyStatus}
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:shadow-xl"
+                >
+                  {readyStatus[username === playerBlack ? "black" : "red"]
+                    ? "Đã Sẵn Sàng"
+                    : "Sẵn Sàng"}
+                </button>
+              </>
+            ) : (
+              <p className="mb-4 text-lg font-semibold">
+                Đang chờ người chơi khác...
+              </p>
+            )}
+          </div>
+        )}
       </div>
-    );
-  }
+    </div>
+  );
+}
+
   
   const handleClick = async (row, col) => {
     console.log("📍 Nhấn vào ô:", row, col, " | Người chơi hiện tại:", currentPlayer);
@@ -477,6 +557,7 @@ const handleCheckNotification = (message) => {
         if (gameMode === "practice") {
           const newGameManager = new GameManager(newBoard);
         // Kiểm tra xem bên được chuyển giao có bị chiếu bí hay không
+        
           if (newGameManager.isCheckmate(nextPlayer === "red")) {
             
             setGameOver(true);
@@ -530,14 +611,17 @@ const handleCheckNotification = (message) => {
   };
 
 
-
-  const ProfileCard = ({ timeLeft, isCurrentPlayer, playerType, onSurrender }) => {
+  const ProfileCard = ({ timeLeft, isCurrentPlayer, playerType, onSurrender}) => {
+    const handleSurrenderClick = () => {
+      onSurrender(); // Thực hiện đầu hàng ngay lập tức
+    };
+  
     return (
       <div className={`flex flex-col items-center bg-gray-900 bg-opacity-80 p-4 rounded-lg shadow-lg w-64 text-white 
         ${isCurrentPlayer ? 'ring-2 ring-yellow-500' : ''}`}>
         <div className="relative">
           <img
-            src="/Assets/avatar.png"
+            src={userData?.avatar || "/Assets/avatarloading"}
             alt="Avatar"
             className="w-24 h-24 rounded-full border-4 border-orange-500"
           />
@@ -545,38 +629,39 @@ const handleCheckNotification = (message) => {
             {playerType === 'red' ? 'Đỏ' : 'Đen' || "Đang chờ..."} 
           </div>
         </div>
-
+  
         <div className="bg-gray-700 text-yellow-300 text-lg font-semibold mt-6 px-6 py-2 rounded-lg w-full text-center">
           {playerType === 'red' ? playerRed : playerBlack}
         </div>
-
-        <div className={`flex items-center mt-4 px-6 py-2 rounded-lg font-bold ${isCurrentPlayer ? 'bg-yellow-500 text-black' : 'bg-gray-700'
-          }`}>
+  
+        <div className={`flex items-center mt-4 px-6 py-2 rounded-lg font-bold ${isCurrentPlayer ? 'bg-yellow-500 text-black' : 'bg-gray-700'}`}>
           ⏳ {formatTime(timeLeft)}
         </div>
+  
         <button
-          onClick={onSurrender}
-          disabled={
+          onClick={handleSurrenderClick} // Đầu hàng ngay lập tức
+          disabled={ 
             gameMode === "online"
               ? !(username === playerRed && playerType === "red") &&
-              !(username === playerBlack && playerType === "black")
-            : false // 🔹 Chế độ practice luôn cho phép đầu hàng
+                !(username === playerBlack && playerType === "black")
+              : false // 🔹 Chế độ practice luôn cho phép đầu hàng
           }
-            className={`mt-4 ${
-              gameMode === "online"
+          className={`mt-4 ${
+            gameMode === "online"
               ? (username === playerRed && playerType === "red") ||
-              (username === playerBlack && playerType === "black")
-              ? "bg-red-500 hover:bg-red-600"
-              : "bg-gray-500 cursor-not-allowed"
+                (username === playerBlack && playerType === "black")
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-gray-500 cursor-not-allowed"
               : "bg-red-500 hover:bg-red-600" // 🔹 Luôn bật ở chế độ practice
-            } text-white font-bold py-2 px-4 rounded flex items-center`}
-          >
+          } text-white font-bold py-2 px-4 rounded flex items-center`}
+        >
           <img src="/Assets/surrender.png" alt="Flag" className="w-5 h-5 mr-2" />
-            Đầu hàng
-          </button>
+          Đầu hàng
+        </button>
       </div>
     );
   };
+  
   const boardSize = 500;
   const cellSize = boardSize / 9;
 
@@ -640,49 +725,54 @@ const handleCheckNotification = (message) => {
         </div>
         )}
         {/* Overlay hiển thị khi trò chơi kết thúc */}
-        {gameOver && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">Trò chơi kết thúc!</h2>
-
-        <p className="mb-4">
+{gameOver && (
+  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60">
+    <div className="bg-white p-8 rounded-lg shadow-2xl text-center max-w-lg mx-auto transform transition-all duration-300 ease-in-out">
+      <h2 className="text-3xl font-semibold mb-6 text-gray-800">Trò chơi kết thúc!</h2>
+      <p className="text-xl mb-6 text-gray-600">
         {gameMode === "online" ? (
-            (winner === "red" && username === playerRed) || 
-            (winner === "black" && username === playerBlack)
-              ? "🎉 Bạn đã thắng!"
-              : "😞 Bạn đã thua!"
-            ) : (
-            `${winner === "red" ? "Đỏ" : "Đen"} thắng!`
-            )}
-        </p>
-
+          (winner === "red" && username === playerRed) || 
+          (winner === "black" && username === playerBlack)
+            ? "🎉 Bạn đã thắng!"
+            : "😞 Bạn đã thua!"
+        ) : (
+          winner === "red" 
+            ? "Đỏ thắng!" 
+            : winner === "black" 
+            ? "Đen thắng!" 
+            : "Trận đấu không có kết quả!" // Trường hợp không có người thắng, như đầu hàng
+        )}
+      </p>
+      <div className="flex justify-center gap-4">
         {gameMode === "online" ? (
           gameOver ? (
             <button
               onClick={resetGameOnline}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
+              className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-md text-lg transition duration-300 ease-in-out transform hover:scale-105"
             >
-          Chơi lại
-        </button>
+              Chơi lại
+            </button>
+          ) : (
+            <button
+              className="bg-gray-500 text-white py-3 px-6 rounded-md text-lg cursor-not-allowed"
+              disabled
+            >
+              Đang chờ đối thủ...
+            </button>
+          )
         ) : (
           <button
-            className="bg-gray-500 text-white py-2 px-4 rounded"
-            disabled
+            onClick={restartGamePractice}
+            className="bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-md text-lg transition duration-300 ease-in-out transform hover:scale-105"
           >
-            Đang chờ đối thủ...
+            New Game
           </button>
-        )
-      ) : (
-        <button
-          onClick={restartGamePractice}
-          className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
-        >
-          New Game
-        </button>
         )}
       </div>
     </div>
-  )}
+  </div>
+)}
+
       </div>
       {/* ProfileCard bên phải (đối xứng) */}
       <ProfileCard
@@ -696,6 +786,7 @@ const handleCheckNotification = (message) => {
           onSurrender={() => handleSurrender("red")}
       />
     </div>
+
   );
 
 

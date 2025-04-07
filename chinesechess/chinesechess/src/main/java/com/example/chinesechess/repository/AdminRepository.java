@@ -1,7 +1,6 @@
 package com.example.chinesechess.repository;
 
 import com.example.chinesechess.model.Admin;
-import com.example.chinesechess.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

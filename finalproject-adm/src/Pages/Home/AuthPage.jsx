@@ -40,7 +40,7 @@ const AuthPage = () => {
           </button>
 
           {/* Đăng ký */}
-          <button onClick={() => navigate("/register")} className="relative group">
+          <button onClick={() => navigate("/login")} className="relative group">
             <img
               src="/Assets/register1.png"
               alt="Đăng ký"

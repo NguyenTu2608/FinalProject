@@ -16,6 +16,7 @@ public class WebConfig {
                         .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://chinachess.io.vn")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("Authorization", "Cache-Control", "Content-Type")
+                        .allowedHeaders("*")
                         .allowCredentials(true);
             }
         };

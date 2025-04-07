@@ -40,7 +40,7 @@ const Home = () => {
       </div>
       <div className="flex justify-center items-center h-[85vh] relative z-10">
   <div className="grid grid-cols-2 gap-48 mt-24">
-  <button onClick={() => navigate("/Lobby")} className="group flex flex-col items-center gap-4">
+  <button onClick={() => navigate("/usermanagement")} className="group flex flex-col items-center gap-4">
   <img
     src="/Assets/icon-quanliuser1.png"
     alt="Cờ Tướng"
@@ -54,7 +54,7 @@ const Home = () => {
   </span>
 </button>
 
-<button onClick={() => navigate("/Training")} className="group flex flex-col items-center gap-4">
+<button onClick={() => navigate("/gamemanagement")} className="group flex flex-col items-center gap-4">
   <img
     src="/Assets/icon-quanligame.png"
     alt="Luyện Tập"

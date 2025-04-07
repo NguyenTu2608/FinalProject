@@ -126,7 +126,6 @@ public class UserController {
         if (existingUser == null) {
             return ResponseEntity.notFound().build();
         }
-
         if (updatedUser.getEmail() == null || updatedUser.getEmail().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Email không được để trống!");
         }
@@ -154,22 +153,17 @@ public class UserController {
                 return ResponseEntity.badRequest().body("Email đã tồn tại!");
             }
         }
-
         // Cập nhật thông tin người dùng
         existingUser.setUsername(updatedUser.getUsername());
         existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        existingUser.setPassword(updatedUser.getPassword());
         existingUser.setChessElo(updatedUser.getChessElo());
         existingUser.setChessDownElo(updatedUser.getChessDownElo());
 
         // Lưu lại người dùng đã được cập nhật
         userService.saveUser(existingUser);
-
         return ResponseEntity.ok("Người dùng đã được cập nhật thành công!");
     }
-
-
-
 
 
     @PostMapping("/changepassword")

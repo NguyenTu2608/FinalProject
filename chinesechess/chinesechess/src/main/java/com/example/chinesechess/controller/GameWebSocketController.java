@@ -187,7 +187,8 @@ public class GameWebSocketController {
             // Lưu lịch sử trận đấu trước khi reset trạng thái game
             String playerRed = game.getPlayerRed();
             String playerBlack = game.getPlayerBlack();
-            List<MoveDTO> moves = game.getMoves();  // Lưu lại các bước đi hiện tại
+            List<MoveDTO> moves = game.getMoves();
+            // Lưu lại các bước đi hiện tại
             String gameMode = game.getGameMode();
             try {
                 // Lưu lịch sử trận đấu vào cơ sở dữ liệu

@@ -11,12 +11,9 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -44,13 +41,13 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public User saveUser(User user) {
+    public void saveUser(User user) {
         String password = user.getPassword();
         if (!password.startsWith("$2a$") && !password.startsWith("$2b$")) {
             password = passwordEncoder.encode(password);
         }
         user.setPassword(password);
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
     public void deleteUser(String id) {
@@ -98,12 +95,12 @@ public class UserService {
         adminRepository.delete(admin);
     }
 
-    public Admin saveAdmin(Admin admin) {
+    public void saveAdmin(Admin admin) {
         String password = admin.getPassword();
         if (!password.startsWith("$2a$") && !password.startsWith("$2b$")) {
             password = passwordEncoder.encode(password);
         }
         admin.setPassword(password);
-        return adminRepository.save(admin);
+        adminRepository.save(admin);
     }
 }

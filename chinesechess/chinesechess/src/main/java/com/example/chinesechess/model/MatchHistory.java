@@ -14,6 +14,7 @@ public class MatchHistory {
     private String playerRed;
     private String playerBlack;
     private String winner;
+    private String CreatedAt;
     private List<MoveDTO> moves; // Danh sách nước đi
     private String gameMode; // Chế độ chơi: "online" hoặc "local"
 
@@ -99,6 +100,14 @@ public class MatchHistory {
                 ", moves=" + moves +
                 ", gameMode='" + gameMode + '\'' +
                 '}';
+    }
+
+    public String getCreatedAt() {
+        return CreatedAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        CreatedAt = createdAt;
     }
 }
 

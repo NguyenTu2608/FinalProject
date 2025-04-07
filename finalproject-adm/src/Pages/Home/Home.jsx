@@ -12,8 +12,7 @@ const Home = () => {
       // Nếu đã đăng nhập, chuyển hướng về trang chính
       setIsLoggedIn(!!token);
     }
-    else
-    {
+    else {
       navigate("/");
     }
   }, [navigate]);
@@ -23,7 +22,7 @@ const Home = () => {
     setIsLoggedIn(false);
     navigate("/");
   };
-  
+
   return (
     <div
       style={{
@@ -36,40 +35,40 @@ const Home = () => {
       }}
     >
       <div className="absolute top-0 left-0 w-full p-4">
-        <Profile  />
+        <Profile />
       </div>
       <div className="flex justify-center items-center h-[85vh] relative z-10">
-  <div className="grid grid-cols-2 gap-48 mt-24">
-  <button onClick={() => navigate("/usermanagement")} className="group flex flex-col items-center gap-4">
-  <img
-    src="/Assets/icon-quanliuser1.png"
-    alt="Cờ Tướng"
-    className="w-80 h-80 rounded-full object-cover transform transition duration-300 group-hover:scale-110"
-  />
-  <span
-    className="text-3xl font-bold text-yellow-500"
-    style={{ fontFamily: '"Noto Serif TC", serif' }}
-  >
-    Quản lí người dùng
-  </span>
-</button>
+        <div className="grid grid-cols-2 gap-48 mt-24">
+          <button onClick={() => navigate("/usermanagement")} className="group flex flex-col items-center gap-4">
+            <img
+              src="/Assets/icon-quanliuser1.png"
+              alt="Cờ Tướng"
+              className="w-80 h-80 rounded-full object-cover transform transition duration-300 group-hover:scale-110"
+            />
+            <span
+              className="text-3xl font-bold text-yellow-500"
+              style={{ fontFamily: '"Noto Serif TC", serif' }}
+            >
+              Quản lí người dùng
+            </span>
+          </button>
 
-<button onClick={() => navigate("/gamemanagement")} className="group flex flex-col items-center gap-4">
-  <img
-    src="/Assets/icon-quanligame.png"
-    alt="Luyện Tập"
-    className="w-80 h-80 rounded-full object-cover transform transition duration-300 group-hover:scale-110"
-  />
-  <span
-    className="text-3xl font-bold text-yellow-500"
-    style={{ fontFamily: '"Noto Serif TC", serif' }}
-  >
-    Quản lí Game
-  </span>
-</button>
+          <button onClick={() => navigate("/gamemanagement")} className="group flex flex-col items-center gap-4">
+            <img
+              src="/Assets/icon-quanligame.png"
+              alt="Luyện Tập"
+              className="w-80 h-80 rounded-full object-cover transform transition duration-300 group-hover:scale-110"
+            />
+            <span
+              className="text-3xl font-bold text-yellow-500"
+              style={{ fontFamily: '"Noto Serif TC", serif' }}
+            >
+              Quản lí Game
+            </span>
+          </button>
 
-  </div>
-</div>
+        </div>
+      </div>
 
 
       {/* Đăng xuất */}

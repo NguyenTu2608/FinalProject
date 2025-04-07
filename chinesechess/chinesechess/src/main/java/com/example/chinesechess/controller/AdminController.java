@@ -76,6 +76,43 @@ public class AdminController {
         userService.saveAdmin(admin);
         return ResponseEntity.ok("Người dùng đã được thêm thành công!");
     }
+    @PutMapping("/{username}")
+    public ResponseEntity<?> updateUser(@PathVariable String username, @RequestBody Admin updatedAdmin) {
+        // Kiểm tra người dùng có tồn tại không dựa trên username
+        Admin existingAdmin = userService.getAdminByUsername(username);
+        if (existingAdmin == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (updatedAdmin.getEmail() == null || updatedAdmin.getEmail().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Email không được để trống!");
+        }
+        if (updatedAdmin.getPassword() == null || updatedAdmin.getPassword().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Password không được để trống!");
+        }
+
+        // Kiểm tra xem username mới có trùng với người dùng khác không
+        if (!existingAdmin.getUsername().equals(updatedAdmin.getUsername())) {
+            Admin adminWithSameUsername = userService.getAdminByUsername(updatedAdmin.getUsername());
+            if (adminWithSameUsername != null) {
+                return ResponseEntity.badRequest().body("Username đã tồn tại!");
+            }
+        }
+        // Kiểm tra xem email mới có trùng với người dùng khác không
+        if (!existingAdmin.getEmail().equals(updatedAdmin.getEmail())) {
+            Admin userWithSameEmail = userService.getAdminByEmail(updatedAdmin.getEmail());
+            if (userWithSameEmail != null) {
+                return ResponseEntity.badRequest().body("Email đã tồn tại!");
+            }
+        }
+        // Cập nhật thông tin người dùng
+        existingAdmin.setUsername(updatedAdmin.getUsername());
+        existingAdmin.setEmail(updatedAdmin.getEmail());
+        existingAdmin.setPassword(updatedAdmin.getPassword());
+
+        // Lưu lại người dùng đã được cập nhật
+        userService.saveAdmin(existingAdmin);
+        return ResponseEntity.ok("Người dùng đã được cập nhật thành công!");
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Admin> getAdminById(@PathVariable String id) {

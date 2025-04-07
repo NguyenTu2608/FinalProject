@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/users")
@@ -38,8 +40,44 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.saveUser(user);
+    public ResponseEntity<String> createUser(@RequestBody User user) {
+        // Kiểm tra xem username có trống không
+        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Username không được để trống!");
+        }
+        // Kiểm tra xem email có trống không
+        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Email không được để trống!");
+        }
+
+        // Kiểm tra xem password có trống không
+        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Password không được để trống!");
+        }
+
+        String email = user.getEmail().trim();
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        Pattern pattern = Pattern.compile(emailRegex);
+        Matcher matcher = pattern.matcher(email);
+        if (!matcher.matches()) {
+            return ResponseEntity.badRequest().body("Email không đúng định dạng!");
+        }
+
+        // Kiểm tra xem username đã tồn tại chưa
+        Optional<User> existingUserByUsername = Optional.ofNullable(userService.getUserByUsername(user.getUsername()));
+        if (existingUserByUsername.isPresent()) {
+            return ResponseEntity.badRequest().body("Username đã tồn tại!");
+        }
+
+        // Kiểm tra xem email đã tồn tại chưa
+        Optional<User> existingUserByEmail = Optional.ofNullable(userService.getUserByEmail(user.getEmail()));
+        if (existingUserByEmail.isPresent()) {
+            return ResponseEntity.badRequest().body("Email đã tồn tại!");
+        }
+
+        // Nếu không có trùng lặp và các trường hợp trên đã được kiểm tra, lưu người dùng mới vào cơ sở dữ liệu
+        userService.saveUser(user);
+        return ResponseEntity.ok("Người dùng đã được thêm thành công!");
     }
 
     @DeleteMapping("/{id}")
@@ -49,6 +87,16 @@ public class UserController {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/username/{username}")
+    public ResponseEntity<Void> deleteUserByUsername(@PathVariable String username) {
+        try {
+            userService.deleteUserByUsername(username);  // Gọi dịch vụ xóa admin theo username
+            return ResponseEntity.noContent().build();   // Trả về 204 No Content nếu xóa thành công
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();    // Trả về 404 Not Found nếu admin không tồn tại
         }
     }
 
@@ -70,6 +118,58 @@ public class UserController {
 
         return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/{username}")
+    public ResponseEntity<?> updateUser(@PathVariable String username, @RequestBody User updatedUser) {
+        // Kiểm tra người dùng có tồn tại không dựa trên username
+        User existingUser = userService.getUserByUsername(username);
+        if (existingUser == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (updatedUser.getEmail() == null || updatedUser.getEmail().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Email không được để trống!");
+        }
+        if (updatedUser.getPassword() == null || updatedUser.getPassword().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Password không được để trống!");
+        }
+        if (updatedUser.getChessElo() == null) {
+            return ResponseEntity.badRequest().body("ChessElo không được để trống!");
+        }
+        if (updatedUser.getChessDownElo() == null) {
+            return ResponseEntity.badRequest().body("ChessDownElo không được để trống!");
+        }
+
+        // Kiểm tra xem username mới có trùng với người dùng khác không
+        if (!existingUser.getUsername().equals(updatedUser.getUsername())) {
+            User userWithSameUsername = userService.getUserByUsername(updatedUser.getUsername());
+            if (userWithSameUsername != null) {
+                return ResponseEntity.badRequest().body("Username đã tồn tại!");
+            }
+        }
+        // Kiểm tra xem email mới có trùng với người dùng khác không
+        if (!existingUser.getEmail().equals(updatedUser.getEmail())) {
+            User userWithSameEmail = userService.getUserByEmail(updatedUser.getEmail());
+            if (userWithSameEmail != null) {
+                return ResponseEntity.badRequest().body("Email đã tồn tại!");
+            }
+        }
+
+        // Cập nhật thông tin người dùng
+        existingUser.setUsername(updatedUser.getUsername());
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        existingUser.setChessElo(updatedUser.getChessElo());
+        existingUser.setChessDownElo(updatedUser.getChessDownElo());
+
+        // Lưu lại người dùng đã được cập nhật
+        userService.saveUser(existingUser);
+
+        return ResponseEntity.ok("Người dùng đã được cập nhật thành công!");
+    }
+
+
+
 
 
     @PostMapping("/changepassword")

@@ -57,6 +57,13 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    public void deleteUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
+        userRepository.delete(user);
+    }
+
+
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
     }
@@ -84,6 +91,11 @@ public class UserService {
 
     public void deleteAdmin(String id) {
         adminRepository.deleteById(id);
+    }
+    public void deleteAdminByUsername(String username) {
+        Admin admin = adminRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
+        adminRepository.delete(admin);
     }
 
     public Admin saveAdmin(Admin admin) {

@@ -22,3 +22,9 @@ code {
     monospace;
 }
 
+/* Ẩn thanh cuộn mặc định */
+::-webkit-scrollbar {
+  display: none;
+}
+
+

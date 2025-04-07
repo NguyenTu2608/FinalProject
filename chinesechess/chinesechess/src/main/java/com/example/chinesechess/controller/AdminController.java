@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 @RestController
 @RequestMapping("/api/admins")
@@ -34,8 +37,44 @@ public class AdminController {
     }
 
     @PostMapping
-    public Admin createAdmin(@RequestBody Admin admin) {
-        return userService.saveAdmin(admin);
+    public ResponseEntity<String> createAdmin(@RequestBody Admin admin) {
+        // Kiểm tra xem username có trống không
+        if (admin.getUsername() == null || admin.getUsername().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Username không được để trống!");
+        }
+
+        // Kiểm tra xem email có trống không
+        if (admin.getEmail() == null || admin.getEmail().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Email không được để trống!");
+        }
+
+        // Kiểm tra xem password có trống không
+        if (admin.getPassword() == null || admin.getPassword().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Password không được để trống!");
+        }
+
+        String email = admin.getEmail().trim();
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        Pattern pattern = Pattern.compile(emailRegex);
+        Matcher matcher = pattern.matcher(email);
+        if (!matcher.matches()) {
+            return ResponseEntity.badRequest().body("Email không đúng định dạng!");
+        }
+
+        // Kiểm tra xem username đã tồn tại chưa
+        Optional<Admin> existingAdminByUsername = Optional.ofNullable(userService.getAdminByUsername(admin.getUsername()));
+        if (existingAdminByUsername.isPresent()) {
+            return ResponseEntity.badRequest().body("Username đã tồn tại!");
+        }
+        // Kiểm tra xem email đã tồn tại chưa
+        Optional<Admin> existingAdminByEmail = Optional.ofNullable(userService.getAdminByEmail(admin.getEmail()));
+        if (existingAdminByEmail.isPresent()) {
+            return ResponseEntity.badRequest().body("Email đã tồn tại!");
+        }
+
+        // Nếu không có trùng lặp và các trường hợp trên đã được kiểm tra, lưu người dùng mới vào cơ sở dữ liệu
+        userService.saveAdmin(admin);
+        return ResponseEntity.ok("Người dùng đã được thêm thành công!");
     }
 
     @GetMapping("/{id}")
@@ -72,6 +111,16 @@ public class AdminController {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/username/{username}")
+    public ResponseEntity<Void> deleteAdminByUsername(@PathVariable String username) {
+        try {
+            userService.deleteAdminByUsername(username);  // Gọi dịch vụ xóa admin theo username
+            return ResponseEntity.noContent().build();   // Trả về 204 No Content nếu xóa thành công
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();    // Trả về 404 Not Found nếu admin không tồn tại
         }
     }
 

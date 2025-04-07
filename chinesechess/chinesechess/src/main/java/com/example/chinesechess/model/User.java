@@ -11,8 +11,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
         private String username; // Unique username
         private String password; // Hashed password
         private String email; // Email address
-        private int chessElo = 1200;
-        private int chessDownElo = 1200;
+        private Integer chessElo = 1200;
+        private Integer chessDownElo = 1200;
         private String avatar = "";
         private String rankChess ="Tập Sự";
         private String rankChessDown ="Tập Sự";
@@ -59,11 +59,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
         this.email = email;
     }
 
-    public int getChessElo() {
+    public Integer getChessElo() {
         return chessElo;
     }
 
-    public void setChessElo(int chessElo) {
+    public void setChessElo(Integer chessElo) {
         this.chessElo = chessElo;
     }
 
@@ -75,11 +75,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
         this.avatar = avatar;
     }
 
-    public int getChessDownElo() {
+    public Integer getChessDownElo() {
         return chessDownElo;
     }
 
-    public void setChessDownElo(int chessDownElo) {
+    public void setChessDownElo(Integer chessDownElo) {
         this.chessDownElo = chessDownElo;
     }
 

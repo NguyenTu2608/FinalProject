@@ -9,11 +9,8 @@ class GameManager {
         console.warn("⚠ Dữ liệu quân cờ không hợp lệ:", piece);
         return [];
     }
-
-
     const moves = [];
     const isRed = piece === piece.toLowerCase(); // Xác định quân đỏ hay đen
-
 
     switch (piece.toLowerCase()) {
         case "p": // 🛠 Tốt (Pawn)
@@ -53,7 +50,6 @@ class GameManager {
             console.warn("⚠ Không xác định được quân cờ:", piece);
             break;             
     }
-
     return moves;
 }
 

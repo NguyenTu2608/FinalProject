@@ -13,7 +13,6 @@ import Profile from "./Components/Profile";
 import AuthPage from "./Pages/Home/AuthPage";
 import TrainingRoom from "./Pages/Game/TrainingRoom";
 import ChooseAI from "./Pages/Game/ChooseAI";
-import TrainingAI from "./Pages/Game/TrainingAI";
 import ChessboardAI from "./Components/ChessboardAI";
 import { UserProvider } from "./Pages/Context/userContext";
 import PrivateRoute from "./Pages/Context/PrivateRoute"; // Import PrivateRoute

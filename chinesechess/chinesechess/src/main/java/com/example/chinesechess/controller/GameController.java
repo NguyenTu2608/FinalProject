@@ -66,7 +66,6 @@ public class GameController {
         else {
             return ResponseEntity.badRequest().body("Invalid game mode");
         }
-
         game.setMoves(new ArrayList<>());
         game.setCreatedAt(Instant.now().toString());
         game.setGameMode(request.getGameMode());
@@ -132,6 +131,7 @@ public class GameController {
         newGame.setCreatedAt(Instant.now().toString());
         newGame.setGameMode("online");
         newGame.setCurrentTurn("black");
+        newGame.setName(generateRandomRoomName());
 
         Game savedGame = gameService.createGame(newGame);
         return ResponseEntity.ok(savedGame); // ✅ Trả về phòng mới được tạo
@@ -157,6 +157,18 @@ public class GameController {
     @DeleteMapping("/{gameId}")
     public void deleteGame(@PathVariable String gameId) {
         gameService.deleteGame(gameId);
+    }
+
+    private String generateRandomRoomName() {
+        int length = 6;
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb = new StringBuilder("Room-");
+        Random random = new Random();
+
+        for (int i = 0; i < length; i++) {
+            sb.append(characters.charAt(random.nextInt(characters.length())));
+        }
+        return sb.toString();
     }
 
 }

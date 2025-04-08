@@ -20,14 +20,14 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-  
+
     try {
       const response = await login(username, password);
       if (!response.token) {
         setError("Sai tên đăng nhập hoặc mật khẩu");
         return;
       }
-  
+
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
       navigate("/Home");
@@ -39,7 +39,7 @@ const Login = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('../public/Assets/background.png')" }}>
-      <button 
+      <button
         className="absolute top-5 left-5 flex items-center text-[#D81B60] text-lg font-semibold hover:text-[#B71C1C] transition"
         onClick={() => navigate("/")}
       >

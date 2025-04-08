@@ -19,13 +19,13 @@ const Game = () => {
 
   const navigate = useNavigate();
 
-  
+
   const handleLeaveGame = () => {
     if (!gameId || !username) return;
     websocketService.sendLeaveRequest(gameId, username);
     navigate("/Lobby");
   };
-  
+
   const getUsernameFromToken = () => {
     try {
       const token = localStorage.getItem("token");
@@ -38,19 +38,19 @@ const Game = () => {
     }
   };
   const username = getUsernameFromToken();
-  
+
 
   // --- Websocket Setup ---
   useEffect(() => {
     websocketService.connect(() => {
       websocketService.sendJoinRequest(gameId, username);
       websocketService.subscribeToGame(gameId, (message) => {
-        
+
         if (message.type === "playerUpdate") {
           setNameGame(message.name);
           setPlayerBlack(message.playerBlack);
           setPlayerRed(message.playerRed);
-        } 
+        }
       });
       // Chat subscription
       websocketService.subscribeToChat(gameId, (chatMsg) => {
@@ -88,95 +88,93 @@ const Game = () => {
     }
   }, [messages, isVisible]);
 
-  
+
 
 
   return (
     <div className="game-container p-4 min-h-screen flex items-center justify-center">
       <div className="flex flex-col md:flex-row gap-4 justify-center items-center w-full">
         <div className="flex-1 max-w-full flex justify-center">
-          <Chessboard 
+          <Chessboard
             nameGame={nameGame}
-            gameId={gameId} 
-            playerBlack={playerBlack} 
+            gameId={gameId}
+            playerBlack={playerBlack}
             playerRed={playerRed}
             gameMode={gameMode}
             username={username}
-            setPlayerBlack={setPlayerBlack} 
+            setPlayerBlack={setPlayerBlack}
             setPlayerRed={setPlayerRed}
           />
         </div>
       </div>
       <div className="fixed bottom-5 right-5">
-      {/* Toggle Button */}
-      {!isVisible && (
-        <button
-          onClick={() => {
-            setIsVisible(true);
-            setHasNewMessage(false); // Mở chat => dừng nháy
-          }}
-          className={`bg-blue-500 text-white px-3 py-2 rounded-full shadow-md hover:bg-blue-600 transition ${
-            hasNewMessage ? "animate-pulse" : ""
-          }`}
-        >
-          💬 Chat
-        </button>
-      )}
+        {/* Toggle Button */}
+        {!isVisible && (
+          <button
+            onClick={() => {
+              setIsVisible(true);
+              setHasNewMessage(false); // Mở chat => dừng nháy
+            }}
+            className={`bg-blue-500 text-white px-3 py-2 rounded-full shadow-md hover:bg-blue-600 transition ${hasNewMessage ? "animate-pulse" : ""
+              }`}
+          >
+            💬 Chat
+          </button>
+        )}
 
-      {/* Chat Box */}
-      {isVisible && (
-        <div className="w-80 flex flex-col border border-gray-500/50 rounded-xl backdrop-blur-md bg-white/10 shadow-lg">
-          {/* Header */}
-          <div className="p-2 rounded-t-xl text-white font-semibold text-sm border-b border-gray-500/30 flex justify-between items-center">
-            <span>💬 Chat</span>
-            <button
-              onClick={() => setIsVisible(false)}
-              className="text-white text-xs hover:text-red-400 transition"
-            >
-              ✖
-            </button>
-          </div>
-          {/* Messages */}
-          <div className="flex-1 p-2 overflow-y-auto max-h-64">
-          {messages.map((msg, index) => {
-            const isSender = msg.sender === username;
-            return (
-              <div key={index} className={`mb-2 ${isSender ? 'text-right' : 'text-left'}`}>
-                <div
-                  className={`inline-block px-4 py-2 rounded-lg shadow ${
-                isSender
-                  ? 'bg-gradient-to-r from-blue-400 to-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-800'
-                }`}
-                >
-                  <strong>{isSender ? 'Bạn' : msg.sender}:</strong> {msg.content}
-                </div>
-              </div>
-            );
-          })}
-            <div ref={messagesEndRef}></div>
-          </div>
+        {/* Chat Box */}
+        {isVisible && (
+          <div className="w-80 flex flex-col border border-gray-500/50 rounded-xl backdrop-blur-md bg-white/10 shadow-lg">
+            {/* Header */}
+            <div className="p-2 rounded-t-xl text-white font-semibold text-sm border-b border-gray-500/30 flex justify-between items-center">
+              <span>💬 Chat</span>
+              <button
+                onClick={() => setIsVisible(false)}
+                className="text-white text-xs hover:text-red-400 transition"
+              >
+                ✖
+              </button>
+            </div>
+            {/* Messages */}
+            <div className="flex-1 p-2 overflow-y-auto max-h-64">
+              {messages.map((msg, index) => {
+                const isSender = msg.sender === username;
+                return (
+                  <div key={index} className={`mb-2 ${isSender ? 'text-right' : 'text-left'}`}>
+                    <div
+                      className={`inline-block px-4 py-2 rounded-lg shadow ${isSender
+                          ? 'bg-gradient-to-r from-blue-400 to-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-800'
+                        }`}
+                    >
+                      <strong>{isSender ? 'Bạn' : msg.sender}:</strong> {msg.content}
+                    </div>
+                  </div>
+                );
+              })}
+              <div ref={messagesEndRef}></div>
+            </div>
 
-          {/* Input */}
-          <div className="p-2 flex gap-2 border-t border-gray-500/30">
-            <input
-              type="text"
-              className="flex-1 border border-gray-500/50 bg-transparent rounded-full px-3 py-1 text-sm text-white focus:outline-none focus:ring focus:ring-blue-400"
-              placeholder="Nhập tin nhắn..."
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            />
-            <button
-              onClick={sendMessage}
-              className="bg-blue-500 text-white px-4 py-1 rounded-full hover:bg-blue-600 transition text-sm"
-            >
-              Gửi
-            </button>
+            {/* Input */}
+            <div className="p-2 flex gap-2 border-t border-gray-500/30">
+              <input
+                type="text"
+                className="flex-1 border border-gray-500/50 bg-transparent rounded-full px-3 py-1 text-sm text-white focus:outline-none focus:ring focus:ring-blue-400"
+                placeholder="Nhập tin nhắn..."
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+              />
+              <button
+                onClick={sendMessage}
+                className="bg-blue-500 text-white px-4 py-1 rounded-full hover:bg-blue-600 transition text-sm"
+              >
+                Gửi
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
       <button
         onClick={handleLeaveGame}
         className="absolute bottom-5 left-5 px-6 py-3 bg-red-500 rounded-full text-lg font-semibold hover:bg-red-700 transition"

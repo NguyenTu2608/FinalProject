@@ -31,7 +31,7 @@ const AuthPage = () => {
               alt="Đăng nhập"
               className="w-80 h-80 rounded-full object-cover transform transition duration-300 group-hover:scale-110"
             />
-            <span 
+            <span
               className="absolute bottom-[-80px] left-1/2 transform -translate-x-1/2 text-2xl font-bold text-yellow-500"
               style={{ fontFamily: '"Noto Serif TC", serif' }}
             >
@@ -46,7 +46,7 @@ const AuthPage = () => {
               alt="Đăng ký"
               className="w-80 h-80 rounded-full object-cover transform transition duration-300 group-hover:scale-110"
             />
-            <span 
+            <span
               className="absolute bottom-[-80px] left-1/2 transform -translate-x-1/2 text-2xl font-bold text-yellow-500"
               style={{ fontFamily: '"Noto Serif TC", serif' }}
             >

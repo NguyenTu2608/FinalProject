@@ -1,13 +1,13 @@
 import axios from "axios";
 
- const API_BASE_URL = "http://localhost:8080/api"; // URL của backend Spring Boot
+const API_BASE_URL = "http://localhost:8080/api"; // URL của backend Spring Boot
 //  const API_BASE_URL = "https://api.chinachess.io.vn/api"; 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-}); 
+});
 
 // Thêm Interceptor để tự động thêm token vào request
 apiClient.interceptors.request.use(

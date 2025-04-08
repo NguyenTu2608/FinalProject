@@ -116,7 +116,6 @@ public class GameWebSocketController {
     @MessageMapping("/game/leave")
     public void leaveGame(@Payload Map<String, Object> request) {
         System.out.println("📩 Nhận yêu cầu rời phòng: " + request);
-
         String gameId = (String) request.get("gameId");
         String playerUsername = (String) request.get("player");
 
@@ -125,27 +124,44 @@ public class GameWebSocketController {
             System.out.println("❌ Game không tồn tại!");
             return;
         }
-
         Game game = optionalGame.get();
         boolean isPlayerInGame = false;
+        boolean isGameStarted = "starting".equals(game.getGameStatus());
+        String winner = null;
 
         // 🔥 Kiểm tra và loại bỏ người chơi khỏi phòng
         if (playerUsername.equals(game.getPlayerBlack())) {
             game.setPlayerBlack(null);
-            game.setCurrentTurn("black");
-            game.setBlackReady(false);
-            game.setGameStatus("waiting");
-            game.setRedReady(false);
-            game.setMoves(null);
             isPlayerInGame = true;
+
+            if (isGameStarted) {
+                winner = "red";
+                game.setGameStatus("finished");
+                game.setWinner("red");
+            } else {
+                game.setGameStatus("waiting");
+            }
+
+            game.setBlackReady(false);
+            game.setRedReady(false);
+            game.setCurrentTurn("black");
+            game.setMoves(null);
         } else if (playerUsername.equals(game.getPlayerRed())) {
             game.setPlayerRed(null);
+            isPlayerInGame = true;
+
+            if (isGameStarted) {
+                winner = "black";
+                game.setGameStatus("finished");
+                game.setWinner("black");
+            } else {
+                game.setGameStatus("waiting");
+            }
+
             game.setRedReady(false);
             game.setBlackReady(false);
-            game.setGameStatus("waiting");
             game.setCurrentTurn("black");
             game.setMoves(null);
-            isPlayerInGame = true;
         }
 
         if (!isPlayerInGame) {
@@ -158,20 +174,26 @@ public class GameWebSocketController {
             gameService.deleteGame(gameId);
             System.out.println("🚀 Phòng " + gameId + " đã được reset vì không còn người chơi.");
         } else {
-            // 🔥 Cập nhật lại trạng thái phòng nếu vẫn còn người chơi
             gameService.updateGame(game);
             System.out.println("✅ Người chơi đã rời phòng: " + playerUsername);
         }
 
-        // 🔥 Gửi thông báo cập nhật danh sách người chơi
+        // 🔥 Gửi thông báo tới client
         Map<String, Object> response = new HashMap<>();
         response.put("type", "playerLeft");
         response.put("gameId", gameId);
         response.put("playerBlack", game.getPlayerBlack());
         response.put("playerRed", game.getPlayerRed());
+        response.put("gameStatus", game.getGameStatus());
+
+        if (winner != null) {
+            response.put("winner", winner);
+            response.put("reason", "opponentLeft");
+        }
 
         messagingTemplate.convertAndSend("/topic/game/" + gameId, response);
     }
+
 
     @MessageMapping("/game/surrender")
     public void handleSurrender(@Payload Map<String, String> payload) {
@@ -344,7 +366,6 @@ public class GameWebSocketController {
                     game.setRedReady(false);
                     game.setGameStatus("waiting");
                 }
-
                 game.setMoves(null); // Clear the moves if the game isn't started
                 gameService.updateGame(game); // Lưu thay đổi vào DB
 

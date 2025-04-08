@@ -10,23 +10,23 @@ const Pratice = () => {
       style={{ backgroundImage: "url('/Assets/background.png')" }}
     >
       <div className="absolute top-0 left-0 w-full p-4">
-        <Profile  />
+        <Profile />
       </div>
       {/* Tiêu đề */}
       <h1 className="text-6xl font-bold mb-10 text-[#8B0000] drop-shadow-lg">Chế độ Luyện Tập</h1>
-      
+
       {/* Các nút lựa chọn */}
       <div className="flex flex-col gap-6 w-80">
         <button
           onClick={() => navigate("/Training/TrainingRoom")}
-          className="w-full py-4 bg-blue-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-blue-700 shadow-md"
+          className="w-full py-4 bg-blue-600 rounded-full text-xl font-semibold transition duration-300 hover:bg-blue-700 shadow-md"
         >
           🏠 Hai người chơi
         </button>
 
         <button
           onClick={() => navigate("/Training/ChooseAI")}
-          className="w-full py-4 bg-green-600 rounded-lg text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md"
+          className="w-full py-4 bg-green-600 rounded-full text-xl font-semibold transition duration-300 hover:bg-green-700 shadow-md"
         >
           🔍 Chơi với AI
         </button>

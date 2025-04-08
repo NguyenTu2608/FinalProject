@@ -13,6 +13,7 @@ class WebSocketService {
       return;
     }
     const socket = new SockJS("http://localhost:8080/ws");
+    // const socket = new SockJS("https://api.chinachess.io.vn/ws");
     this.client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
@@ -46,37 +47,37 @@ class WebSocketService {
   }
   sendReadyRequest(gameId, username) {
     if (!gameId || !username) {
-        console.error("❌ LỖI: gameId hoặc username bị null hoặc undefined!");
-        return;
+      console.error("❌ LỖI: gameId hoặc username bị null hoặc undefined!");
+      return;
     }
 
-    console.log("📩 Gửi trạng thái sẵn sàng:", { gameId, username });
+    // console.log("📩 Gửi trạng thái sẵn sàng:", { gameId, username });
     this.client.publish({
-        destination: "/app/game/ready",
-        body: JSON.stringify({ gameId: gameId, player: username })
+      destination: "/app/game/ready",
+      body: JSON.stringify({ gameId: gameId, player: username })
     });
   }
 
   subscribeToGame(gameId, callback) {
-    console.log("✅ Đăng ký WebSocket với gameId:", gameId);
-  
+    // console.log("✅ Đăng ký WebSocket với gameId:", gameId);
+
     if (!this.client || !this.client.connected) {
       console.warn("⚠ WebSocket chưa kết nối, thử lại sau...");
       setTimeout(() => this.subscribeToGame(gameId, callback), 500);
       return;
     }
     this.client.subscribe(`/topic/game/${gameId}`, (message) => {
-      
+
       try {
         const data = JSON.parse(message.body);
-        console.log("📩 Dữ liệu sau khi parse JSON:", data);
-        
+        // console.log("📩 Dữ liệu sau khi parse JSON:", data);
+
         if (data.type === "playerUpdate") {
           console.log("👤 Nhận playerUpdate:", data.playerBlack, data.playerRed);
         } else {
           console.warn("⚠ Nhận tin nhắn nhưng không phải playerUpdate:", data);
         }
-  
+
         callback(data);
       } catch (error) {
         console.error("❌ LỖI: Không thể parse JSON từ WebSocket!", error);
@@ -93,27 +94,27 @@ class WebSocketService {
   }
 
   sendRefreshRequest(gameId, username) {
-    console.log("🔄 Gửi WebSocket REFRESH với:", JSON.stringify({ gameId, player: username }));
-  
+    // console.log("🔄 Gửi WebSocket REFRESH với:", JSON.stringify({ gameId, player: username }));
+
     // Kiểm tra gameId và username có hợp lệ không
     if (!gameId || !username) {
       console.error("❌ LỖI: gameId hoặc username bị null hoặc undefined!");
       return;
     }
-  
+
     // Kiểm tra WebSocket có kết nối không
     if (!this.isConnected || !this.client) {
       console.error("❌ LỖI: WebSocket chưa kết nối!");
       return;
     }
-  
+
     // Gửi yêu cầu REFRESH thông qua WebSocket
     this.client.publish({
       destination: "/app/game/refresh",
       body: JSON.stringify({ gameId: gameId, player: username })
     });
   }
-  
+
 
   setupRefreshOnUnload(gameId, username) {
     this.unloadHandler = () => {
@@ -124,15 +125,15 @@ class WebSocketService {
         console.warn("⚠ WebSocket không kết nối khi người chơi refresh trang!");
       }
     };
-  
+
     // Thêm sự kiện beforeunload
     window.addEventListener("beforeunload", this.unloadHandler);
   }
-  
+
 
   sendJoinRequest(gameId, username) {
     console.log("📩 Gửi WebSocket tham gia game với:", JSON.stringify({ gameId, player: username }));
-  
+
     if (!gameId) {
       console.error("❌ LỖI: gameId bị null hoặc undefined!");
       return;
@@ -143,15 +144,15 @@ class WebSocketService {
     });
   }
 
-  
+
   sendLeaveRequest(gameId, username) {
     console.log("📩 Gửi WebSocket rời phòng với:", JSON.stringify({ gameId, player: username }));
-  
+
     if (!gameId) {
       console.error("❌ LỖI: gameId bị null hoặc undefined!");
       return;
     }
-  
+
     this.client.publish({
       destination: "/app/game/leave",
       body: JSON.stringify({ gameId: gameId, player: username }) // ✅ Đảm bảo `gameId` không bị null
@@ -162,9 +163,9 @@ class WebSocketService {
     if (!this.client || !this.client.connected) {
       console.warn("⚠ WebSocket chưa kết nối, không thể gửi nước đi!");
       return;
-  }
+    }
     console.log("📩 Gửi nước đi:", move);
-  
+
     this.client.publish({
       destination: `/app/game/${gameId}/move`,
       body: JSON.stringify(move),
@@ -173,12 +174,12 @@ class WebSocketService {
 
   sendSurrenderNotification(gameId, player) {
     console.log(`📩 Gửi thông báo đầu hàng: ${player} đầu hàng`);
-  
+
     if (!gameId) {
       console.error("❌ LỖI: gameId bị null hoặc undefined!");
       return;
     }
-  
+
     this.client.publish({
       destination: "/app/game/surrender",
       body: JSON.stringify({
@@ -194,31 +195,31 @@ class WebSocketService {
     console.log("📩 Gửi thông báo chiếu tướng:", JSON.stringify({ gameId, currentPlayer, isCheck, isCheckmate }));
 
     if (!gameId) {
-        console.error("❌ LỖI: gameId bị null hoặc undefined!");
-        return;
+      console.error("❌ LỖI: gameId bị null hoặc undefined!");
+      return;
     }
 
     console.log("Gửi thông báo chiếu: ", { gameId, currentPlayer, isCheck, isCheckmate });
     this.client.publish({
-        destination: "/app/game/check",
-        body: JSON.stringify({ 
-            gameId: gameId, 
-            currentPlayer: currentPlayer, 
-            isCheck: isCheck, 
-            isCheckmate: isCheckmate 
-        })
+      destination: "/app/game/check",
+      body: JSON.stringify({
+        gameId: gameId,
+        currentPlayer: currentPlayer,
+        isCheck: isCheck,
+        isCheckmate: isCheckmate
+      })
     });
-}
+  }
 
   subscribeToChat(gameId, callback) {
-    console.log("✅ Đăng ký WebSocket chat với gameId:", gameId);
-  
+    // console.log("✅ Đăng ký WebSocket chat với gameId:", gameId);
+
     if (!this.client || !this.client.connected) {
       console.warn("⚠ WebSocket chưa kết nối, thử lại sau...");
       setTimeout(() => this.subscribeToChat(gameId, callback), 500);
       return;
     }
-    
+
     const subscription = this.client.subscribe(`/topic/game/${gameId}/chat`, (message) => {
       try {
         const data = JSON.parse(message.body);
@@ -228,10 +229,10 @@ class WebSocketService {
         console.error("❌ Không thể parse JSON chat message!", error);
       }
     });
-  
+
     this.subscriptions[`chat_${gameId}`] = subscription;
   }
-  
+
   unsubscribeFromChat(gameId) {
     if (this.subscriptions[`chat_${gameId}`]) {
       this.subscriptions[`chat_${gameId}`].unsubscribe();
@@ -239,27 +240,27 @@ class WebSocketService {
       console.log(`🔕 Unsubscribed from chat ${gameId}`);
     }
   }
-  
+
   sendChatMessage(gameId, username, messageContent) {
     if (!this.client || !this.client.connected) {
       console.warn("⚠ WebSocket chưa kết nối, không thể gửi chat!");
       return;
     }
-  
+
     const chatMessage = {
       sender: username,
       content: messageContent,
       timestamp: new Date().toISOString(),
     };
-  
+
     console.log("📤 Gửi chat message:", chatMessage);
-  
+
     this.client.publish({
       destination: `/app/game/${gameId}/chat`, // Đúng với @MessageMapping của bạn
       body: JSON.stringify(chatMessage),
     });
   }
-  
+
 
 }
 

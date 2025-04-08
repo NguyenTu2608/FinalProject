@@ -10,11 +10,11 @@ const Pratice = () => {
       style={{ backgroundImage: "url('/Assets/background.png')" }}
     >
       <div className="absolute top-0 left-0 w-full p-4">
-        <Profile  />
+        <Profile />
       </div>
       {/* Tiêu đề */}
       <h1 className="text-6xl font-bold mb-10 text-[#8B0000] drop-shadow-lg">Chế độ Luyện Tập</h1>
-      
+
       {/* Các nút lựa chọn */}
       <div className="flex flex-col gap-6 w-80">
         <button

@@ -21,9 +21,9 @@ export default function TrainingRoom() {
         playerRed,
         playerBlack
       }
-      
-    );
-    navigate(`/Training/TrainingRoom/${response.data.id}`)
+
+      );
+      navigate(`/Training/TrainingRoom/${response.data.id}`)
       if (!response.data || !response.data.id) {
         alert("Lỗi khi tạo ván cờ!");
         return;
@@ -52,7 +52,7 @@ export default function TrainingRoom() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-cover bg-center"
-         style={{ backgroundImage: "url('../public/Assets/background.png')" }}>
+      style={{ backgroundImage: "url('../public/Assets/background.png')" }}>
       {!currentGame ? (
         <div className="mb-6 flex flex-col items-center">
           <h1 className="text-6xl font-bold mb-10 text-[#003366] drop-shadow-lg">Luyện Tập 2 Người Chơi</h1>
@@ -78,23 +78,23 @@ export default function TrainingRoom() {
             onClick={() => navigate(-1)} // Quay lại trang trước
             className="absolute bottom-5 left-5 px-6 py-3 bg-red-500 rounded-full text-lg font-semibold hover:bg-red-700 transition"
           >
-          ⬅ Quay lại
+            ⬅ Quay lại
           </button>
         </div>
       ) : (
         <div className="mt-4 flex flex-col items-center">
           <Chessboard gameId={currentGame?.id} playerBlack={currentGame?.playerBlack} playerRed={currentGame?.playerRed} gameMode={currentGame?.gameMode} />
-          
+
           {/* Nút Thoát Phòng */}
-          <button 
-            onClick={leaveGame} 
+          <button
+            onClick={leaveGame}
             className="absolute bottom-5 left-5 px-6 py-3 bg-red-500 rounded-full text-lg font-semibold hover:bg-red-700 transition"
           >
             🚪 Thoát Phòng
           </button>
         </div>
       )}
-      
+
     </div>
   );
 }

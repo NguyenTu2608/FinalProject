@@ -11,12 +11,12 @@ const Register = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-          // Nếu đã đăng nhập, chuyển hướng về trang chính
-          navigate("/Home");
-        }
-      }, [navigate]);
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Nếu đã đăng nhập, chuyển hướng về trang chính
+      navigate("/Home");
+    }
+  }, [navigate]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -31,7 +31,7 @@ const Register = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('../public/Assets/background.png')" }}>
-      <button 
+      <button
         className="absolute top-5 left-5 flex items-center text-[#D81B60] text-lg font-semibold hover:text-[#B71C1C] transition"
         onClick={() => navigate("/")}
       >
@@ -71,7 +71,7 @@ const Register = () => {
               className="w-full bg-transparent outline-none text-gray-700 font-sans"
             />
           </div>
-          
+
           <button type="submit" className="bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300 shadow-md font-serif">
             Đăng Ký
           </button>

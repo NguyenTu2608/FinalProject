@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import apiClient from '../Services/apiConfig'; 
+import apiClient from '../Services/apiConfig';
 
 const MenuButton = ({ image, label, link, onClick }) => {
   return (
@@ -52,7 +52,7 @@ const Menu = () => {
   useEffect(() => {
     const usernameFromToken = getUsernameFromToken();
     if (usernameFromToken) {
-      setUsername(usernameFromToken); 
+      setUsername(usernameFromToken);
     }
   }, []);
 
@@ -94,7 +94,7 @@ const Menu = () => {
         };
       }).reverse(); // Đảo ngược thứ tự trận đấu
 
-      setMatches(matchData); 
+      setMatches(matchData);
     } catch (error) {
       console.error('Lỗi khi gọi API:', error);
     }

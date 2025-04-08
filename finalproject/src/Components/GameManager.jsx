@@ -6,8 +6,8 @@ class GameManager {
   // Lấy danh sách các nước đi hợp lệ
   getValidMoves(piece, row, col) {
     if (!piece || typeof piece !== "string") {
-        console.warn("⚠ Dữ liệu quân cờ không hợp lệ:", piece);
-        return [];
+      console.warn("⚠ Dữ liệu quân cờ không hợp lệ:", piece);
+      return [];
     }
 
 
@@ -16,153 +16,153 @@ class GameManager {
 
 
     switch (piece.toLowerCase()) {
-        case "p": // 🛠 Tốt (Pawn)
-            if (isRed) {
-                if (row < 9 && this.canMove(row + 1, col, isRed)) moves.push([row + 1, col]); // Đi lên
-                if (row >= 5) { // Qua sông có thể đi ngang
-                    if (col > 0 && this.canMove(row, col - 1, isRed)) moves.push([row, col - 1]); // Trái
-                    if (col < 8 && this.canMove(row, col + 1, isRed)) moves.push([row, col + 1]); // Phải
-                }
-            } else {
-                if (row > 0 && this.canMove(row - 1, col, isRed)) moves.push([row - 1, col]); // Đi xuống
-                if (row <= 4) { // Qua sông có thể đi ngang
-                    if (col > 0 && this.canMove(row, col - 1, isRed)) moves.push([row, col - 1]); // Trái
-                    if (col < 8 && this.canMove(row, col + 1, isRed)) moves.push([row, col + 1]); // Phải
-                }
-            }
-            break;
-        case "r": // 🏰 Xe (Rook)
-            this.addLinearMoves(moves, row, col, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
-            break;
-        case "c": // 🔥 Pháo (Cannon)
-            this.addCannonMoves(moves, row, col);
-            break;
-        case "n": // 🐴 Mã (Knight)
-            this.addKnightMoves(moves, row, col, isRed);
-            break;
-        case "b": // 🎭 Tượng (Bishop)
-            this.addBishopMoves(moves, row, col, isRed);
-            break;
-        case "a": // 🏯 Sĩ (Advisor)
-            this.addAdvisorMoves(moves, row, col, isRed);
-            break;
-        case "k": // 👑 Tướng (King)
-            this.addKingMoves(moves, row, col, isRed);
-            break;
-        default:
-            console.warn("⚠ Không xác định được quân cờ:", piece);
-            break;             
+      case "p": // 🛠 Tốt (Pawn)
+        if (isRed) {
+          if (row < 9 && this.canMove(row + 1, col, isRed)) moves.push([row + 1, col]); // Đi lên
+          if (row >= 5) { // Qua sông có thể đi ngang
+            if (col > 0 && this.canMove(row, col - 1, isRed)) moves.push([row, col - 1]); // Trái
+            if (col < 8 && this.canMove(row, col + 1, isRed)) moves.push([row, col + 1]); // Phải
+          }
+        } else {
+          if (row > 0 && this.canMove(row - 1, col, isRed)) moves.push([row - 1, col]); // Đi xuống
+          if (row <= 4) { // Qua sông có thể đi ngang
+            if (col > 0 && this.canMove(row, col - 1, isRed)) moves.push([row, col - 1]); // Trái
+            if (col < 8 && this.canMove(row, col + 1, isRed)) moves.push([row, col + 1]); // Phải
+          }
+        }
+        break;
+      case "r": // 🏰 Xe (Rook)
+        this.addLinearMoves(moves, row, col, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
+        break;
+      case "c": // 🔥 Pháo (Cannon)
+        this.addCannonMoves(moves, row, col);
+        break;
+      case "n": // 🐴 Mã (Knight)
+        this.addKnightMoves(moves, row, col, isRed);
+        break;
+      case "b": // 🎭 Tượng (Bishop)
+        this.addBishopMoves(moves, row, col, isRed);
+        break;
+      case "a": // 🏯 Sĩ (Advisor)
+        this.addAdvisorMoves(moves, row, col, isRed);
+        break;
+      case "k": // 👑 Tướng (King)
+        this.addKingMoves(moves, row, col, isRed);
+        break;
+      default:
+        console.warn("⚠ Không xác định được quân cờ:", piece);
+        break;
     }
 
     return moves;
-}
-
-canMove(row, col, isRed) {
-  if (row < 0 || row >= 10 || col < 0 || col >= 9) return false; // ✅ Kiểm tra giới hạn bàn cờ
-  const targetPiece = this.board[row][col];
-
-  if (!targetPiece || targetPiece === "") return true; // ✅ Nếu ô trống, có thể đi
-
-  if (typeof targetPiece !== "string") {
-      console.warn("⚠ targetPiece không hợp lệ tại", row, col, ":", targetPiece);
-      return false;
   }
 
-  const isTargetRed = targetPiece.toUpperCase() !== targetPiece; // ✅ Kiểm tra quân cờ có phải của Đỏ không
-  return isRed !== isTargetRed; // ✅ Chỉ có thể đi nếu là quân địch
-}
+  canMove(row, col, isRed) {
+    if (row < 0 || row >= 10 || col < 0 || col >= 9) return false; // ✅ Kiểm tra giới hạn bàn cờ
+    const targetPiece = this.board[row][col];
+
+    if (!targetPiece || targetPiece === "") return true; // ✅ Nếu ô trống, có thể đi
+
+    if (typeof targetPiece !== "string") {
+      console.warn("⚠ targetPiece không hợp lệ tại", row, col, ":", targetPiece);
+      return false;
+    }
+
+    const isTargetRed = targetPiece.toUpperCase() !== targetPiece; // ✅ Kiểm tra quân cờ có phải của Đỏ không
+    return isRed !== isTargetRed; // ✅ Chỉ có thể đi nếu là quân địch
+  }
 
   addLinearMoves(moves, row, col, directions) {
     directions.forEach(([rowStep, colStep]) => {
-        let r = row + rowStep;
-        let c = col + colStep;
+      let r = row + rowStep;
+      let c = col + colStep;
 
-        while (r >= 0 && r < 10 && c >= 0 && c < 9) {
-            const targetPiece = this.board[r][c];
+      while (r >= 0 && r < 10 && c >= 0 && c < 9) {
+        const targetPiece = this.board[r][c];
 
-            if (!targetPiece) { // ✅ Nếu ô trống, có thể đi tiếp
-                moves.push([r, c]);
-            } else {
-                const currentPiece = this.board[row][col];
+        if (!targetPiece) { // ✅ Nếu ô trống, có thể đi tiếp
+          moves.push([r, c]);
+        } else {
+          const currentPiece = this.board[row][col];
 
-                // ✅ Kiểm tra nếu `currentPiece` hoặc `targetPiece` là null trước khi gọi `.toUpperCase()`
-                if (currentPiece && targetPiece) {
-                    const isEnemy = (targetPiece.toUpperCase() !== targetPiece) !== (currentPiece.toUpperCase() !== currentPiece);
-                    if (isEnemy) moves.push([r, c]);
-                }
-                
-                break; // Gặp quân cờ thì dừng lại
-            }
+          // ✅ Kiểm tra nếu `currentPiece` hoặc `targetPiece` là null trước khi gọi `.toUpperCase()`
+          if (currentPiece && targetPiece) {
+            const isEnemy = (targetPiece.toUpperCase() !== targetPiece) !== (currentPiece.toUpperCase() !== currentPiece);
+            if (isEnemy) moves.push([r, c]);
+          }
 
-            r += rowStep;
-            c += colStep;
+          break; // Gặp quân cờ thì dừng lại
         }
+
+        r += rowStep;
+        c += colStep;
+      }
     });
-}
+  }
   addCannonMoves(moves, row, col) {
     const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]]; // Các hướng di chuyển
 
     directions.forEach(([rowStep, colStep]) => {
-        let r = row + rowStep;
-        let c = col + colStep;
-        let jumped = false; // Theo dõi xem đã nhảy qua quân cờ nào chưa
+      let r = row + rowStep;
+      let c = col + colStep;
+      let jumped = false; // Theo dõi xem đã nhảy qua quân cờ nào chưa
 
-        while (r >= 0 && r < 10 && c >= 0 && c < 9) {
-            const targetPiece = this.board[r][c];
+      while (r >= 0 && r < 10 && c >= 0 && c < 9) {
+        const targetPiece = this.board[r][c];
 
-            if (!targetPiece) {
-                // Nếu ô trống và chưa nhảy qua quân cản, cho phép đi tiếp
-                if (!jumped) moves.push([r, c]);
-            } else {
-                if (!jumped) {
-                    // Nếu gặp quân cờ đầu tiên, đánh dấu đã nhảy
-                    jumped = true;
-                } else {
-                    // Nếu đã nhảy qua 1 quân, kiểm tra xem có thể ăn không
-                    const currentPiece = this.board[row][col];
-                    const isEnemy = currentPiece && targetPiece &&
-                                    (targetPiece.toUpperCase() !== targetPiece) !== (currentPiece.toUpperCase() !== currentPiece);
-                    if (isEnemy) moves.push([r, c]);
-                    break; // Dừng lại vì không thể đi tiếp sau khi ăn quân
-                }
-            }
-
-            r += rowStep;
-            c += colStep;
+        if (!targetPiece) {
+          // Nếu ô trống và chưa nhảy qua quân cản, cho phép đi tiếp
+          if (!jumped) moves.push([r, c]);
+        } else {
+          if (!jumped) {
+            // Nếu gặp quân cờ đầu tiên, đánh dấu đã nhảy
+            jumped = true;
+          } else {
+            // Nếu đã nhảy qua 1 quân, kiểm tra xem có thể ăn không
+            const currentPiece = this.board[row][col];
+            const isEnemy = currentPiece && targetPiece &&
+              (targetPiece.toUpperCase() !== targetPiece) !== (currentPiece.toUpperCase() !== currentPiece);
+            if (isEnemy) moves.push([r, c]);
+            break; // Dừng lại vì không thể đi tiếp sau khi ăn quân
+          }
         }
+
+        r += rowStep;
+        c += colStep;
+      }
     });
-}
+  }
 
 
 
   addKnightMoves(moves, row, col, isRed) {
     const knightMoves = [
-        [-2, -1], [-2, 1], [2, -1], [2, 1],
-        [-1, -2], [-1, 2], [1, -2], [1, 2]
+      [-2, -1], [-2, 1], [2, -1], [2, 1],
+      [-1, -2], [-1, 2], [1, -2], [1, 2]
     ];
 
     knightMoves.forEach(([dr, dc]) => {
-        const r = row + dr;
-        const c = col + dc;
+      const r = row + dr;
+      const c = col + dc;
 
-        // Kiểm tra nếu r, c nằm ngoài biên của bàn cờ (10x9)
-        if (r < 0 || r >= 10 || c < 0 || c >= 9) return;
+      // Kiểm tra nếu r, c nằm ngoài biên của bàn cờ (10x9)
+      if (r < 0 || r >= 10 || c < 0 || c >= 9) return;
 
-        // Kiểm tra quân cản (chỉ có thể đi khi không có quân cản)
-        const midRow = row + Math.sign(dr);  // Ô giữa theo hướng dọc
-        const midCol = col + Math.sign(dc);  // Ô giữa theo hướng ngang
+      // Kiểm tra quân cản (chỉ có thể đi khi không có quân cản)
+      const midRow = row + Math.sign(dr);  // Ô giữa theo hướng dọc
+      const midCol = col + Math.sign(dc);  // Ô giữa theo hướng ngang
 
-        if ((Math.abs(dr) === 2 && this.board[midRow]?.[col] !== "") || 
-            (Math.abs(dc) === 2 && this.board[row]?.[midCol] !== "")) {
-            return; // Nếu có quân cản thì không thể đi
-        }
+      if ((Math.abs(dr) === 2 && this.board[midRow]?.[col] !== "") ||
+        (Math.abs(dc) === 2 && this.board[row]?.[midCol] !== "")) {
+        return; // Nếu có quân cản thì không thể đi
+      }
 
-        // Nếu không bị cản, kiểm tra xem có thể đi đến đó không
-        if (this.canMove(r, c, isRed)) {
-            moves.push([r, c]);
-        }
+      // Nếu không bị cản, kiểm tra xem có thể đi đến đó không
+      if (this.canMove(r, c, isRed)) {
+        moves.push([r, c]);
+      }
     });
-}
+  }
 
 
 
@@ -302,7 +302,7 @@ canMove(row, col, isRed) {
 
   movePiece(fromRow, fromCol, toRow, toCol) {
     if (!this.board[fromRow] || !this.board[fromRow][fromCol]) {
-        return null; // Trả về null nếu không hợp lệ
+      return null; // Trả về null nếu không hợp lệ
     }
 
     // Tạo bản sao bàn cờ mới (Không làm thay đổi this.board)
@@ -315,45 +315,45 @@ canMove(row, col, isRed) {
     newBoard[fromRow][fromCol] = "";
     this.board = newBoard;
     return newBoard; // Trả về bàn cờ mới thay vì thay đổi this.board
-}
+  }
 
   // Kiểm tra xem Tướng của một bên có đang bị chiếu hay không
   isKingInCheck(isRed) {
-  const kingSymbol = isRed ? "k" : "K"; // Ký hiệu của Tướng
-  let kingPosition = null;
+    const kingSymbol = isRed ? "k" : "K"; // Ký hiệu của Tướng
+    let kingPosition = null;
 
-  // Tìm vị trí của Tướng
-  for (let row = 0; row < 10; row++) {
-    for (let col = 0; col < 9; col++) {
-      if (this.board[row][col] === kingSymbol) {
-        kingPosition = { row, col };
-        break;
+    // Tìm vị trí của Tướng
+    for (let row = 0; row < 10; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (this.board[row][col] === kingSymbol) {
+          kingPosition = { row, col };
+          break;
+        }
       }
+      if (kingPosition) break;
     }
-    if (kingPosition) break;
-  }
 
-  if (!kingPosition) return false; // Không tìm thấy Tướng (trường hợp không xảy ra)
+    if (!kingPosition) return false; // Không tìm thấy Tướng (trường hợp không xảy ra)
 
-  // 1. Kiểm tra xem có quân cờ nào của đối phương có thể ăn Tướng không
-  for (let row = 0; row < 10; row++) {
-    for (let col = 0; col < 9; col++) {
-      const piece = this.board[row][col];
-      if (piece && (piece === piece.toLowerCase()) !== isRed) {
-        // Nếu là quân của đối phương
-        const validMoves = this.getValidMoves(piece, row, col);
-        if (validMoves.some(([r, c]) => r === kingPosition.row && c === kingPosition.col)) {
-          return true; // Tướng bị chiếu
+    // 1. Kiểm tra xem có quân cờ nào của đối phương có thể ăn Tướng không
+    for (let row = 0; row < 10; row++) {
+      for (let col = 0; col < 9; col++) {
+        const piece = this.board[row][col];
+        if (piece && (piece === piece.toLowerCase()) !== isRed) {
+          // Nếu là quân của đối phương
+          const validMoves = this.getValidMoves(piece, row, col);
+          if (validMoves.some(([r, c]) => r === kingPosition.row && c === kingPosition.col)) {
+            return true; // Tướng bị chiếu
+          }
         }
       }
     }
+    // 2. Kiểm tra xem hai Tướng có đối mặt hay không
+    if (this.areKingsFacing(this.board)) {
+      return true; // Nếu hai tướng đối mặt, coi như bị chiếu
+    }
+    return false; // Không bị chiếu
   }
-  // 2. Kiểm tra xem hai Tướng có đối mặt hay không
-  if (this.areKingsFacing(this.board)) {
-    return true; // Nếu hai tướng đối mặt, coi như bị chiếu
-  }
-  return false; // Không bị chiếu
-}
 
   simulateMove(fromRow, fromCol, toRow, toCol) {
     const newBoard = this.board.map(row => [...row]); // Tạo bản sao của bàn cờ
@@ -362,41 +362,41 @@ canMove(row, col, isRed) {
     newBoard[fromRow][fromCol] = ""; // Xóa quân cờ ở vị trí cũ
     return newBoard;
   }
-  
+
   isMoveCausingCheck(fromRow, fromCol, toRow, toCol, isRed) {
     const simulatedBoard = this.simulateMove(fromRow, fromCol, toRow, toCol);
     const tempGameManager = new GameManager(simulatedBoard);
     return tempGameManager.isKingInCheck(isRed);
   }
-  
+
   isCheckmate(isRed) {
     const hasKingCheck = this.isKingInCheck(isRed); // Kiểm tra đang bị chiếu
 
     // Duyệt qua tất cả các quân cờ của bên isRed
     for (let row = 0; row < 10; row++) {
-        for (let col = 0; col < 9; col++) {
-            const piece = this.board[row][col];
-            if (piece && ((piece === piece.toLowerCase()) === isRed)) {
-                const validMoves = this.getValidMoves(piece, row, col);
-                for (const [r, c] of validMoves) {
-                    const simulatedBoard = this.simulateMove(row, col, r, c);
-                    const tempGameManager = new GameManager(simulatedBoard);
+      for (let col = 0; col < 9; col++) {
+        const piece = this.board[row][col];
+        if (piece && ((piece === piece.toLowerCase()) === isRed)) {
+          const validMoves = this.getValidMoves(piece, row, col);
+          for (const [r, c] of validMoves) {
+            const simulatedBoard = this.simulateMove(row, col, r, c);
+            const tempGameManager = new GameManager(simulatedBoard);
 
-                    // Kiểm tra: nếu sau khi đi nước này, Tướng không bị chiếu và không mặt đối mặt
-                    if (!tempGameManager.isKingInCheck(isRed) &&
-                        !tempGameManager.areKingsFacing(simulatedBoard)) {
-                        return false; // Vẫn còn ít nhất 1 nước đi hợp lệ → không phải chiếu bí
-                    }
-                }
+            // Kiểm tra: nếu sau khi đi nước này, Tướng không bị chiếu và không mặt đối mặt
+            if (!tempGameManager.isKingInCheck(isRed) &&
+              !tempGameManager.areKingsFacing(simulatedBoard)) {
+              return false; // Vẫn còn ít nhất 1 nước đi hợp lệ → không phải chiếu bí
             }
+          }
         }
+      }
     }
 
     // Nếu không còn nước đi hợp lệ nào:
     // - Nếu đang bị chiếu → là chiếu bí
     // - Nếu KHÔNG bị chiếu → cũng tính là thua (theo yêu cầu)
     return true;
-}
+  }
 
   /**
     * Kiểm tra xem hai tướng có đang đối mặt trực tiếp không
@@ -442,30 +442,30 @@ canMove(row, col, isRed) {
 
     // Duyệt qua tất cả các quân cờ của bên isRed
     for (let row = 0; row < 10; row++) {
-        for (let col = 0; col < 9; col++) {
-            const piece = this.board[row][col];
-            // Kiểm tra nếu quân này thuộc bên isRed (đối với quân đỏ, piece là chữ thường)
-            if (piece && ((piece === piece.toLowerCase()) === isRed)) {
-                // Lấy danh sách các nước đi hợp lệ của quân đó
-                const validMoves = this.getValidMoves(piece, row, col);
-                for (const [r, c] of validMoves) {
-                    // Giả lập nước đi này mà không làm thay đổi bàn cờ gốc
-                    const simulatedBoard = this.simulateMove(row, col, r, c);
-                    const tempGameManager = new GameManager(simulatedBoard);
-                    // Kiểm tra xem nước đi có hợp lệ không và không làm vua bị chiếu
-                    if (!tempGameManager.isKingInCheck(isRed)) {
-                        return false; // Nếu có nước đi hợp lệ, không phải hòa
-                    }
-                }
+      for (let col = 0; col < 9; col++) {
+        const piece = this.board[row][col];
+        // Kiểm tra nếu quân này thuộc bên isRed (đối với quân đỏ, piece là chữ thường)
+        if (piece && ((piece === piece.toLowerCase()) === isRed)) {
+          // Lấy danh sách các nước đi hợp lệ của quân đó
+          const validMoves = this.getValidMoves(piece, row, col);
+          for (const [r, c] of validMoves) {
+            // Giả lập nước đi này mà không làm thay đổi bàn cờ gốc
+            const simulatedBoard = this.simulateMove(row, col, r, c);
+            const tempGameManager = new GameManager(simulatedBoard);
+            // Kiểm tra xem nước đi có hợp lệ không và không làm vua bị chiếu
+            if (!tempGameManager.isKingInCheck(isRed)) {
+              return false; // Nếu có nước đi hợp lệ, không phải hòa
             }
+          }
         }
+      }
     }
 
     // Nếu không có nước đi hợp lệ nào, trả về true (hòa)
     return true;
-}
+  }
 
-  
+
 
 }
 

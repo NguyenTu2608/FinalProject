@@ -45,7 +45,7 @@ export default function ChooseAI() {
           Siêu Khó
         </button>
       </div>
-      
+
       <button
         onClick={() => navigate("/")}
         className="absolute bottom-5 left-5 px-6 py-3 bg-red-500 rounded-full text-lg font-semibold hover:bg-red-700 transition"

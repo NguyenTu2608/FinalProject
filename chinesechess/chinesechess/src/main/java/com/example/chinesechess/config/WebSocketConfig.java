@@ -20,7 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(org.springframework.web.socket.config.annotation.StompEndpointRegistry registry) {
         // Đăng ký endpoint để client kết nối
         registry.addEndpoint("/ws").
-                setAllowedOriginPatterns("*").
+                setAllowedOriginPatterns("http://localhost:3000","https://chinachess.io.vn").
                 withSockJS(); // Hỗ trợ SockJS
     }
 }

@@ -37,7 +37,7 @@ const ProfileCard = ({ user }) => {
       });
       return;
     }
-  
+
     try {
       const response = await apiClient.post(
         "/users/changepassword",
@@ -47,11 +47,11 @@ const ProfileCard = ({ user }) => {
           confirmPassword,
         }
       );
-  
-      toast.success(response.data || "Đổi mật khẩu thành công!" , {
-        className:"bg-green-500 text-white text-center text-lg font-semibold shadow-md px-6 py-4 border-2 border-green-600 rounded-full my-2"
+
+      toast.success(response.data || "Đổi mật khẩu thành công!", {
+        className: "bg-green-500 text-white text-center text-lg font-semibold shadow-md px-6 py-4 border-2 border-green-600 rounded-full my-2"
       }
-        );
+      );
       setIsPasswordModalOpen(false); // Đóng modal sau khi thành công
       // Reset form nếu cần
       setOldPassword("");
@@ -83,7 +83,7 @@ const ProfileCard = ({ user }) => {
               onClick={handleAvatarClick} // Mở modal khi click
             />
           </div>
-          
+
 
           {/* Thông tin user */}
           <div className="ml-5 flex flex-col justify-center">
@@ -100,7 +100,7 @@ const ProfileCard = ({ user }) => {
             >
               {user?.username || "Loading..."}
             </div>
-            
+
             <div className="flex mt-4 space-x-6">
               <div className="flex items-center bg-gray-800 text-yellow-200 px-3 py-2 rounded-full space-x-2">
                 <img src="/Assets/red-dumpling.png" alt="Icon1" className="w-6 h-6" />
@@ -213,7 +213,7 @@ const ProfileCard = ({ user }) => {
                 className="w-full px-4 py-2 border-2 border-yellow-800 rounded-xl mt-2"
                 placeholder="Nhập mật khẩu cũ"
               />
-              
+
             </div>
 
             {/* Mật khẩu mới */}
@@ -256,17 +256,17 @@ const ProfileCard = ({ user }) => {
             </div>
             {/* ...router or other app components */}
           </div>
-          
+
         </div>
       )}
       <ToastContainer
-            position="top-center"
-            hideProgressBar={true}
-            closeOnClick
-            pauseOnHover
-            draggable
-            autoClose={3000}
-          />
+        position="top-center"
+        hideProgressBar={true}
+        closeOnClick
+        pauseOnHover
+        draggable
+        autoClose={3000}
+      />
     </>
   );
 };

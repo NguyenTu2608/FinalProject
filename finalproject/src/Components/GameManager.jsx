@@ -677,6 +677,27 @@ class GameManager {
     return !redKingExists || !blackKingExists;
   }
 
+  getDefendedSquares(board, color) {
+    const defended = new Set();
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 9; c++) {
+        const piece = board[r][c];
+        if (
+          piece &&
+          ((color === "red" && piece === piece.toLowerCase()) ||
+           (color === "black" && piece === piece.toUpperCase()))
+        ) {
+          const moves = this.getValidMoves(piece, r, c, board);
+          for (const [mr, mc] of moves) {
+            defended.add(`${mr},${mc}`);
+          }
+        }
+      }
+    }
+    return defended;
+  }
+  
+
 }
 
 
